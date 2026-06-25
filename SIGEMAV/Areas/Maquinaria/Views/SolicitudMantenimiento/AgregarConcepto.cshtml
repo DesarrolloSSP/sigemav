@@ -1,0 +1,260 @@
+﻿@model SIGEMAV.Models.ViewModels.Maquinaria.AgregarConceptoViewModel
+
+<div class="card shadow-sm border-0">
+
+    <div class="card-header bg-white">
+
+        <h4 class="fw-bold mb-0">
+            Agregar Servicio
+        </h4>
+
+    </div>
+
+    <div class="card-body">
+
+        <form asp-action="AgregarConcepto" method="post">
+            <input asp-for="SolicitudMantenimientoId" type="hidden" />
+            <div class="row g-4">
+
+                <!-- Concepto -->
+
+                <div class="col-md-6">
+
+                    <label class="form-label fw-semibold">
+
+                        Concepto Servicio
+
+                    </label>
+
+               
+                    <select asp-for="ConceptoServicioId"
+                            class="form-select"
+                            id="conceptoSelect">
+
+                        <option value="">
+                            Seleccione concepto
+                        </option>
+
+                        @foreach (var concepto in Model.ConceptosServicio)
+                        {
+                            var conceptoId = int.Parse(concepto.Value);
+
+                            var disabled =
+                                Model.ConceptosYaRegistrados
+                                    .Contains(conceptoId);
+
+                            if (disabled)
+                            {
+                                <option value="@concepto.Value" disabled>
+                                    @concepto.Text (YA AGREGADO)
+                                </option>
+                            }
+                            else
+                            {
+                                <option value="@concepto.Value">
+                                    @concepto.Text
+                                </option>
+                            }
+                        }
+
+                    </select>
+
+                </div>
+
+                <!-- Cantidad -->
+
+                <div class="col-md-2">
+
+                    <label class="form-label fw-semibold">
+
+                        Cantidad
+
+                    </label>
+
+                    <input asp-for="Cantidad"
+                           class="form-control" />
+
+                </div>
+
+                <!-- Mano obra -->
+
+                <div class="col-md-2">
+
+                    <label class="form-label fw-semibold">
+
+                        Mano Obra
+
+                    </label>
+
+                    <input asp-for="CostoEstimadoManoObra"class="form-control" disabled/>
+
+                </div>
+
+                <!-- Refacciones -->
+
+                <div class="col-md-2">
+
+                    <label class="form-label fw-semibold">
+
+                        Refacciones
+
+                    </label>
+
+                    <input asp-for="CostoEstimadoRefacciones" class="form-control" disabled/>
+
+                </div>
+
+                <!-- Observaciones -->
+
+                <div class="col-md-12">
+
+                    <label class="form-label fw-semibold">
+
+                        Observaciones
+
+                    </label>
+
+                    <textarea asp-for="Observaciones" rows="3"
+                                  class="form-control">
+                    </textarea>
+
+                    </div>
+
+                </div>
+
+                <hr class="my-4" />
+
+                <div class="d-flex justify-content-end gap-2">
+
+                    <a asp-action="Detalle" asp-route-id="@Model.SolicitudMantenimientoId" class="btn btn-outline-secondary">
+
+                        Cancelar
+
+                    </a>
+
+                    <button type="submit" class="btn text-light" style="background-color:#800705">
+                        <i class="bi bi-save me-1"></i>
+                        Guardar Concepto
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+    @section Scripts {
+
+
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+        <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+
+
+
+        @if (ViewBag.Error != null)
+        {
+            <script>
+
+                Swal.fire({
+
+                icon: 'info',
+
+                title: 'Concepto ya registrado',
+
+                html: `
+                El servicio seleccionado ya existe
+                dentro de la solicitud actual.
+                `,
+
+                confirmButtonColor: '#800705',
+
+                confirmButtonText: 'Aceptar'
+
+                });
+
+            </script>
+        }
+
+
+
+        <script>
+
+            $(document).ready(function () {
+
+            // SELECT2
+
+            $('#conceptoSelect').select2({
+
+            placeholder: 'Buscar concepto...',
+
+            allowClear: true,
+
+            width: '100%'
+            });
+
+            // CAMBIO CONCEPTO
+
+            $('#conceptoSelect').change(function () {
+
+            const conceptoServicioId = $(this).val();
+
+            const solicitudId =
+            $('#SolicitudMantenimientoId').val();
+
+            if (!conceptoServicioId) {
+
+            $('#CostoEstimadoManoObra').val('');
+
+            $('#CostoEstimadoRefacciones').val('');
+
+            return;
+            }
+
+            $.ajax({
+
+            url: '/Maquinaria/SolicitudMantenimiento/ObtenerCostoConcepto',
+
+            type: 'GET',
+
+            data: {
+
+            solicitudId: solicitudId,
+
+            conceptoServicioId: conceptoServicioId
+            },
+
+            success: function (data) {
+
+            $('#CostoEstimadoManoObra')
+            .val(data.costoManoObra);
+
+            $('#CostoEstimadoRefacciones')
+            .val(data.costoRefacciones);
+            },
+
+            error: function () {
+
+            Swal.fire({
+
+            icon: 'error',
+
+            title: 'Error',
+
+            text: 'No fue posible obtener los costos.',
+
+            confirmButtonColor: '#800705'
+            });
+            }
+            });
+
+            });
+
+            });
+
+        </script>
+
+    }

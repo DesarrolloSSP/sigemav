@@ -1,0 +1,810 @@
+﻿@model SIGEMAV.Models.ViewModels.Financieros.Odp.OrdenPagoVM
+
+@{
+	ViewData["Title"] = "Editar Orden de Pago";
+}
+
+<div class="container-fluid">
+
+	<form asp-area="AdminFinancieros"
+		  asp-controller="Odp"
+		  asp-action="Edit"
+		  method="post">
+
+		<input asp-for="IdOrdenPago" type="hidden" />
+
+		<div class="card shadow-sm border-0">
+
+			<!-- ========================= -->
+			<!-- HEADER -->
+			<!-- ========================= -->
+
+			<div class="card-header bg-white">
+
+				<div class="d-flex justify-content-between align-items-center">
+
+					<div>
+
+						<h3 class="fw-bold mb-0">
+
+							<i class="bi bi-pencil-square"></i>
+							Editar Orden de Pago
+
+						</h3>
+
+						<small class="text-muted">
+
+							Actualización de información
+							y partidas
+
+						</small>
+
+					</div>
+
+					<div>
+
+						<a asp-area="AdminFinancieros"
+						   asp-controller="Odp"
+						   asp-action="Index"
+						   class="btn btn-outline-secondary">
+
+							<i class="bi bi-arrow-left"></i>
+							Regresar
+
+						</a>
+
+					</div>
+
+				</div>
+
+			</div>
+
+			<!-- ========================= -->
+			<!-- BODY -->
+			<!-- ========================= -->
+
+			<div class="card-body">
+
+				<div asp-validation-summary="ModelOnly"
+					 class="alert alert-danger">
+				</div>
+
+				<!-- ========================= -->
+				<!-- DATOS GENERALES -->
+				<!-- ========================= -->
+
+				<div class="row">
+
+					<div class="col-md-3 mb-3">
+
+						<label asp-for="NumeroOrden"
+							   class="form-label fw-semibold">
+
+							Número Orden
+
+						</label>
+
+						<input asp-for="NumeroOrden"
+							   class="form-control" />
+
+						<span asp-validation-for="NumeroOrden"
+							  class="text-danger">
+						</span>
+
+					</div>
+
+					<div class="col-md-3 mb-3">
+
+						<label asp-for="Fecha"
+							   class="form-label fw-semibold">
+
+							Fecha
+
+						</label>
+
+						<input asp-for="Fecha"
+							   type="date"
+							   class="form-control" />
+
+						<span asp-validation-for="Fecha"
+							  class="text-danger">
+						</span>
+
+					</div>
+
+					<div class="col-md-6 mb-3">
+
+						<label asp-for="IdProovedor"
+							   class="form-label fw-semibold">
+
+							Proveedor
+
+						</label>
+
+						<select asp-for="IdProovedor"
+								asp-items="Model.ListaProveedores"
+								class="form-select">
+
+							<option value="">
+								Seleccione
+							</option>
+
+						</select>
+
+						<span asp-validation-for="IdProovedor"
+							  class="text-danger">
+						</span>
+
+					</div>
+
+				</div>
+
+				<div class="row">
+
+					<div class="col-md-3 mb-3">
+
+						<label asp-for="ImporteTotal"
+							   class="form-label fw-semibold">
+
+							Importe Total
+
+						</label>
+
+						<div class="input-group">
+
+							<span class="input-group-text">
+								$
+							</span>
+
+							<input asp-for="ImporteTotal"
+								   readonly
+								   class="form-control text-end bg-light" />
+
+						</div>
+
+					</div>
+
+					<div class="col-md-3 mb-3">
+
+						<label asp-for="Estatus"
+							   class="form-label fw-semibold">
+
+							Estatus
+
+						</label>
+
+						<select asp-for="Estatus"
+								class="form-select">
+
+							<option value="ACTIVA">
+								ACTIVA
+							</option>
+
+							<option value="CANCELADA">
+								CANCELADA
+							</option>
+
+						</select>
+
+					</div>
+
+				</div>
+
+				<!-- ========================= -->
+				<!-- DETALLE -->
+				<!-- ========================= -->
+
+				<hr />
+
+				<div class="d-flex justify-content-between align-items-center mb-3">
+
+					<div>
+
+						<h5 class="fw-bold mb-0">
+
+							<i class="bi bi-list-ul"></i>
+							Detalle de Partidas
+
+						</h5>
+
+						<small class="text-muted">
+
+							Administración de partidas
+							de la orden de pago
+
+						</small>
+
+					</div>
+
+					<button type="button"
+							class="btn btn-success"
+							id="btnAgregarPartida">
+
+						<i class="bi bi-plus-circle"></i>
+						Agregar Partida
+
+					</button>
+
+				</div>
+
+				<div class="table-responsive">
+
+					<table class="table table-bordered table-sm align-middle text-nowrap"
+						   id="tablaPartidas">
+
+						<thead class="table-light">
+
+							<tr class="text-center align-middle">
+
+								<th style="min-width:250px;">
+									Concepto
+								</th>
+
+								<th style="min-width:180px;">
+									Partida
+								</th>
+
+								<th style="min-width:90px;">
+									Serie
+								</th>
+
+								<th style="min-width:90px;">
+									Folio
+								</th>
+
+								<th style="min-width:140px;">
+									Fecha Factura
+								</th>
+
+								<th style="min-width:120px;">
+									No. Placa
+								</th>
+
+								<th style="min-width:130px;"
+									class="text-end">
+
+									Importe
+
+								</th>
+
+								<th style="min-width:70px;">
+								</th>
+
+							</tr>
+
+						</thead>
+
+						<tbody>
+
+							@if (Model.Detalles != null &&
+								Model.Detalles.Any())
+							{
+								int index = 0;
+
+								foreach (var item in Model.Detalles)
+								{
+									<tr>
+
+										<!-- ========================= -->
+										<!-- DESCRIPCION PARTIDA -->
+										<!-- ========================= -->
+
+										<td>
+
+											<select name="Detalles[@index].Concepto"
+													class="form-select"
+													required>
+
+												<option value="">
+													Seleccione
+												</option>
+
+												@foreach (var descripcion
+											   in Model.DescripPartida)
+												{
+													if (descripcion.Value ==
+														item.Concepto)
+													{
+														<option value="@descripcion.Value"
+																selected>
+
+															@descripcion.Text
+
+														</option>
+													}
+													else
+													{
+														<option value="@descripcion.Value">
+
+															@descripcion.Text
+
+														</option>
+													}
+												}
+
+											</select>
+
+										</td>
+
+										<!-- ========================= -->
+										<!-- PARTIDA -->
+										<!-- ========================= -->
+
+										<td>
+
+											<select name="Detalles[@index].IdPartida"
+													class="form-select"
+													required>
+
+												<option value="">
+													Seleccione
+												</option>
+
+												@foreach (var partida in Model.Partidas)
+												{
+													if (partida.Value ==
+														item.IdPartida?.ToString())
+													{
+														<option value="@partida.Value"
+																selected>
+
+															@partida.Text
+
+														</option>
+													}
+													else
+													{
+														<option value="@partida.Value">
+
+															@partida.Text
+
+														</option>
+													}
+												}
+
+											</select>
+
+										</td>
+
+										<!-- ========================= -->
+										<!-- SERIE -->
+										<!-- ========================= -->
+
+										<td>
+
+											<input type="text"
+												   name="Detalles[@index].Serie"
+												   value="@item.Serie"
+												   class="form-control" />
+
+										</td>
+
+										<!-- ========================= -->
+										<!-- FOLIO -->
+										<!-- ========================= -->
+
+										<td>
+
+											<input type="text"
+												   name="Detalles[@index].Folio"
+												   value="@item.Folio"
+												   class="form-control" />
+
+										</td>
+
+										<!-- ========================= -->
+										<!-- FECHA FACTURA -->
+										<!-- ========================= -->
+
+										<td>
+
+											<input type="date"
+												   name="Detalles[@index].FechaFactura"
+												   value="@(item.FechaFactura?.ToString("yyyy-MM-dd"))"
+												   class="form-control" />
+
+										</td>
+
+										<!-- ========================= -->
+										<!-- NO PLACA -->
+										<!-- ========================= -->
+
+										<td>
+
+											<input type="text"
+												   name="Detalles[@index].NoPlaca"
+												   value="@item.NoPlaca"
+												   class="form-control" />
+
+										</td>
+
+										<!-- ========================= -->
+										<!-- IMPORTE -->
+										<!-- ========================= -->
+
+										<td>
+
+											<input type="number"
+												   step="0.01"
+												   min="0.01"
+												   name="Detalles[@index].Monto"
+												   value="@item.Monto"
+												   class="form-control text-end monto"
+												   required />
+
+										</td>
+
+										<!-- ========================= -->
+										<!-- ELIMINAR -->
+										<!-- ========================= -->
+
+										<td class="text-center">
+
+											<button type="button"
+													class="btn btn-danger btnEliminar">
+
+												<i class="bi bi-trash"></i>
+
+											</button>
+
+										</td>
+
+									</tr>
+
+									index++;
+								}
+							}
+
+						</tbody>
+
+						
+						<tfoot>
+
+							<tr>
+
+								<!-- TEXTO TOTAL -->
+								<th colspan="6"
+									class="text-end align-middle">
+
+									TOTAL:
+
+								</th>
+
+								<!-- MONTO -->
+								<th class="text-end align-middle">
+
+									<span id="lblTotal">
+
+										@(Model.ImporteTotal?
+											.ToString("C"))
+
+									</span>
+
+								</th>
+
+								<!-- BOTON -->
+								<th></th>
+
+							</tr>
+
+						</tfoot>
+
+
+					</table>
+
+				</div>
+
+				<!-- ========================= -->
+				<!-- BOTONES -->
+				<!-- ========================= -->
+
+				<hr />
+
+				<div class="d-flex justify-content-end gap-2">
+
+					<a asp-area="AdminFinancieros"
+					   asp-controller="Odp"
+					   asp-action="Index"
+					   class="btn btn-outline-secondary">
+
+						<i class="bi bi-x-circle"></i>
+						Cancelar
+
+					</a>
+
+					<button type="submit"
+							class="btn btn-primary">
+
+						<i class="bi bi-save"></i>
+						Guardar Cambios
+
+					</button>
+
+				</div>
+
+			</div>
+
+		</div>
+
+	</form>
+
+</div>
+
+@section Scripts {
+
+	@{
+		await Html.RenderPartialAsync("_ValidationScriptsPartial");
+	}
+
+	<script>
+
+		// =========================================
+		// INDICE INICIAL
+		// =========================================
+
+		let indice = @Model.Detalles.Count;
+
+		// =========================================
+		// OPCIONES PARTIDAS
+		// =========================================
+
+		let opcionesPartidas = '';
+
+		@foreach (var item in Model.Partidas)
+		{
+				@:opcionesPartidas += '<option value="@item.Value">@item.Text</option>';
+		}
+
+		// =========================================
+		// OPCIONES DESCRIPCION
+		// =========================================
+
+		let opcionesDescripcionPartidas = '';
+
+		@foreach (var item in Model.DescripPartida)
+		{
+				@:opcionesDescripcionPartidas += '<option value="@item.Value">@item.Text</option>';
+		}
+
+		// =========================================
+		// AGREGAR PARTIDA
+		// =========================================
+
+		$("#btnAgregarPartida").click(function () {
+
+			let filaInvalida = false;
+
+			$("#tablaPartidas tbody tr").each(function () {
+
+				let descripcionPartidas =
+					$(this)
+						.find('select[name*=".Concepto"]')
+						.val();
+
+				let partida =
+					$(this)
+						.find('select[name*=".IdPartida"]')
+						.val();
+
+				let serie =
+					$(this)
+						.find('input[name*=".Serie"]')
+						.val();
+
+				let folio =
+					$(this)
+						.find('input[name*=".Folio"]')
+						.val();
+
+				let fechaFactura =
+					$(this)
+						.find('input[name*=".FechaFactura"]')
+						.val();
+
+				let noPlaca =
+					$(this)
+						.find('input[name*=".NoPlaca"]')
+						.val();
+
+				let monto =
+					$(this)
+						.find('input[name*=".Monto"]')
+						.val();
+
+				if (
+					!descripcionPartidas ||
+					!partida ||
+					!serie ||
+					!folio ||
+					!fechaFactura ||
+					!noPlaca ||
+					!monto ||
+					parseFloat(monto) <= 0
+				) {
+					filaInvalida = true;
+
+					return false;
+				}
+
+			});
+
+			if (filaInvalida) {
+
+				alert(
+					"Complete correctamente la partida actual antes de agregar otra.");
+
+				return;
+			}
+
+			// =========================================
+			// NUEVA FILA
+			// =========================================
+
+			let fila = `
+
+			<tr>
+
+				<!-- CONCEPTO -->
+				<td>
+
+					<select name="Detalles[${indice}].Concepto"
+							class="form-select form-select-sm"
+							required>
+
+						<option value="">
+							Seleccione
+						</option>
+
+						${opcionesDescripcionPartidas}
+
+					</select>
+
+				</td>
+
+				<!-- PARTIDA -->
+				<td>
+
+					<select name="Detalles[${indice}].IdPartida"
+							class="form-select form-select-sm"
+							required>
+
+						<option value="">
+							Seleccione
+						</option>
+
+						${opcionesPartidas}
+
+					</select>
+
+				</td>
+
+				<!-- SERIE -->
+				<td>
+
+					<input type="text"
+						   name="Detalles[${indice}].Serie"
+						   class="form-control form-control-sm" />
+
+				</td>
+
+				<!-- FOLIO -->
+				<td>
+
+					<input type="text"
+						   name="Detalles[${indice}].Folio"
+						   class="form-control form-control-sm" />
+
+				</td>
+
+				<!-- FECHA FACTURA -->
+				<td>
+
+					<input type="date"
+						   name="Detalles[${indice}].FechaFactura"
+						   class="form-control form-control-sm" />
+
+				</td>
+
+				<!-- NO PLACA -->
+				<td>
+
+					<input type="text"
+						   name="Detalles[${indice}].NoPlaca"
+						   class="form-control form-control-sm" />
+
+				</td>
+
+				<!-- IMPORTE -->
+				<td>
+
+					<input type="number"
+						   step="0.01"
+						   min="0.01"
+						   name="Detalles[${indice}].Monto"
+						   class="form-control form-control-sm text-end monto"
+						   required />
+
+				</td>
+
+				<!-- ELIMINAR -->
+				<td class="text-center">
+
+					<button type="button"
+							class="btn btn-danger btn-sm btnEliminar">
+
+						<i class="bi bi-trash"></i>
+
+					</button>
+
+				</td>
+
+			</tr>
+			`;
+
+			$("#tablaPartidas tbody")
+				.append(fila);
+
+			indice++;
+
+		});
+
+		// =========================================
+		// ELIMINAR FILA
+		// =========================================
+
+		$(document).on(
+			"click",
+			".btnEliminar",
+			function () {
+
+				$(this)
+					.closest("tr")
+					.remove();
+
+				calcularTotal();
+
+			});
+
+		// =========================================
+		// CALCULAR TOTAL
+		// =========================================
+
+		$(document).on(
+			"keyup change",
+			".monto",
+			function () {
+
+				calcularTotal();
+
+			});
+
+		function calcularTotal() {
+
+			let total = 0;
+
+			$(".monto").each(function () {
+
+				let valor =
+					parseFloat($(this).val()) || 0;
+
+				total += valor;
+
+			});
+
+			$("#lblTotal")
+				.text(
+					total.toLocaleString(
+						'es-MX',
+						{
+							style: 'currency',
+							currency: 'MXN'
+						}));
+
+			$("#ImporteTotal")
+				.val(total.toFixed(2));
+
+		}
+
+	</script>
+
+}

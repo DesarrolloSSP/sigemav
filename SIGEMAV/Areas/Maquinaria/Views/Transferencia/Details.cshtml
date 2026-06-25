@@ -1,0 +1,782 @@
+﻿@using SIGEMAV.Models.ViewModels.Maquinaria
+@using SIGEMAV.Areas.Maquinaria.Funciones
+@model TransferenciaUnidadDetalleViewModel
+
+@{
+	ViewData["Title"] = "Detalle Transferencia";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+
+	<div>
+
+		<h4 class="fw-bold mb-1">
+			Detalle de solicitud de transferencia
+		</h4>
+
+		<p class="text-muted mb-0">
+			Información completa y seguimiento operativo.
+		</p>
+
+	</div>
+
+	<a asp-action="Index"
+	   class="btn btn-outline-secondary">
+
+		<i class="bi bi-arrow-left me-1"></i>
+
+		Regresar
+
+	</a>
+
+</div>
+
+@if (TempData["Success"] != null)
+{
+	<div class="alert alert-success">
+
+		@TempData["Success"]
+
+	</div>
+}
+
+@if (TempData["Error"] != null)
+{
+	<div class="alert alert-danger">
+
+		@TempData["Error"]
+
+	</div>
+}
+
+<div class="row g-4">
+
+	<!-- ========================================= -->
+	<!-- INFORMACIÓN GENERAL -->
+	<!-- ========================================= -->
+
+	<div class="col-lg-8">
+
+		<div class="card border-0 shadow-sm h-100">
+
+			<div class="card-header bg-light">
+
+				<h5 class="mb-0 fw-bold">
+
+					Información General
+
+				</h5>
+
+			</div>
+
+			<div class="card-body">
+
+				<div class="row g-4">
+
+					<div class="col-md-6">
+
+						<label class="form-label fw-semibold">
+							Folio
+						</label>
+
+						<div class="form-control bg-light">
+							@Model.Folio
+						</div>
+
+					</div>
+
+					<div class="col-md-6">
+
+						<label class="form-label fw-semibold">
+							Estatus
+						</label>
+
+						<div>
+
+							@switch (Model.EstatusTransferenciaUnidadId)
+							{
+								case 1:
+
+									<span class="badge bg-warning text-dark fs-6">
+										Pendiente
+									</span>
+
+									break;
+
+								case 2:
+
+									<span class="badge bg-success fs-6">
+										Autorizada
+									</span>
+
+									break;
+
+								case 3:
+
+									<span class="badge bg-danger fs-6">
+										Rechazada
+									</span>
+
+									break;
+
+								case 4:
+
+									<span class="badge bg-secondary fs-6">
+										Cancelada
+									</span>
+
+									break;
+
+								case 5:
+
+									<span class="badge bg-primary fs-6">
+										Entregada
+									</span>
+
+									break;
+
+								case 6:
+
+									<span class="badge bg-dark fs-6">
+										Finalizada
+									</span>
+
+									break;
+
+								default:
+
+									<span class="badge bg-light text-dark fs-6">
+										@Model.EstatusTexto
+									</span>
+
+									break;
+							}
+
+						</div>
+
+					</div>
+
+					<div class="col-md-6">
+
+						<label class="form-label fw-semibold">
+							Fecha de la solicitud
+						</label>
+
+						<div class="form-control bg-light">
+							@Model.FechaSolicitud.ToString("dd/MM/yyyy HH:mm")
+						</div>
+
+					</div>
+
+					<div class="col-md-6">
+
+						<label class="form-label fw-semibold">
+							Fecha de registro
+						</label>
+
+						<div class="form-control bg-light">
+							@Model.FechaCreacion.ToString("dd/MM/yyyy HH:mm")
+						</div>
+
+					</div>
+
+					<div class="col-md-12">
+
+						<label class="form-label fw-semibold">
+							Motivo de la solicitud de transferencia
+						</label>
+
+						<textarea class="form-control bg-light"
+								  rows="4"
+								  readonly>@Model.MotivoTransferencia</textarea>
+
+					</div>
+
+					<div class="col-md-12">
+
+						<label class="form-label fw-semibold">
+							Observaciones
+						</label>
+
+						<textarea class="form-control bg-light"
+								  rows="4"
+								  readonly>@Model.Observaciones</textarea>
+
+					</div>
+
+				</div>
+
+			</div>
+
+		</div>
+
+	</div>
+
+	<!-- ========================================= -->
+	<!-- ACCIONES -->
+	<!-- ========================================= -->
+
+	<div class="col-lg-4">
+
+		<div class="card border-0 shadow-sm h-100">
+
+			<div class="card-header bg-light">
+
+				<h5 class="mb-0 fw-bold">
+
+					Acciones
+
+				</h5>
+
+			</div>
+
+			<div class="d-grid gap-2">
+
+				@if (
+					Model.EstatusTransferenciaUnidadId ==
+						EstatusTransferenciaUnidadConstantes.Pendiente
+				)
+				{
+					<button class="btn btn-success btn-sm py-1"
+							data-bs-toggle="modal"
+							data-bs-target="#modalAutorizar">
+
+						<i class="bi bi-check-circle me-1"></i>
+
+						Autorizar transferencia
+
+					</button>
+
+					<button class="btn btn-danger btn-sm py-1"
+							data-bs-toggle="modal"
+							data-bs-target="#modalRechazar">
+
+						<i class="bi bi-x-circle me-1"></i>
+
+						Rechazar transferencia
+
+					</button>
+				}
+
+				@if (
+					Model.EstatusTransferenciaUnidadId ==
+						EstatusTransferenciaUnidadConstantes.Pendiente
+
+					||
+
+					Model.EstatusTransferenciaUnidadId ==
+						EstatusTransferenciaUnidadConstantes.Autorizada
+				)
+				{
+					<button class="btn btn-secondary btn-sm py-1"
+							data-bs-toggle="modal"
+							data-bs-target="#modalCancelar">
+
+						<i class="bi bi-slash-circle me-1"></i>
+
+						Cancelar transferencia
+
+					</button>
+				}
+
+				@if (
+					Model.EstatusTransferenciaUnidadId ==
+						EstatusTransferenciaUnidadConstantes.Autorizada
+				)
+				{
+					<a asp-action="Entregar"
+					   asp-route-id="@Model.TransferenciaUnidadId"
+					   class="btn btn-primary btn-sm py-1">
+
+						<i class="bi bi-truck me-1"></i>
+
+						Entregar Unidad
+
+					</a>
+				}
+
+				@if (
+					Model.EstatusTransferenciaUnidadId ==
+						EstatusTransferenciaUnidadConstantes.Entregada
+				)
+				{
+					<a asp-action="Recepcionar"
+					   asp-route-id="@Model.TransferenciaUnidadId"
+					   class="btn btn-dark btn-sm py-1">
+
+						<i class="bi bi-box-seam me-1"></i>
+
+						Confirmar Recepción
+
+					</a>
+				}
+
+			</div>
+
+		</div>
+
+	</div>
+
+	<!-- ========================================= -->
+	<!-- UNIDAD -->
+	<!-- ========================================= -->
+
+	<div class="col-lg-12">
+
+		<div class="card border-0 shadow-sm">
+
+			<div class="card-header bg-light">
+
+				<h5 class="mb-0 fw-bold">
+
+					Vehículo
+
+				</h5>
+
+			</div>
+
+			<div class="card-body">
+
+				<div class="row g-4">
+
+					<div class="col-md-3">
+
+						<label class="form-label fw-semibold">
+							Número económico
+						</label>
+
+						<div class="form-control bg-light">
+							@Model.NumeroEconomico
+						</div>
+
+					</div>
+
+					<div class="col-md-3">
+
+						<label class="form-label fw-semibold">
+							Placa
+						</label>
+
+						<div class="form-control bg-light">
+							@Model.PlacaActual
+						</div>
+
+					</div>
+
+					<div class="col-md-3">
+
+						<label class="form-label fw-semibold">
+							Serie
+						</label>
+
+						<div class="form-control bg-light">
+							@Model.NumeroSerie
+						</div>
+
+					</div>
+
+					<div class="col-md-3">
+
+						<label class="form-label fw-semibold">
+							Color
+						</label>
+
+						<div class="form-control bg-light">
+							@Model.Color
+						</div>
+
+					</div>
+
+					<div class="col-md-6">
+
+						<label class="form-label fw-semibold">
+							Marca / Modelo
+						</label>
+
+						<div class="form-control bg-light">
+							@Model.MarcaModelo
+						</div>
+
+					</div>
+
+					<div class="col-md-3">
+
+						<label class="form-label fw-semibold">
+							Área de origen
+						</label>
+
+						<div class="form-control bg-light">
+							@Model.AreaOrigenTexto
+						</div>
+
+					</div>
+
+					<div class="col-md-3">
+
+						<label class="form-label fw-semibold">
+							Área de destino
+						</label>
+
+						<div class="form-control bg-light">
+							@Model.AreaDestinoTexto
+						</div>
+
+					</div>
+
+				</div>
+
+			</div>
+
+		</div>
+
+	</div>
+
+	<!-- ========================================= -->
+	<!-- BITÁCORA -->
+	<!-- ========================================= -->
+
+	<div class="col-lg-12">
+
+		<div class="card border-0 shadow-sm">
+
+			<div class="card-header bg-light">
+
+				<h5 class="mb-0 fw-bold">
+
+					Seguimiento / Bitácora
+
+				</h5>
+
+			</div>
+
+			<div class="card-body">
+
+				@if (Model.Seguimientos != null && Model.Seguimientos.Any())
+				{
+					<div class="table-responsive">
+
+						<table class="table table-hover align-middle">
+
+							<thead class="table-light">
+
+								<tr>
+
+									<th>
+										Fecha
+									</th>
+
+									<th>
+										Movimiento
+									</th>
+
+									<th>
+										Observaciones
+									</th>
+
+									<th>
+										Documento
+									</th>
+
+								</tr>
+
+							</thead>
+
+							<tbody>
+
+								@foreach (var item in Model.Seguimientos)
+								{
+									<tr>
+
+										<td>
+											@item.FechaMovimiento.ToString("dd/MM/yyyy HH:mm")
+										</td>
+
+										<td>
+											@item.TipoMovimiento
+										</td>
+
+										<td>
+											@item.Observaciones
+										</td>
+
+										<td>
+
+											@if (!string.IsNullOrWhiteSpace(item.DocumentoNombreOriginal))
+											{
+												<a asp-action="DescargarDocumentoSeguimiento"
+												   asp-route-id="@item.TransferenciaUnidadSeguimientoId"
+												   class="btn btn-sm btn-outline-primary">
+
+													<i class="bi bi-download"></i>
+
+													@(string.IsNullOrWhiteSpace(item.DocumentoNombreOriginal)
+														? "Descargar"
+														: item.DocumentoNombreOriginal)
+
+												</a>
+											}
+											else
+											{
+												<span class="text-muted">
+													Sin documento
+												</span>
+											}
+
+										</td>
+
+									</tr>
+								}
+
+							</tbody>
+
+						</table>
+
+					</div>
+				}
+				else
+				{
+					<div class="alert alert-light border mb-0">
+
+						No existen movimientos registrados.
+
+					</div>
+				}
+
+			</div>
+
+		</div>
+
+	</div>
+
+</div>
+
+<!-- ===================================================== -->
+<!-- MODAL AUTORIZAR -->
+<!-- ===================================================== -->
+
+<div class="modal fade"
+	 id="modalAutorizar"
+	 tabindex="-1">
+
+	<div class="modal-dialog">
+
+		<div class="modal-content">
+
+			<form asp-action="Autorizar"
+				  method="post">
+
+				@Html.AntiForgeryToken()
+
+				<input type="hidden"
+					   name="TransferenciaUnidadId"
+					   value="@Model.TransferenciaUnidadId" />
+
+				<div class="modal-header">
+
+					<h5 class="modal-title">
+
+						Autorizar Transferencia
+
+					</h5>
+
+					<button type="button"
+							class="btn-close"
+							data-bs-dismiss="modal">
+					</button>
+
+				</div>
+
+				<div class="modal-body">
+
+					<label class="form-label">
+						Comentarios
+					</label>
+
+					<textarea name="Comentarios"
+							  class="form-control"
+							  rows="4">
+                    </textarea>
+
+				</div>
+
+				<div class="modal-footer">
+
+					<button type="button"
+							class="btn btn-light"
+							data-bs-dismiss="modal">
+
+						Cerrar
+
+					</button>
+
+					<button type="submit"
+							class="btn btn-success">
+
+						Autorizar
+
+					</button>
+
+				</div>
+
+			</form>
+
+		</div>
+
+	</div>
+
+</div>
+
+<!-- ===================================================== -->
+<!-- MODAL RECHAZAR -->
+<!-- ===================================================== -->
+
+<div class="modal fade"
+	 id="modalRechazar"
+	 tabindex="-1">
+
+	<div class="modal-dialog">
+
+		<div class="modal-content">
+
+			<form asp-action="Rechazar"
+				  method="post">
+
+				@Html.AntiForgeryToken()
+
+				<input type="hidden"
+					   name="TransferenciaUnidadId"
+					   value="@Model.TransferenciaUnidadId" />
+
+				<div class="modal-header">
+
+					<h5 class="modal-title">
+
+						Rechazar Transferencia
+
+					</h5>
+
+					<button type="button"
+							class="btn-close"
+							data-bs-dismiss="modal">
+					</button>
+
+				</div>
+
+				<div class="modal-body">
+
+					<label class="form-label">
+						Motivo
+					</label>
+
+					<textarea name="Motivo"
+							  class="form-control"
+							  rows="4"
+							  required>
+                    </textarea>
+
+				</div>
+
+				<div class="modal-footer">
+
+					<button type="button"
+							class="btn btn-light"
+							data-bs-dismiss="modal">
+
+						Cerrar
+
+					</button>
+
+					<button type="submit"
+							class="btn btn-danger">
+
+						Rechazar
+
+					</button>
+
+				</div>
+
+			</form>
+
+		</div>
+
+	</div>
+
+</div>
+
+<!-- ===================================================== -->
+<!-- MODAL CANCELAR -->
+<!-- ===================================================== -->
+
+<div class="modal fade"
+	 id="modalCancelar"
+	 tabindex="-1">
+
+	<div class="modal-dialog">
+
+		<div class="modal-content">
+
+			<form asp-action="Cancelar"
+				  method="post">
+
+				@Html.AntiForgeryToken()
+
+				<input type="hidden"
+					   name="TransferenciaUnidadId"
+					   value="@Model.TransferenciaUnidadId" />
+
+				<div class="modal-header">
+
+					<h5 class="modal-title">
+
+						Cancelar Transferencia
+
+					</h5>
+
+					<button type="button"
+							class="btn-close"
+							data-bs-dismiss="modal">
+					</button>
+
+				</div>
+
+				<div class="modal-body">
+
+					<label class="form-label">
+						Motivo cancelación
+					</label>
+
+					<textarea name="MotivoCancelacion"
+							  class="form-control"
+							  rows="4"
+							  required>
+                    </textarea>
+
+				</div>
+
+				<div class="modal-footer">
+
+					<button type="button"
+							class="btn btn-light"
+							data-bs-dismiss="modal">
+
+						Cerrar
+
+					</button>
+
+					<button type="submit"
+							class="btn btn-secondary">
+
+						Cancelar
+
+					</button>
+
+				</div>
+
+			</form>
+
+		</div>
+
+	</div>
+
+</div>
+

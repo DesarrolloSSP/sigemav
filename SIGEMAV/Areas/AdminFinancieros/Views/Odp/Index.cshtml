@@ -1,0 +1,450 @@
+﻿@model IEnumerable<SIGEMAV.Models.ViewModels.Financieros.Odp.OrdenPagoVM>
+
+@{
+	Layout = "~/Views/Shared/_Layout.cshtml";
+	ViewData["Title"] = "Órdenes de Pago";
+}
+
+<div class="container-fluid">
+
+	<!-- ========================= -->
+	<!-- ALERTAS -->
+	<!-- ========================= -->
+	@if (TempData["success"] != null)
+	{
+		<div class="alert alert-success alert-dismissible fade show shadow-sm"
+			 role="alert">
+
+			<i class="bi bi-check-circle-fill"></i>
+			@TempData["success"]
+
+			<button type="button"
+					class="btn-close"
+					data-bs-dismiss="alert">
+			</button>
+
+		</div>
+	}
+
+	@if (TempData["error"] != null)
+	{
+		<div class="alert alert-danger alert-dismissible fade show shadow-sm"
+			 role="alert">
+
+			<i class="bi bi-exclamation-triangle-fill"></i>
+			@TempData["error"]
+
+			<button type="button"
+					class="btn-close"
+					data-bs-dismiss="alert">
+			</button>
+
+		</div>
+	}
+
+	<!-- ========================= -->
+	<!-- CARD -->
+	<!-- ========================= -->
+
+	<div class="card border-0 shadow-sm">
+
+		<!-- HEADER -->
+		<div class="card-header bg-white border-0 py-3">
+
+			<div class="d-flex justify-content-between align-items-center">
+
+				<div>
+
+					<h3 class="fw-bold mb-0">
+
+						<i class="bi bi-receipt-cutoff text-primary"></i>
+						Órdenes de Pago
+
+					</h3>
+
+					<small class="text-muted">
+
+						Administración y control
+						de órdenes de pago
+
+					</small>
+
+				</div>
+
+				<div>
+
+					<a asp-area="AdminFinancieros"
+					   asp-controller="Odp"
+					   asp-action="Create"
+					   class="btn btn-primary shadow-sm">
+
+						<i class="bi bi-plus-circle"></i>
+						Nueva Orden
+
+					</a>
+
+				</div>
+
+			</div>
+
+		</div>
+
+		<!-- BODY -->
+		<div class="card-body">
+
+			<!-- ========================= -->
+			<!-- ========================= -->
+			<!-- TABLA -->
+			<!-- ========================= -->
+
+			<div class="table-responsive">
+
+				<table class="table table-hover align-middle">
+
+					<thead class="table-light">
+
+						<tr>
+
+							<th>
+								#
+							</th>
+
+							<th>
+								Número Orden
+							</th>
+
+							<th>
+								Fecha
+							</th>
+
+							<th>
+								RFC
+							</th>
+
+							<th>
+								Proveedor
+							</th>
+
+							<th class="text-end">
+								Importe
+							</th>
+
+							<th class="text-center">
+								Estatus
+							</th>
+
+							<th width="180"
+								class="text-center">
+
+								Acciones
+
+							</th>
+
+						</tr>
+
+					</thead>
+
+					<tbody>
+
+						@if (Model.Any())
+						{
+							int consecutivo = 1;
+
+							@foreach (var item in Model)
+							{
+								<tr>
+
+									<td class="text-muted">
+										@consecutivo
+									</td>
+
+									<td>
+
+										<div class="fw-semibold">
+
+											@item.NumeroOrden
+
+										</div>
+
+									</td>
+
+									<td>
+
+										<span class="text-muted">
+
+											@(item.Fecha?.ToString("dd/MM/yyyy"))
+
+										</span>
+
+									</td>
+
+									<td>
+
+										<div class="fw-semibold">
+
+											@item.RFC
+
+										</div>
+
+									</td>
+
+
+
+									<td>
+
+										<div class="fw-semibold">
+
+											@item.NombreProveedor
+
+										</div>
+
+									</td>
+
+									<td class="text-end">
+
+										<span class="fw-bold text-success">
+
+											@(item.ImporteTotal?
+												.ToString("C"))
+
+										</span>
+
+									</td>
+
+									<td class="text-center">
+
+										@if (item.Estatus == "ACTIVA")
+										{
+											<span class="badge bg-success px-3 py-2">
+
+												<i class="bi bi-check-circle"></i>
+												ACTIVA
+
+											</span>
+										}
+										else if (item.Estatus == "CANCELADA")
+										{
+											<span class="badge bg-danger px-3 py-2">
+
+												<i class="bi bi-x-circle"></i>
+												CANCELADA
+
+											</span>
+										}
+										else
+										{
+											<span class="badge bg-secondary px-3 py-2">
+
+												@item.Estatus
+
+											</span>
+										}
+
+									</td>
+
+									<td>
+
+										<div class="d-flex justify-content-center gap-1">
+
+											
+											<a asp-area="AdminFinancieros"
+											   asp-controller="Odp"
+											   asp-action="ExportarExcel"
+											   asp-route-id="@item.IdOrdenPago"
+											   class="btn btn-sm btn-outline-success"
+											   title="Exportar Excel">
+
+												<i class="bi bi-file-earmark-excel"></i>
+
+											</a>
+
+											<!-- EDIT -->
+											<a asp-area="AdminFinancieros"
+											   asp-controller="Odp"
+											   asp-action="Edit"
+											   asp-route-id="@item.IdOrdenPago"
+											   class="btn btn-sm btn-outline-primary"
+											   title="Editar">
+
+												<i class="bi bi-pencil-square"></i>
+
+											</a>
+
+											<!-- DELETE -->
+											@* 	<a asp-area="AdminFinancieros"
+											   asp-controller="Odp"
+											   asp-action="Delete"
+											   asp-route-id="@item.IdOrdenPago"
+											   class="btn btn-sm btn-outline-danger"
+											   title="Eliminar">
+
+												<i class="bi bi-trash"></i>
+
+											</a> *@
+
+											@if (item.Estatus == "ACTIVA")
+											{
+												<form asp-area="AdminFinancieros"
+													  asp-controller="Odp"
+													  asp-action="Cancelar"
+													  method="post"
+													  class="d-inline formCancelar">
+
+													@Html.AntiForgeryToken()
+
+													<input type="hidden"
+														   name="id"
+														   value="@item.IdOrdenPago" />
+
+													<button type="submit"
+															class="btn btn-sm btn-outline-danger"
+															title="Cancelar">
+
+														<i class="bi bi-x-circle"></i>
+
+													</button>
+
+												</form>
+											}
+											else if (item.Estatus == "CANCELADA")
+											{
+												<form asp-area="AdminFinancieros"
+													  asp-controller="Odp"
+													  asp-action="Reactivar"
+													  method="post"
+													  class="d-inline formReactivar">
+
+													@Html.AntiForgeryToken()
+
+													<input type="hidden"
+														   name="id"
+														   value="@item.IdOrdenPago" />
+
+													<button type="submit"
+															class="btn btn-sm btn-outline-success"
+															title="Reactivar">
+
+														<i class="bi bi-arrow-clockwise"></i>
+
+													</button>
+
+												</form>
+											}
+
+										</div>
+
+									</td>
+
+								</tr>
+
+								consecutivo++;
+							}
+						}
+						else
+						{
+							<tr>
+
+								<td colspan="7">
+
+									<div class="text-center py-5">
+
+										<i class="bi bi-inbox display-1 text-muted"></i>
+
+										<h4 class="mt-3 fw-bold">
+
+											No existen órdenes registradas
+
+										</h4>
+
+										<p class="text-muted mb-4">
+
+											Comienza creando una nueva orden de pago.
+
+										</p>
+
+										<a asp-area="AdminFinancieros"
+										   asp-controller="Odp"
+										   asp-action="Create"
+										   class="btn btn-primary">
+
+											<i class="bi bi-plus-circle"></i>
+											Crear Primera Orden
+
+										</a>
+
+									</div>
+
+								</td>
+
+							</tr>
+						}
+
+					</tbody>
+
+				</table>
+
+			</div>
+
+		</div>
+
+	</div>
+
+</div>
+
+@section Scripts {
+
+	<script>
+
+		// =========================
+		// OCULTAR ALERTAS
+		// =========================
+
+		setTimeout(function () {
+
+			$(".alert")
+				.fadeOut("slow");
+
+		}, 4000);
+
+	</script>
+
+
+	<script>
+
+		// =========================
+		// CONFIRMAR CANCELACION
+		// =========================
+
+		$(".formCancelar").submit(function (e) {
+
+		let respuesta =
+		confirm(
+		"¿Desea cancelar la orden de pago?");
+
+		if (!respuesta) {
+
+		e.preventDefault();
+		}
+
+		});
+
+		// =========================
+		// CONFIRMAR REACTIVACION
+		// =========================
+
+		$(".formReactivar").submit(function (e) {
+
+		let respuesta =
+		confirm(
+		"¿Desea reactivar la orden de pago?");
+
+		if (!respuesta) {
+
+		e.preventDefault();
+		}
+
+		});
+
+	</script>
+
+}

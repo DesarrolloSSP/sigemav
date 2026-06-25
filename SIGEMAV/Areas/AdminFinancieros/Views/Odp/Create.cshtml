@@ -1,0 +1,669 @@
+﻿@model SIGEMAV.Models.ViewModels.Financieros.Odp.OrdenPagoVM
+
+@{
+	ViewData["Title"] = "Nueva Orden de Pago";
+}
+
+<div class="container">
+
+	<form asp-area="AdminFinancieros"
+		  asp-controller="Odp"
+		  asp-action="Create"
+		  method="post">
+
+		<div class="card shadow-sm border-0">
+
+			<!-- ========================= -->
+			<!-- HEADER -->
+			<!-- ========================= -->
+
+			<div class="card-header bg-white">
+
+				<div class="d-flex justify-content-between align-items-center">
+
+					<div>
+
+						<h3 class="fw-bold mb-0">
+							<i class="bi bi-plus-circle"></i>
+							Nueva Orden de Pago
+						</h3>
+
+						<small class="text-muted">
+							Captura de orden de pago
+						</small>
+
+					</div>
+
+					<div>
+
+						<a asp-area="AdminFinancieros"
+						   asp-controller="Odp"
+						   asp-action="Index"
+						   class="btn btn-outline-secondary">
+
+							<i class="bi bi-arrow-left"></i>
+							Regresar
+
+						</a>
+
+					</div>
+
+				</div>
+
+			</div>
+
+			<!-- ========================= -->
+			<!-- BODY -->
+			<!-- ========================= -->
+
+			<div class="card-body">
+
+				<div asp-validation-summary="ModelOnly"
+					 class="alert alert-danger">
+				</div>
+
+				<!-- ========================= -->
+				<!-- DATOS GENERALES -->
+				<!-- ========================= -->
+
+				<div class="row">
+
+					<div class="col-md-3 mb-3">
+
+						<label asp-for="NumeroOrden"
+							   class="form-label fw-semibold">
+
+							Número Orden
+
+						</label>
+
+						<input asp-for="NumeroOrden"
+							   class="form-control" />
+
+						<span asp-validation-for="NumeroOrden"
+							  class="text-danger">
+						</span>
+
+					</div>
+
+					<div class="col-md-3 mb-3">
+
+						<label asp-for="Fecha"
+							   class="form-label fw-semibold">
+
+							Fecha
+
+						</label>
+
+						<input asp-for="Fecha"
+							   type="date"
+							   class="form-control" />
+
+						<span asp-validation-for="Fecha"
+							  class="text-danger">
+						</span>
+
+					</div>
+
+					<div class="col-md-6 mb-3">
+
+						<label asp-for="IdProovedor"
+							   class="form-label fw-semibold">
+
+							Proveedor
+
+						</label>
+
+						<select asp-for="IdProovedor"
+								asp-items="Model.ListaProveedores"
+								class="form-select">
+
+							<option value="">
+								Seleccione
+							</option>
+
+						</select>
+
+						<span asp-validation-for="IdProovedor"
+							  class="text-danger">
+						</span>
+
+					</div>
+
+				</div>
+
+				<div class="row">
+
+					<div class="col-md-3 mb-3">
+
+						<label asp-for="ImporteTotal"
+							   class="form-label fw-semibold">
+
+							Importe Total
+
+						</label>
+
+						<div class="input-group">
+
+							<span class="input-group-text">
+								$
+							</span>
+
+							<input asp-for="ImporteTotal"
+								   readonly
+								   class="form-control text-end bg-light" />
+
+						</div>
+
+					</div>
+
+					<div class="col-md-3 mb-3">
+
+						<label asp-for="Estatus"
+							   class="form-label fw-semibold">
+
+							Estatus
+
+						</label>
+
+						<select asp-for="Estatus"
+								class="form-select">
+
+							<option value="ACTIVA">
+								ACTIVA
+							</option>
+
+							<option value="CANCELADA">
+								CANCELADA
+							</option>
+
+						</select>
+
+					</div>
+
+				</div>
+
+				<!-- ========================= -->
+				<!-- DETALLE -->
+				<!-- ========================= -->
+
+				<hr />
+
+				<div class="d-flex justify-content-between align-items-center mb-3">
+
+					<div>
+
+						<h5 class="fw-bold mb-0">
+
+							<i class="bi bi-list-ul"></i>
+							Detalle de Partidas
+
+						</h5>
+
+						<small class="text-muted">
+
+							Agrega las partidas que componen
+							la orden de pago
+
+						</small>
+
+					</div>
+
+					<button type="button"
+							class="btn btn-success"
+							id="btnAgregarPartida">
+
+						<i class="bi bi-plus-circle"></i>
+						Agregar Partida
+
+					</button>
+
+				</div>
+
+				
+
+				<div class="table-responsive">
+
+					<table class="table table-bordered align-middle"
+						   id="tablaPartidas">
+
+						<thead class="table-light">
+
+							<tr>
+
+								<th width="20%">
+									Concepto
+								</th>
+
+								<th width="15%">
+									Partida
+								</th>
+
+								<th width="10%">
+									Serie
+								</th>
+
+								<th width="10%">
+									Folio
+								</th>
+
+								<th width="12%">
+									Fecha Factura
+								</th>
+
+								<th width="10%">
+									No. Placa
+								</th>
+
+								<th width="13%"
+									class="text-end">
+
+									Importe
+
+								</th>
+
+								<th width="10%">
+								</th>
+
+							</tr>
+
+						</thead>
+
+						<tbody>
+						</tbody>
+
+						<tfoot>
+
+							<tr>
+
+								<th colspan="6"
+									class="text-end">
+
+									TOTAL:
+
+								</th>
+
+								<th class="text-end">
+
+									<span id="lblTotal">
+										$0.00
+									</span>
+
+								</th>
+
+								<th></th>
+
+							</tr>
+
+						</tfoot>
+
+					</table>
+
+				</div>
+
+				<!-- ========================= -->
+				<!-- BOTONES -->
+				<!-- ========================= -->
+
+				<hr />
+
+				<div class="d-flex justify-content-end gap-2">
+
+					<a asp-area="AdminFinancieros"
+					   asp-controller="Odp"
+					   asp-action="Index"
+					   class="btn btn-outline-secondary">
+
+						<i class="bi bi-x-circle"></i>
+						Cancelar
+
+					</a>
+
+					<button type="submit"
+							class="btn btn-primary">
+
+						<i class="bi bi-save"></i>
+						Guardar Orden
+
+					</button>
+
+				</div>
+
+			</div>
+
+		</div>
+
+	</form>
+
+</div>
+@section Scripts {
+
+	@{
+		await Html.RenderPartialAsync("_ValidationScriptsPartial");
+	}
+
+	<script>
+
+		  let indice = 0;
+
+		  // =========================================
+		  // AGREGAR PARTIDA
+		  // =========================================
+		  $("#btnAgregarPartida").click(function () {
+
+			  // =========================
+			  // VALIDAR FILA ACTUAL
+			  // =========================
+
+					  let filaInvalida = false;
+
+		  $("#tablaPartidas tbody tr").each(function () {
+
+			  // =========================
+			  // CONCEPTO
+			  // =========================
+
+		let descripcionPartidas =
+		  $(this)
+			  .find('select[name*=".Concepto"]')
+			  .val();
+
+			  // =========================
+			  // PARTIDA
+			  // =========================
+
+			  let partida =
+				  $(this)
+					  .find('select[name*=".IdPartida"]')
+					  .val();
+
+			  // =========================
+			  // SERIE
+			  // =========================
+
+			  let serie =
+				  $(this)
+					  .find('input[name*=".Serie"]')
+					  .val();
+
+			  // =========================
+			  // FOLIO
+			  // =========================
+
+			  let folio =
+				  $(this)
+					  .find('input[name*=".Folio"]')
+					  .val();
+
+			  // =========================
+			  // FECHA FACTURA
+			  // =========================
+
+			  let fechaFactura =
+				  $(this)
+					  .find('input[name*=".FechaFactura"]')
+					  .val();
+
+			  // =========================
+			  // NO PLACA
+			  // =========================
+
+			  let noPlaca =
+				  $(this)
+					  .find('input[name*=".NoPlaca"]')
+					  .val();
+
+			  // =========================
+			  // MONTO
+			  // =========================
+
+			  let monto =
+				  $(this)
+					  .find('input[name*=".Monto"]')
+					  .val();
+
+			  // =========================
+			  // VALIDAR
+			  // =========================
+
+			  if (
+				   !descripcionPartidas ||
+				  !partida ||
+				  !serie ||
+				  !folio ||
+				  !fechaFactura ||
+				  !noPlaca ||
+				  !monto ||
+				  parseFloat(monto) <= 0
+			  ) {
+				  filaInvalida = true;
+
+				  return false;
+			  }
+
+		  });
+			  // =========================
+			  // SI HAY FILAS INCOMPLETAS
+			  // =========================
+
+			  if (filaInvalida) {
+
+				  alert(
+					  "Complete correctamente la partida actual antes de agregar otra.");
+
+				  return;
+			  }
+
+			  // =========================
+			  // GENERAR OPCIONES
+			  // =========================
+
+			  let opcionesPartidas = '';
+			  let opcionesDescripcionPartidas = '';
+
+			  @foreach (var item in Model.Partidas)
+			  {
+					  @:opcionesPartidas += '<option value="@item.Value">@item.Text</option>';
+
+			  }
+
+
+			  @foreach (var item in Model.DescripPartida)
+			  {
+						  @:opcionesDescripcionPartidas += '<option value="@item.Value">@item.Text</option>';
+
+			  }
+
+			
+
+					  let fila = `
+
+		  <tr>
+
+			
+		
+			  <!-- INICIAL -->
+		  <td>
+						 <select name="Detalles[${indice}].Concepto"
+				class="form-select"
+				required>
+
+			<option value="">
+				Seleccione
+			</option>
+
+			${opcionesDescripcionPartidas}
+
+		</select>
+
+			  </td>
+
+
+			  <!-- PARTIDA -->
+			  <td>
+
+				  <select name="Detalles[${indice}].IdPartida"
+						  class="form-select"
+						  required>
+
+					  <option value="">
+						  Seleccione
+					  </option>
+
+					  ${opcionesPartidas}
+
+				  </select>
+
+			  </td>
+
+
+
+
+			  <!-- SERIE -->
+			  <td>
+
+				  <input type="text"
+						 name="Detalles[${indice}].Serie"
+						 class="form-control" />
+
+			  </td>
+
+			  <!-- FOLIO -->
+			  <td>
+
+				  <input type="text"
+						 name="Detalles[${indice}].Folio"
+						 class="form-control" />
+
+			  </td>
+
+			  <!-- FECHA FACTURA -->
+			  <td>
+
+				  <input type="date"
+						 name="Detalles[${indice}].FechaFactura"
+						 class="form-control" />
+
+			  </td>
+
+			  <!-- PLACA -->
+			  <td>
+
+				  <input type="text"
+						 name="Detalles[${indice}].NoPlaca"
+						 class="form-control" />
+
+			  </td>
+
+			  <!-- IMPORTE -->
+			  <td>
+
+				  <input type="number"
+						 step="0.01"
+						 min="0.01"
+						 name="Detalles[${indice}].Monto"
+						 class="form-control text-end monto"
+						 required />
+
+			  </td>
+
+			  <!-- ELIMINAR -->
+			  <td class="text-center">
+
+				  <button type="button"
+						  class="btn btn-danger btnEliminar">
+
+					  <i class="bi bi-trash"></i>
+
+				  </button>
+
+			  </td>
+
+		  </tr>
+		  `;
+
+			  // =========================
+			  // INSERTAR FILA
+			  // =========================
+
+			  $("#tablaPartidas tbody")
+				  .append(fila);
+
+			  // =========================
+			  // REACTIVAR VALIDACIONES
+			  // =========================
+
+			  $.validator.unobtrusive
+				  .parse("#tablaPartidas");
+
+			  indice++;
+
+		  });
+		  // =========================================
+		  // ELIMINAR FILA
+		  // =========================================
+
+		  $(document).on(
+			  "click",
+			  ".btnEliminar",
+			  function () {
+
+				  $(this)
+					  .closest("tr")
+					  .remove();
+
+				  calcularTotal();
+
+			  });
+
+		  // =========================================
+		  // CALCULAR TOTAL
+		  // =========================================
+
+		  $(document).on(
+			  "keyup change",
+			  ".monto",
+			  function () {
+
+				  calcularTotal();
+
+			  });
+
+		  function calcularTotal() {
+
+			  let total = 0;
+
+			  $(".monto").each(function () {
+
+				  let valor =
+					  parseFloat($(this).val()) || 0;
+
+				  total += valor;
+
+			  });
+
+			  // =========================
+			  // LABEL TOTAL
+			  // =========================
+
+			  $("#lblTotal")
+				  .text(
+					  total.toLocaleString(
+						  'es-MX',
+						  {
+							  style: 'currency',
+							  currency: 'MXN'
+						  }));
+
+			  // =========================
+			  // INPUT TOTAL
+			  // =========================
+
+			  $("#ImporteTotal")
+				  .val(total.toFixed(2));
+
+		  }
+
+	</script>
+
+}

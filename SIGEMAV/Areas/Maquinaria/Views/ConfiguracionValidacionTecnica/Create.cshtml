@@ -1,0 +1,222 @@
+﻿@using SIGEMAV.Models.ViewModels.Maquinaria
+
+@model ConfiguracionValidacionTecnicaViewModel
+
+<div class="container">
+
+	<div class="card shadow-sm">
+
+		<div class="card-header text-white"
+			 style="background:#800705">
+
+			<h5 class="mb-0">
+				Configuración de Validación Técnica create
+			</h5>
+
+		</div>
+
+		<div class="card-body">
+
+			<form asp-action="Guardar">
+
+				<input asp-for="ConfiguracionValidacionTecnicaId"
+					   type="hidden" />
+
+				<div class="row g-3">
+
+					<div class="col-md-6">
+
+						<label class="form-label">
+							Tipo Catálogo Servicio
+						</label>
+
+						<select asp-for="TipoCatalogoServicioId"
+								asp-items="Model.TiposCatalogoServicio"
+								class="form-select">
+
+							<option value="">
+								Seleccione
+							</option>
+
+						</select>
+
+					</div>
+
+					<div class="col-md-6">
+
+						<label class="form-label">
+							Concepto Servicio
+						</label>
+
+						<select asp-for="ConceptoServicioId"
+								asp-items="Model.ConceptosServicio"
+								class="form-select">
+
+							<option value="">
+								Seleccione
+							</option>
+
+						</select>
+
+					</div>
+
+					<div class="col-md-6">
+
+						<div class="form-check mt-4">
+
+							<input asp-for="ValidarSolicitudesAbiertas"
+								   class="form-check-input" />
+
+							<label class="form-check-label">
+
+								Validar solicitudes abiertas
+
+							</label>
+
+						</div>
+
+					</div>
+
+					<div class="col-md-6">
+
+						<label class="form-label">
+
+							Estatus considerados
+
+						</label>
+
+						<select id="EstatusPermitidos"
+								multiple
+								class="form-select">
+
+							@foreach (var e in Model.EstatusDisponibles)
+							{
+								<option value="@e.Value">
+
+									@e.Text
+
+								</option>
+							}
+
+						</select>
+
+					</div>
+
+					<div class="col-md-6">
+
+						<div class="form-check mt-4">
+
+							<input asp-for="ValidarRecurrencia"
+								   class="form-check-input" />
+
+							<label class="form-check-label">
+
+								Validar recurrencia
+
+							</label>
+
+						</div>
+
+					</div>
+
+					<div class="col-md-6">
+
+						<label class="form-label">
+
+							Días mínimos
+
+						</label>
+
+						<input asp-for="DiasRecurrencia"
+							   class="form-control" />
+
+					</div>
+
+					<div class="col-md-6">
+
+						<div class="form-check mt-4">
+
+							<input asp-for="Activo"
+								   class="form-check-input" />
+
+							<label class="form-check-label">
+
+								Activo
+
+							</label>
+
+						</div>
+
+					</div>
+
+				</div>
+
+				<hr />
+
+				<div class="text-end">
+
+					<a asp-action="Index"
+					   class="btn btn-secondary">
+
+						Cancelar
+
+					</a>
+
+					<button type="submit"
+							class="btn text-light"
+							style="background:#800705">
+
+						Guardar
+
+					</button>
+
+				</div>
+
+			</form>
+
+		</div>
+
+	</div>
+
+</div>
+
+
+
+
+
+<script>
+
+	$("form").submit(function(){
+
+	let valores =
+
+	$("#EstatusPermitidos")
+
+	.val()
+
+	|| [];
+
+	$("input[name='EstatusPermitidos']")
+	.remove();
+
+	valores.forEach(v=>{
+
+	$("<input>")
+
+	.attr(
+	"type",
+	"hidden")
+
+	.attr(
+	"name",
+	"EstatusPermitidos")
+
+	.val(v)
+
+	.appendTo("form");
+
+	});
+
+	});
+
+</script>

@@ -1,0 +1,211 @@
+﻿@using SIGEMAV.Models.ViewModels.Maquinaria
+@model ConceptoServicioEditViewModel
+
+@{
+    ViewData["Title"] = "Editar Concepto Servicio";
+}
+
+<div class="container-fluid">
+
+    <div class="card shadow-sm border-0">
+
+        <div class="card-header bg-white">
+
+            <div class="d-flex justify-content-between align-items-center">
+
+                <div>
+
+                    <h4 class="fw-bold mb-0">
+                        Editar Concepto Servicio
+                    </h4>
+
+                    <small class="text-muted">
+                        Actualización de conceptos del catálogo
+                    </small>
+
+                </div>
+
+                <a asp-action="Index"
+                       class="btn btn-outline-secondary">
+
+                    <i class="bi bi-arrow-left me-1"></i>
+                    Regresar
+
+                </a>
+
+            </div>
+
+        </div>
+
+        <div class="card-body">
+
+            <form asp-action="Edit"
+                  method="post"
+                  id="formEditar">
+
+                @Html.AntiForgeryToken()
+
+                <input asp-for="ConceptoServicioId"
+                       type="hidden" />
+
+                <div asp-validation-summary="ModelOnly"
+                     class="alert alert-danger">
+                </div>
+
+                <div class="row g-4">
+
+                    <!-- TIPO -->
+
+                    <div class="col-md-6">
+
+                        <label asp-for="TipoCatalogoServicioId"
+                               class="form-label fw-semibold">
+
+                            Tipo Catálogo Servicio
+
+                        </label>
+
+                        <select asp-for="TipoCatalogoServicioId"
+                                asp-items="Model.TiposCatalogoServicio"
+                                class="form-select" required>
+
+                            <option value="">
+                                Seleccione un tipo
+                            </option>
+
+                        </select>
+
+                        <span asp-validation-for="TipoCatalogoServicioId"
+                              class="text-danger small">
+                        </span>
+
+                    </div>
+
+                    <!-- NOMBRE -->
+
+                    <div class="col-md-6">
+
+                        <label asp-for="ConceptoServicioNombre"
+                               class="form-label fw-semibold">
+                            Nombre Concepto
+                        </label>
+
+                        <input asp-for="ConceptoServicioNombre"
+                               class="form-control"
+                               maxlength="200"
+                               autocomplete="off" required/>
+
+                        <span asp-validation-for="ConceptoServicioNombre"
+                              class="text-danger small">
+                        </span>
+
+                    </div>
+
+                    <!-- DESCRIPCION -->
+
+                    <div class="col-md-12">
+
+                        <label asp-for="ConceptoServicioDescripcion"
+                               class="form-label fw-semibold">
+
+                            Descripción
+
+                        </label>
+
+                        <textarea asp-for="ConceptoServicioDescripcion"
+                                  rows="4"
+                                      class="form-control">
+                        </textarea>
+
+                            <span asp-validation-for="ConceptoServicioDescripcion"
+                                  class="text-danger small">
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                    <hr class="my-4" />
+
+                    <div class="d-flex justify-content-end gap-2">
+
+                        <a asp-action="Index"
+                               class="btn btn-outline-secondary">
+
+                            Cancelar
+
+                        </a>
+
+                        <button type="submit"
+                                class="btn text-light"
+                                style="background-color:#800705">
+
+                            <i class="bi bi-save me-1"></i>
+                            Actualizar Concepto
+
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    @section Scripts {
+
+        @{
+            await Html.RenderPartialAsync("_ValidationScriptsPartial");
+        }
+
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+        <script>
+
+            $(document).ready(function () {
+
+            $('#formEditar').submit(function (e) {
+
+            e.preventDefault();
+
+            if (!$(this).valid()) {
+            return;
+            }
+
+            Swal.fire({
+
+            title: '¿Actualizar concepto?',
+
+            text: 'Se actualizará la información del concepto de servicio.',
+
+            icon: 'question',
+
+            showCancelButton: true,
+
+            confirmButtonColor: '#800705',
+
+            cancelButtonColor: '#6c757d',
+
+            confirmButtonText: 'Sí, actualizar',
+
+            cancelButtonText: 'Cancelar'
+
+            }).then((result) => {
+
+            if (result.isConfirmed) {
+
+            this.submit();
+            }
+
+            });
+
+            });
+
+            });
+
+        </script>
+
+    }

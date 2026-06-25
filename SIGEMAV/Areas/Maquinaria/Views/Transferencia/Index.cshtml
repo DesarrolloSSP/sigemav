@@ -1,0 +1,560 @@
+﻿@using SIGEMAV.Models.ViewModels.Maquinaria
+
+@model List<TransferenciaUnidadViewModel>
+
+@* @{
+    ViewData["Title"] = "Transferencias de Unidades";
+}
+ *@
+<div class="d-flex justify-content-between align-items-center mb-4">
+
+    <div>
+
+        <h4 class="fw-bold mb-1">
+            Solicitudes de transferencias de vehículos
+        </h4>
+
+        <p class="text-muted mb-0">
+            Administración y seguimiento de solicitudes de transferencias vehiculares.
+        </p>
+
+    </div>
+
+    <a asp-action="Create"
+       class="btn text-light"
+       style="background-color:#800705">
+
+        <i class="bi bi-plus-circle me-1"></i>
+        Nueva Transferencia
+
+    </a>
+
+</div>
+
+
+<div class="card border-0 shadow-sm">
+
+    <div class="card-body">
+
+        @if (!Model.Any())
+        {
+            <div class="alert alert-light border text-center mb-0">
+
+                <i class="bi bi-info-circle me-1"></i>
+
+                No existen transferencias registradas.
+
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+
+                <table class="table table-hover align-middle">
+
+                    <thead class="table-light">
+
+                        <tr>
+
+                            <th>
+                                Folio
+                            </th>
+
+                            <th>
+                                Unidad
+                            </th>
+
+                            <th>
+                                Área Origen
+                            </th>
+
+                            <th>
+                                Área Destino
+                            </th>
+
+                            <th>
+                                Estatus
+                            </th>
+
+                            <th>
+                                Fecha
+                            </th>
+
+                            <th class="text-center">
+                                Acciones
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+
+                                <td class="fw-semibold">
+                                    @item.Folio
+                                </td>
+
+                                <td>
+                                    @item.UnidadVehicularTexto
+                                </td>
+
+                                <td>
+                                    @item.AreaOrigenTexto
+                                </td>
+
+                                <td>
+                                    @item.AreaDestinoTexto
+                                </td>
+
+                                <td>
+
+                                    @switch (item.EstatusTransferenciaUnidadId)
+                                    {
+                                        case 1:
+
+                                            <span class="badge bg-warning text-dark">
+                                                Pendiente
+                                            </span>
+
+                                            break;
+
+                                        case 2:
+
+                                            <span class="badge bg-success">
+                                                Autorizada
+                                            </span>
+
+                                            break;
+
+                                        case 3:
+
+                                            <span class="badge bg-danger">
+                                                Rechazada
+                                            </span>
+
+                                            break;
+
+                                        case 4:
+
+                                            <span class="badge bg-secondary">
+                                                Cancelada
+                                            </span>
+
+                                            break;
+
+                                        case 5:
+
+                                            <span class="badge bg-primary">
+                                                Entregada
+                                            </span>
+
+                                            break;
+
+                                        case 6:
+
+                                            <span class="badge bg-dark">
+                                                Finalizada
+                                            </span>
+
+                                            break;
+
+                                        default:
+
+                                            <span class="badge bg-light text-dark">
+                                                @item.EstatusTexto
+                                            </span>
+
+                                            break;
+                                    }
+
+                                </td>
+
+                                <td>
+                                    @item.FechaSolicitud.ToString("dd/MM/yyyy HH:mm")
+                                </td>
+
+                                <td class="text-center">
+
+                                    <div class="btn-group">
+
+                                        <!-- DETALLE -->
+
+                                        <a asp-action="Details"
+                                           asp-route-id="@item.TransferenciaUnidadId"
+                                           class="btn btn-sm btn-outline-primary"
+                                           title="Detalle">
+
+                                            <i class="bi bi-eye"></i>
+
+                                        </a>
+
+                                        <!-- EDITAR SOLO PENDIENTE -->
+
+                                        @if (item.EstatusTransferenciaUnidadId == 1)
+                                        {
+                                            <a asp-action="Edit"
+                                               asp-route-id="@item.TransferenciaUnidadId"
+                                               class="btn btn-sm btn-outline-warning"
+                                               title="Editar">
+
+                                                <i class="bi bi-pencil"></i>
+
+                                            </a>
+                                        }
+
+                                        <!-- AUTORIZAR -->
+
+                                        @if (item.EstatusTransferenciaUnidadId == 1)
+                                        {
+                                            <button type="button"
+                                                    class="btn btn-sm btn-outline-success"
+                                                    title="Autorizar"
+                                                    onclick="abrirModalAutorizar(@item.TransferenciaUnidadId,'@item.Folio')">
+
+                                                <i class="bi bi-check-circle"></i>
+
+                                            </button>
+                                        }
+
+                                        <!-- RECHAZAR -->
+
+                                        @if (item.EstatusTransferenciaUnidadId == 1)
+                                        {
+                                            <button type="button"
+                                                    class="btn btn-sm btn-outline-danger"
+                                                    title="Rechazar"
+                                                    onclick="abrirModalRechazar(@item.TransferenciaUnidadId,'@item.Folio')">
+
+                                                <i class="bi bi-x-circle"></i>
+
+                                            </button>
+                                        }
+
+                                        <!-- CANCELAR -->
+
+                                        @if (item.EstatusTransferenciaUnidadId == 1
+                                       || item.EstatusTransferenciaUnidadId == 2)
+                                        {
+                                            <button type="button"
+                                                    class="btn btn-sm btn-outline-secondary"
+                                                    title="Cancelar"
+                                                    onclick="abrirModalCancelar(@item.TransferenciaUnidadId,'@item.Folio')">
+
+                                                <i class="bi bi-slash-circle"></i>
+
+                                            </button>
+                                        }
+
+                                        <!-- ENTREGAR -->
+
+                                        @if (item.EstatusTransferenciaUnidadId == 2)
+                                        {
+                                            <a asp-action="Entregar"
+                                               asp-route-id="@item.TransferenciaUnidadId"
+                                               class="btn btn-sm btn-outline-primary"
+                                               title="Entregar">
+
+                                                <i class="bi bi-truck"></i>
+
+                                            </a>
+                                        }
+
+                                        <!-- RECEPCIONAR -->
+
+                                        @if (item.EstatusTransferenciaUnidadId == 5)
+                                        {
+                                            <a asp-action="Recepcionar"
+                                               asp-route-id="@item.TransferenciaUnidadId"
+                                               class="btn btn-sm btn-outline-dark"
+                                               title="Recepcionar">
+
+                                                <i class="bi bi-box-seam"></i>
+
+                                            </a>
+                                        }
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+        }
+
+    </div>
+
+</div>
+
+<!-- ===================================================== -->
+<!-- MODAL AUTORIZAR -->
+<!-- ===================================================== -->
+
+<div class="modal fade"
+     id="modalAutorizar"
+     tabindex="-1">
+
+    <div class="modal-dialog">
+
+        <div class="modal-content">
+
+            <form asp-action="Autorizar"
+                  method="post">
+
+                @Html.AntiForgeryToken()
+
+                <div class="modal-header">
+
+                    <h5 class="modal-title">
+                        Autorizar transferencia
+                    </h5>
+
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="modal">
+                    </button>
+
+                </div>
+
+                <div class="modal-body">
+
+                    <input type="hidden"
+                           id="autorizarId"
+                           name="TransferenciaUnidadId" />
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            Comentarios
+                        </label>
+
+                        <textarea name="Comentarios"
+                                  class="form-control"
+                                  rows="4">
+                        </textarea>
+
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+
+                    <button type="button"
+                            class="btn btn-light"
+                            data-bs-dismiss="modal">
+
+                        Cerrar
+
+                    </button>
+
+                    <button type="submit"
+                            class="btn btn-success">
+
+                        Autorizar
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ===================================================== -->
+<!-- MODAL RECHAZAR -->
+<!-- ===================================================== -->
+
+<div class="modal fade"
+     id="modalRechazar"
+     tabindex="-1">
+
+    <div class="modal-dialog">
+
+        <div class="modal-content">
+
+            <form asp-action="Rechazar"
+                  method="post">
+
+                @Html.AntiForgeryToken()
+
+                <div class="modal-header">
+
+                    <h5 class="modal-title">
+                        Rechazar transferencia
+                    </h5>
+
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="modal">
+                    </button>
+
+                </div>
+
+                <div class="modal-body">
+
+                    <input type="hidden"
+                           id="rechazarId"
+                           name="TransferenciaUnidadId" />
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            Motivo rechazo
+                        </label>
+
+                        <textarea name="Motivo"
+                                  class="form-control"
+                                  rows="4"
+                                  required>
+                        </textarea>
+
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+
+                    <button type="button"
+                            class="btn btn-light"
+                            data-bs-dismiss="modal">
+
+                        Cerrar
+
+                    </button>
+
+                    <button type="submit"
+                            class="btn btn-danger">
+
+                        Rechazar
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ===================================================== -->
+<!-- MODAL CANCELAR -->
+<!-- ===================================================== -->
+
+<div class="modal fade"
+     id="modalCancelar"
+     tabindex="-1">
+
+    <div class="modal-dialog">
+
+        <div class="modal-content">
+
+            <form asp-action="Cancelar"
+                  method="post">
+
+                @Html.AntiForgeryToken()
+
+                <div class="modal-header">
+
+                    <h5 class="modal-title">
+                        Cancelar transferencia
+                    </h5>
+
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="modal">
+                    </button>
+
+                </div>
+
+                <div class="modal-body">
+
+                    <input type="hidden"
+                           id="cancelarId"
+                           name="TransferenciaUnidadId" />
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            Motivo cancelación
+                        </label>
+
+                        <textarea name="Motivo"
+                                  class="form-control"
+                                  rows="4"
+                                  required>
+                        </textarea>
+
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+
+                    <button type="button"
+                            class="btn btn-light"
+                            data-bs-dismiss="modal">
+
+                        Cerrar
+
+                    </button>
+
+                    <button type="submit"
+                            class="btn btn-secondary">
+
+                        Cancelar transferencia
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts {
+
+    <script>
+
+        function abrirModalAutorizar(id, folio) {
+
+            $('#autorizarId').val(id);
+
+            $('#modalAutorizar').modal('show');
+        }
+
+        function abrirModalRechazar(id, folio) {
+
+            $('#rechazarId').val(id);
+
+            $('#modalRechazar').modal('show');
+        }
+
+        function abrirModalCancelar(id, folio) {
+
+            $('#cancelarId').val(id);
+
+            $('#modalCancelar').modal('show');
+        }
+
+    </script>
+}

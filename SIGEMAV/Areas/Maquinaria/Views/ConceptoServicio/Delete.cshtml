@@ -1,0 +1,179 @@
+﻿@using SIGEMAV.Models.ViewModels.Maquinaria
+@model ConceptoServicioDeleteViewModel
+
+@{
+    ViewData["Title"] = "Eliminar Concepto Servicio";
+}
+
+<div class="container-fluid">
+
+    <div class="card shadow-sm border-0">
+
+        <div class="card-header bg-white">
+
+            <div class="d-flex justify-content-between align-items-center">
+
+                <div>
+
+                    <h4 class="fw-bold mb-0 text-danger">
+                        Eliminar Concepto servicio
+                    </h4>
+
+                    <small class="text-muted">
+                        Confirme la eliminación lógica del registro
+                    </small>
+
+                </div>
+
+                <a asp-action="Index"
+                       class="btn btn-outline-secondary">
+
+                    <i class="bi bi-arrow-left me-1"></i>
+                    Regresar
+
+                </a>
+
+            </div>
+
+        </div>
+
+        <div class="card-body">
+
+            <div class="alert alert-warning">
+
+                <i class="bi bi-exclamation-triangle me-2"></i>
+
+                Esta acción desactivará el concepto de servicio.
+
+            </div>
+
+            <div class="row g-4">
+
+                <!-- TIPO -->
+
+                <div class="col-md-4">
+
+                    <label class="fw-semibold">
+                        Tipo Catálogo
+                    </label>
+
+                    <div>
+                        @Model.TipoCatalogoServicioNombre
+                    </div>
+
+                </div>
+
+                <!-- NOMBRE -->
+
+                <div class="col-md-4">
+
+                    <label class="fw-semibold">
+                        Concepto Servicio
+                    </label>
+
+                    <div>
+                        @Model.ConceptoServicioNombre
+                    </div>
+
+                </div>
+
+                <!-- DESCRIPCION -->
+
+                <div class="col-md-12">
+
+                    <label class="fw-semibold">
+                        Descripción
+                    </label>
+
+                    <div>
+                        @Model.ConceptoServicioDescripcion
+                    </div>
+
+                </div>
+
+            </div>
+
+            <hr class="my-4" />
+
+            <form asp-action="Delete"
+                  method="post"
+                  id="formEliminar">
+
+                @Html.AntiForgeryToken()
+
+                <input asp-for="ConceptoServicioId"
+                       type="hidden" />
+
+                <div class="d-flex justify-content-end gap-2">
+
+                    <a asp-action="Index"
+                           class="btn btn-outline-secondary">
+
+                        Cancelar
+
+                    </a>
+
+                    <button type="submit"
+                            class="btn btn-danger">
+
+                        <i class="bi bi-trash me-1"></i>
+                        Eliminar
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts {
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+
+        $(document).ready(function () {
+
+        $('#formEliminar').submit(function (e) {
+
+        e.preventDefault();
+
+        Swal.fire({
+
+        title: '¿Eliminar concepto?',
+
+        text: 'El concepto será desactivado del catálogo.',
+
+        icon: 'warning',
+
+        showCancelButton: true,
+
+        confirmButtonColor: '#dc3545',
+
+        cancelButtonColor: '#6c757d',
+
+        confirmButtonText: 'Sí, eliminar',
+
+        cancelButtonText: 'Cancelar'
+
+        }).then((result) => {
+
+        if (result.isConfirmed) {
+
+        this.submit();
+        }
+
+        });
+
+        });
+
+        });
+
+    </script>
+
+}

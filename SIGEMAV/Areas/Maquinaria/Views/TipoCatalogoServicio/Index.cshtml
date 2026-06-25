@@ -1,0 +1,261 @@
+﻿@using static SIGEMAV.Areas.Maquinaria.DTOs.DTOs
+@model TipoCatalogoServicioIndexDto
+
+@{
+	ViewData["Title"] = "Tipos de Catálogo de Servicio";
+}
+
+<div class="container-fluid px-2 px-md-3">
+
+	<div class="card shadow-sm border-0 w-100">
+
+		<div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
+
+			<div>
+				<h4 class="mb-0 fw-bold">
+					Tipos de catálogo de servicio
+				</h4>
+
+				<small class="text-muted">
+					Administración de catálogos de servicio
+				</small>
+			</div>
+
+			<div>
+				<a asp-action="Create"
+					   class="btn text-light"
+					   style="background-color:#800705">
+
+					<i class="bi bi-plus-circle me-1"></i>
+					Agregar Registro
+				</a>
+			</div>
+
+		</div>
+
+		<div class="card-body">
+
+			@if (!Model.Registros.Any())
+			{
+				<div class="alert alert-info text-center mb-0">
+
+					<i class="bi bi-info-circle me-2"></i>
+
+					No se encontraron registros.
+
+				</div>
+			}
+			else
+			{
+				<style>
+								.table td,
+								.table th {
+									vertical-align: middle;
+									padding: .45rem .5rem;
+								}
+
+								.btn-group .btn {
+									padding: .25rem .45rem;
+								}
+				</style>
+
+				<div class="w-100">
+
+					<table class="table table-hover align-middle table-sm"
+						   style="width:100%; font-size:0.90rem;">
+
+						<thead class="table-light">
+
+							<tr>
+@* 
+								<th class="small">
+									ID
+								</th> *@
+
+								<th class="small">
+									Nombre
+								</th>
+
+								<th class="small text-center">
+									Estatus
+								</th>
+
+								<th class="small text-center"
+									style="width:140px;">
+
+									Acciones
+								</th>
+
+							</tr>
+
+						</thead>
+
+						<tbody>
+
+							@foreach (var item in Model.Registros)
+							{
+								<tr>
+
+								@* 	<td class="fw-semibold">
+										@item.TipoCatalogoServicioId
+									</td> *@
+
+									<td>
+										@item.TipoCatalogoServicioNombre
+									</td>
+
+									<td class="text-center">
+
+										@if (item.Activo)
+										{
+											<span class="badge bg-success">
+												Activo
+											</span>
+										}
+										else
+										{
+											<span class="badge bg-danger">
+												Inactivo
+											</span>
+										}
+
+									</td>
+
+									<td class="text-center"
+										style="width:140px;">
+
+										<div class="btn-group"
+											 role="group">
+
+										@* 	<a asp-action="Details"
+												   asp-route-id="@item.TipoCatalogoServicioId"
+												   class="btn btn-outline-secondary btn-sm"
+												   title="Detalle">
+
+												<i class="bi bi-eye"></i>
+											</a> *@
+
+											<a asp-action="Edit"
+												   asp-route-id="@item.TipoCatalogoServicioId"
+												   class="btn btn-outline-primary btn-sm"
+												   title="Editar">
+
+												<i class="bi bi-pencil-square"></i>
+											</a>
+
+											<a asp-action="Delete"
+												   asp-route-id="@item.TipoCatalogoServicioId"
+												   class="btn btn-outline-danger btn-sm"
+												   title="Eliminar">
+
+												<i class="bi bi-trash"></i>
+											</a>
+
+										</div>
+
+									</td>
+
+								</tr>
+							}
+
+						</tbody>
+
+					</table>
+
+				</div>
+
+				<div class="d-flex justify-content-between align-items-center mt-4 flex-wrap gap-2">
+
+					<div class="text-muted small">
+
+						Mostrando
+
+						<strong>@Model.Registros.Count</strong>
+
+						de
+
+						<strong>@Model.TotalRegistros</strong>
+
+						registros
+
+					</div>
+
+					<nav>
+
+						<ul class="pagination pagination-sm mb-0">
+
+							<li class="page-item @(Model.PaginaActual == 1 ? "disabled" : "")">
+
+								<a class="page-link"
+									   asp-route-pagina="1">
+
+									<i class="bi bi-chevron-double-left"></i>
+								</a>
+
+							</li>
+
+							<li class="page-item @(!Model.TieneAnterior ? "disabled" : "")">
+
+								<a class="page-link"
+									   asp-route-pagina="@(Model.PaginaActual - 1)">
+
+									<i class="bi bi-chevron-left"></i>
+								</a>
+
+							</li>
+
+							@{
+								int inicio = Math.Max(
+								1,
+								Model.PaginaActual - 2);
+
+								int fin = Math.Min(
+								Model.TotalPaginas,
+								Model.PaginaActual + 2);
+							}
+
+							@for (int i = inicio; i <= fin; i++)
+							{
+								<li class="page-item @(i == Model.PaginaActual ? "active" : "")">
+
+									<a class="page-link"
+										   asp-route-pagina="@i">
+
+										@i
+									</a>
+
+								</li>
+							}
+
+							<li class="page-item @(!Model.TieneSiguiente ? "disabled" : "")">
+
+								<a class="page-link"
+									   asp-route-pagina="@(Model.PaginaActual + 1)">
+
+									<i class="bi bi-chevron-right"></i>
+								</a>
+
+							</li>
+
+							<li class="page-item @(Model.PaginaActual == Model.TotalPaginas ? "disabled" : "")">
+
+								<a class="page-link"
+									   asp-route-pagina="@Model.TotalPaginas">
+
+									<i class="bi bi-chevron-double-right"></i>
+								</a>
+
+							</li>
+
+						</ul>
+
+					</nav>
+
+				</div>
+			}
+
+		</div>
+
+	</div>
+
+</div>

@@ -1,0 +1,1335 @@
+﻿@using System.Diagnostics
+@using SIGEMAV.Models.ViewModels.Maquinaria
+
+@model DSPViewModel
+
+@{
+	ViewData["Title"] =
+		"Validación DSP";
+}
+
+
+
+
+
+
+
+<div class="card shadow-sm border-0">
+
+	<div class="card-header bg-white">
+
+		<div class="d-flex justify-content-between align-items-center">
+
+			<div>
+
+
+
+				@{
+					var esPendienteDSP = Model.EstatusSolicitudMantenimientoId == 2;
+
+					var esPendienteRevision = Model.EstatusSolicitudMantenimientoId == 4;
+
+					var esRechazada = Model.EstatusSolicitudMantenimientoId == 6;
+
+					var esAutorizada = Model.EstatusSolicitudMantenimientoId == 5;
+
+					var esEnMantenimiento = Model.EstatusSolicitudMantenimientoId == 7;
+
+					var esFinalizada = Model.EstatusSolicitudMantenimientoId == 8;
+
+					var esConsulta = esAutorizada || esEnMantenimiento || esFinalizada || esPendienteRevision;
+				}
+
+
+
+
+				<h4 class="fw-bold mb-0">
+					Validación presupuestal DSP
+				</h4>
+
+				<small class="text-muted">
+					Control financiero y autorización administrativa
+				</small>
+
+			</div>
+
+			<div>
+
+				<a asp-action="Index"
+				   class="btn btn-outline-secondary">
+
+					<i class="bi bi-arrow-left me-1"></i>
+					Regresar
+
+				</a>
+
+			</div>
+
+		</div>
+
+	</div>
+
+	<div class="card-body">
+
+		@if (TempData["Error"] != null)
+		{
+			<div class="alert alert-danger alert-dismissible fade show"
+				 role="alert">
+
+				<i class="bi bi-exclamation-triangle-fill me-2"></i>
+
+				@TempData["Error"]
+
+				<button type="button"
+						class="btn-close"
+						data-bs-dismiss="alert">
+				</button>
+
+			</div>
+		}
+
+
+
+		@* @{
+			foreach (var p in Model.PartidasDSP)
+			{
+				Debug.WriteLine(
+					$"DSP {p.IdObjetoGasto} = {p.ImporteSolicitado}");
+			}
+
+			foreach (var p in Model.PartidasSolicitud)
+			{
+				Debug.WriteLine(
+					$"SOLICITUD {p.IdObjetoGasto} = {p.ImporteSolicitado}");
+			}
+		} *@
+
+
+
+		<form asp-action="DSP" method="post" id="formDSP">
+
+			
+
+			@Html.AntiForgeryToken()
+
+			<input asp-for="SolicitudMantenimientoId" type="hidden" />
+			<input asp-for="Folio" type="hidden" />
+			<input asp-for="AreaId" type="hidden" />
+
+
+			@for (int i = 0; i < Model.PartidasSolicitud.Count; i++)
+			{
+				<input type="hidden"
+					   asp-for="PartidasSolicitud[i].IdObjetoGasto" />
+
+				<input type="hidden"
+					   asp-for="PartidasSolicitud[i].ImporteSolicitado" />
+
+				<input type="hidden"
+					   asp-for="PartidasSolicitud[i].ClaveObjetoGasto" />
+			}
+
+
+
+			<div class="row g-4">
+
+				<!-- FOLIO -->
+				<div class="col-md-4">
+
+					<label class="fw-semibold">
+						Folio
+					</label>
+
+					<div class="form-control bg-light">
+						@Model.Folio
+					</div>
+
+				</div>
+
+				<!-- AREA -->
+				<div class="col-md-4">
+
+					<label class="fw-semibold">
+						Área solicitante
+					</label>
+
+					<div class="form-control bg-light text-start fw-bold text-black">
+						@Model.Area
+					</div>
+
+				</div>
+
+				<!-- IMPORTE -->
+				<div class="col-md-4">
+					<label class="fw-semibold">
+						Importe de la solicitud de mantenimiento
+					</label>
+
+					<div class="form-control bg-light text-end fw-bold text-primary">
+
+						@Model.ImporteSolicitud.ToString("C")
+
+					</div>
+
+				</div>
+
+
+
+				<!-- TALLER -->
+				<div class="col-md-6">
+
+					<label class="fw-semibold">
+						Taller
+					</label>
+
+					<div class="form-control bg-light">
+						@Model.Taller?.Trim()
+					</div>
+
+				</div>
+
+				<div class="col-md-3">
+
+					<label class="fw-semibold">
+						Monto mínimo
+					</label>
+
+					<div class="form-control bg-light text-end">
+						@Model.TallerMinimo.ToString("C")
+					</div>
+
+				</div>
+
+				<div class="col-md-3">
+
+					<label class="fw-semibold">
+						Monto máximo
+					</label>
+
+					<div class="form-control bg-light text-end">
+						@Model.TallerMaximo.ToString("C")
+					</div>
+
+				</div>
+
+				@* <div class="col-md-2">
+
+					<label class="fw-semibold">
+						Disponible
+					</label>
+
+					<div class="form-control bg-light text-end fw-bold
+						@(Model.TallerDisponible >= Model.ImporteSolicitud
+							 ? "text-success"
+							 : "text-danger")">
+
+						@Model.DisponibleTaller.ToString("C")
+
+					</div>
+
+				</div> *@
+
+
+
+
+
+			</div>
+
+
+
+
+			<hr class="my-4" />
+
+			<h5 class="fw-bold mb-3">
+				Validación presupuestal del taller
+			</h5>
+
+			<div class="row g-3">
+
+				<div class="col-md-3">
+
+					<div class="card shadow-sm">
+
+						<div class="card-body">
+
+							<div class="text-muted">
+								Presupuesto asignado
+							</div>
+
+							<div class="fw-bold text-primary fs-5">
+								@Model.PresupuestoTaller.ToString("C")
+							</div>
+
+						</div>
+
+					</div>
+
+				</div>
+
+				<div class="col-md-3">
+
+					<div class="card shadow-sm">
+
+						<div class="card-body">
+
+							<div class="text-muted">
+								Comprometido
+							</div>
+
+							<div class="fw-bold text-warning fs-5">
+								@Model.ComprometidoTaller.ToString("C")
+							</div>
+
+						</div>
+
+					</div>
+
+				</div>
+
+				<div class="col-md-3">
+
+					<div class="card shadow-sm">
+
+						<div class="card-body">
+
+							<div class="text-muted">
+								Ejercido
+							</div>
+
+							<div class="fw-bold text-secondary fs-5">
+								@Model.EjercidoTaller.ToString("C")
+							</div>
+
+						</div>
+
+					</div>
+
+				</div>
+
+				<div class="col-md-3">
+
+					<div class="card shadow-sm">
+
+						<div class="card-body">
+
+							<div class="text-muted">
+								Disponible
+							</div>
+
+							<div class="fw-bold fs-4
+								@(Model.DisponibleTaller >= Model.ImporteSolicitud
+									 ? "text-success"
+									 : "text-danger")">
+
+								@Model.DisponibleTaller.ToString("C")
+
+							</div>
+
+						</div>
+
+					</div>
+
+				</div>
+
+			</div>
+
+			@* @if (Model.DisponibleTaller < Model.ImporteSolicitud)
+			{
+				<div class="alert alert-danger mt-3">
+
+					<i class="bi bi-exclamation-octagon-fill me-2"></i>
+
+					El taller no tiene disponibilidad presupuestal.
+
+				</div>
+			}
+			else
+			{
+				<div class="alert alert-success mt-3">
+
+					<i class="bi bi-check-circle-fill me-2"></i>
+
+					El taller cuenta con disponibilidad.
+
+				</div>
+			} *@
+			@if (esRechazada)
+			{
+				<div class="alert alert-warning">
+
+					<i class="bi bi-arrow-counterclockwise me-2"></i>
+
+					El compromiso presupuestal del taller fue liberado por rechazo técnico.
+					El presupuesto quedó nuevamente disponible.
+
+				</div>
+			}
+			else if (Model.DisponibleTaller < Model.ImporteSolicitud)
+			{
+				<div class="alert alert-danger">
+
+					<i class="bi bi-exclamation-octagon-fill me-2"></i>
+
+					El taller NO cuenta con disponibilidad presupuestal.
+
+				</div>
+			}
+			else
+			{
+				<div class="alert alert-success">
+
+					<i class="bi bi-check-circle-fill me-2"></i>
+
+					El taller cuenta con disponibilidad presupuestal.
+
+				</div>
+
+				@if (!Model.TieneSuficienciaPresupuestal)
+				{
+					<div class="alert alert-warning mt-2">
+
+						<i class="bi bi-info-circle me-2"></i>
+
+						Aunque el taller tiene disponibilidad,
+						una o más partidas del área (DSP)
+						no cuentan con suficiencia presupuestal.
+
+					</div>
+				}
+			}
+
+
+
+
+
+
+
+			
+
+
+			@* <hr class="my-4" /> *@
+
+			<!-- RESUMEN PRESUPUESTAL -->
+			@* <div class="row g-4 justify-content-center" > *@
+
+			<!-- ASIGNADO -->
+			@* <div class="col-md-3">
+
+					<div class="card border-0 shadow-sm h-100">
+
+						<div class="card-body text-center">
+
+							<div class="text-muted small mb-2">
+								Presupuesto autorizado
+							</div>
+
+							<div class="fs-4 fw-bold text-primary">
+
+								@Model.PresupuestoAsignado.ToString("C")
+
+							</div>
+
+						</div>
+
+					</div>
+
+				</div> *@
+
+			<!-- COMPROMETIDO -->
+			@* <div class="col-md-3">
+
+					<div class="card border-0 shadow-sm h-100">
+
+						<div class="card-body text-center">
+
+							<div class="text-muted small mb-2">
+								Comprometido
+							</div>
+
+							<div class="fs-4 fw-bold text-warning">
+
+								@Model.PresupuestoComprometido.ToString("C")
+
+							</div>
+
+						</div>
+
+					</div>
+
+				</div>
+
+				<!-- DEVENGADO -->
+				<div class="col-md-3">
+
+					<div class="card border-0 shadow-sm h-100">
+
+						<div class="card-body text-center">
+
+							<div class="text-muted small mb-2">
+								Devengado
+							</div>
+
+							<div class="fs-4 fw-bold text-secondary">
+
+								@Model.PresupuestoDevengado.ToString("C")
+
+							</div>
+
+						</div>
+
+					</div>
+
+				</div> *@
+
+			<!-- DISPONIBLE -->
+			@* <div class="col-md-3">
+
+					<div class="card border-0 shadow-sm h-100">
+
+						<div class="card-body text-center">
+
+							<div class="text-muted small mb-2">
+								Disponible
+							</div>
+
+							<div class="fs-4 fw-bold text-success">
+
+								@Model.PresupuestoDisponible.ToString("C")
+
+							</div>
+
+						</div>
+
+					</div>
+
+				</div>
+ *@
+			@* 		</div> *@
+
+
+
+
+			<hr class="my-4" />
+
+			<h5 class="fw-bold mb-3">
+				Validación presupuestal por partida
+			</h5>
+
+			@if (Model.EstatusSolicitudMantenimientoId < 4)
+			{
+				<div class="table-responsive">
+
+					<table class="table table-bordered table-hover align-middle">
+
+						<thead class="table-dark">
+
+							<tr>
+
+								<th>Partida</th>
+
+								<th>Descripción</th>
+
+								<th class="text-end">
+									Presupuesto asignado
+								</th>
+
+								<th class="text-end">
+									Disponible actual
+								</th>
+
+								<th class="text-end">
+									Importe solicitado
+								</th>
+
+								<th class="text-end">
+									Disponible posterior
+								</th>
+
+								<th class="text-center">
+									Estado
+								</th>
+
+							</tr>
+
+						</thead>
+
+						<tbody>
+
+							@foreach (var item in Model.PartidasSolicitud)
+							{
+								var disponiblePosterior =
+									item.DisponibleDSP -
+									item.ImporteSolicitado;
+
+								<tr>
+
+									<td>
+										@item.ClaveObjetoGasto
+									</td>
+
+									<td>
+										@item.ObjetoGastoDescripcion
+									</td>
+
+									<td class="text-end">
+										@item.AutorizadoPorArea.ToString("C")
+									</td>
+
+									<td class="text-end text-success fw-bold">
+										@item.DisponibleDSP.ToString("C")
+									</td>
+
+									<td class="text-end text-primary fw-bold">
+										@item.ImporteSolicitado.ToString("C")
+									</td>
+
+									<td class="text-end fw-bold">
+
+										@if (disponiblePosterior >= 0)
+										{
+											@if (item.ViolaPolitica20Porciento)
+											{
+												<span class="text-warning">
+													@item.DisponiblePosterior.ToString("C")
+												</span>
+											}
+											else
+											{
+												<span class="text-success">
+													@item.DisponiblePosterior.ToString("C")
+												</span>
+											}
+										}
+										else
+										{
+											<span class="text-danger">
+												@disponiblePosterior.ToString("C")
+											</span>
+										}
+
+
+										@* 	@if (disponiblePosterior >= 0)
+										{
+											@if (item.ViolaPolitica20Porciento)
+											{
+												<span class="text-warning">
+													@item.DisponiblePosterior.ToString("C")
+												</span>
+											}
+											else
+											{
+												<span class="text-success">
+													@item.DisponiblePosterior.ToString("C")
+												</span>
+											}
+										}
+										else
+										{
+
+} *@
+
+										
+
+									</td>
+
+									<td class="text-center">
+
+										@if (item.TieneSuficiencia)
+										{
+											<span class="badge bg-success">Con suficiencia</span>
+
+
+
+											@* if (item.ViolaPolitica20Porciento)
+											{
+												<span class="badge bg-warning">
+													Dejaría menos del 20%
+												</span>
+											}
+											else
+											{
+												<span class="badge bg-success">
+													Con suficiencia
+												</span>
+											} *@
+										}
+										else
+										{
+											<span class="badge bg-danger">
+												Insuficiente
+											</span>
+										}
+
+									
+
+									</td>
+
+								</tr>
+							}
+
+						</tbody>
+
+					</table>
+
+				</div>
+
+				@if (!Model.TieneSuficienciaPresupuestal)
+				{
+					<div class="alert alert-danger mt-4">
+
+						<i class="bi bi-exclamation-octagon-fill me-2"></i>
+
+						El importe solicitado excede el presupuesto disponible.
+
+					</div>
+				}
+				else
+				{
+
+
+
+					@if (Model.ViolaPolitica20Porciento)
+					{
+						<div class="alert alert-warning mt-3">
+
+							<i class="bi bi-exclamation-triangle-fill me-2"></i>
+
+							La autorización dejaría una o más partidas con
+							una disponibilidad igual o menor al 20% del
+							presupuesto asignado.
+
+						</div>
+					}
+					else
+					{
+						<div class="alert alert-success mt-4">
+
+							<i class="bi bi-check-circle-fill me-2"></i>
+
+							Existe suficiencia presupuestal para continuar.
+
+						</div>
+					}
+				}
+
+
+
+			
+
+
+			}
+			@* @if (Model.EstatusSolicitudMantenimientoId >= 4) *@
+			@if (esConsulta || esRechazada)
+			{
+				var estaRechazada = Model.EstatusSolicitudMantenimientoId == 6;
+
+
+				
+
+			
+				<div class="table-responsive">
+
+					<table class="table table-bordered table-hover align-middle">
+
+						<thead class="table-dark">
+
+							<tr>
+
+								<th>Partida</th>
+
+								<th>Descripción</th>
+
+								<th class="text-end">
+									Presupuesto asignado
+								</th>
+
+
+								<th class="text-end">
+									Disponible actual
+								</th>
+
+								@if (esRechazada)
+								{
+									<th class="text-end">
+										Importe solicitado
+									</th>
+
+									<th class="text-end">
+										Importe liberado
+									</th>
+								}
+								else
+								{
+									<th class="text-end">
+										Importe solicitado
+									</th>
+
+									<th class="text-center">
+										Situación
+									</th>
+								}
+
+								<th class="text-center">
+									Estado
+								</th>
+
+							</tr>
+
+						</thead>
+
+						<tbody>
+							@foreach (var item in Model.PartidasSolicitud)
+							{
+								<tr>
+
+									<td>
+										@item.ClaveObjetoGasto
+									</td>
+
+									<td>
+										@item.ObjetoGastoDescripcion
+									</td>
+
+									<td class="text-end">
+										@item.AutorizadoPorArea.ToString("C")
+									</td>
+
+
+									<td class="text-end text-success fw-bold">
+										@item.DisponibleDSP.ToString("C")
+									</td>
+
+
+									@if (esRechazada)
+									{
+										<td class="text-end fw-bold">
+											<span class="text-primary">
+												@item.ImporteSolicitado.ToString("C")
+											</span>
+										</td>
+
+										<td class="text-end text-danger fw-bold">
+											@item.ImporteLiberado.ToString("C")
+										</td>
+									}
+									else
+									{
+										<td class="text-end fw-bold text-primary">
+											@item.ImporteSolicitado.ToString("C")
+										</td>
+
+										<td class="text-center">
+
+											@if (item.HistorialPresupuestal == "Rechazada y posteriormente reaprobada")
+											{
+												<span class="badge bg-warning text-dark">
+													Re-aprobada
+												</span>
+											}
+											else
+											{
+												<span class="badge bg-success">
+													Vigente
+												</span>
+											}
+
+										</td>
+									}
+
+									<td class="text-center">
+
+										@if (esRechazada)
+										{
+											<span class="badge bg-danger">
+												Rechazada
+											</span>
+										}
+										else if (esAutorizada)
+										{
+											<span class="badge bg-primary">
+												Autorizada
+											</span>
+										}
+										else if (esEnMantenimiento)
+										{
+											<span class="badge bg-info">
+												En mantenimiento
+											</span>
+										}
+										else if (esFinalizada)
+										{
+											<span class="badge bg-success">
+												Finalizada
+											</span>
+										}
+										else if (item.TieneSuficiencia)
+										{
+											<span class="badge bg-success">Con suficiencia</span>
+										}
+
+									</td>
+
+								</tr>
+							}
+
+						</tbody>
+
+					</table>
+
+				</div>
+
+				@if (esRechazada)
+				{
+					<div class="alert alert-warning">
+
+						<i class="bi bi-arrow-counterclockwise me-2"></i>
+
+						Esta solicitud fue rechazada y el compromiso
+						presupuestal fue liberado.
+
+					</div>
+				}
+				else if (esAutorizada)
+				{
+					<div class="alert alert-info">
+
+						<i class="bi bi-shield-check me-2"></i>
+
+						La solicitud cuenta con DSP autorizada.
+
+					</div>
+				}
+				else if (esEnMantenimiento)
+				{
+					<div class="alert alert-primary">
+
+						<i class="bi bi-tools me-2"></i>
+
+						La solicitud se encuentra en mantenimiento.
+						El compromiso presupuestal permanece vigente.
+
+					</div>
+				}
+				else if (esFinalizada)
+				{
+					<div class="alert alert-success">
+
+						<i class="bi bi-check-circle me-2"></i>
+
+						La solicitud fue concluida satisfactoriamente.
+
+					</div>
+				}
+			}
+
+
+			<div class="row g-4 mt-2">
+
+				@foreach (var dsp in Model.DSPs)
+				{
+					<div class="col-md-4">
+
+						<div class="card border-0 shadow-sm h-100">
+
+							<div class="card-header bg-light h-50">
+
+								<div class="fw-bold">
+									@* DSP: @dsp.IdDsp *@
+									@dsp.ObjetoGastoDescripcion
+								</div>
+
+								<div class="small text-muted mt-1">
+
+									<div>
+										<strong>Objeto gasto:</strong>
+										@dsp.ClaveObjetoGasto
+									</div>
+
+									@* 	<div>
+										@dsp.ObjetoGastoDescripcion
+									</div> *@
+
+								</div>
+
+							</div>
+
+							<div class="card-body">
+
+								<div class="mb-2">
+
+									<div class="text-muted small">
+										Asignado
+									</div>
+
+									<div class="fw-bold text-primary">
+										@dsp.PresupuestoAsignado.ToString("C")
+									</div>
+
+								</div>
+
+								<div class="mb-2">
+
+									<div class="text-muted small">
+										Comprometido
+									</div>
+
+									<div class="fw-bold text-warning">
+										@dsp.PresupuestoComprometido.ToString("C")
+									</div>
+
+								</div>
+
+								<div class="mb-2">
+
+									<div class="text-muted small">
+										Devengado
+									</div>
+
+									<div class="fw-bold text-secondary">
+										@dsp.PresupuestoDevengado.ToString("C")
+									</div>
+
+								</div>
+
+								<hr />
+
+								<div>
+
+									<div class="text-muted small">
+										Disponible
+									</div>
+
+									<div class="fw-bold text-success fs-5">
+										@dsp.PresupuestoDisponible.ToString("C")
+									</div>
+
+								</div>
+
+							</div>
+
+						</div>
+
+					</div>
+				}
+
+			</div>
+
+
+
+
+
+
+			
+
+
+			<hr class="my-4" />
+			<div class="row g-4">
+				<!-- OBSERVACIONES -->
+				<div class="col-md-12">
+
+					<label asp-for="Observaciones"
+						   class="form-label fw-semibold">
+
+						Observaciones financieras
+
+					</label>
+
+					<textarea asp-for="Observaciones"
+							  rows="4"
+							  class="form-control">
+
+					</textarea>
+
+					<span asp-validation-for="Observaciones"
+						  class="text-danger">
+					</span>
+
+				</div>
+
+			</div>
+
+
+			<hr class="my-4" />
+
+			<div class="d-flex justify-content-end gap-2">
+
+				<a asp-action="Index"
+				   class="btn btn-outline-secondary">
+
+					Cancelar
+
+				</a>
+
+				@{
+					var puedeAutorizar =
+						Model.TieneSuficienciaPresupuestal
+						&&
+						Model.TieneDisponibilidadTaller;
+
+					var tieneLiberaciones =
+						Model.PartidasDSP?.Any(x =>
+							x.FueDescomprometida)
+						?? false;
+				}
+
+				@if (Model.EstatusSolicitudMantenimientoId >= 4)
+				{
+					if (tieneLiberaciones)
+					{
+						<button type="button"
+								class="btn btn-warning"
+								disabled>
+
+							<i class="bi bi-arrow-counterclockwise me-1"></i>
+
+							DSP liberada por rechazo
+
+						</button>
+					}
+					else
+					{
+						<button type="button"
+								class="btn btn-secondary"
+								disabled>
+
+							<i class="bi bi-lock-fill me-1"></i>
+
+							Solicitud ya validada presupuestalmente
+
+						</button>
+					}
+				}
+				else
+				{
+					if (!Model.TieneSuficienciaPresupuestal)
+					{
+						<button type="button"
+								class="btn btn-secondary"
+								disabled>
+
+							<i class="bi bi-lock-fill me-1"></i>
+
+							Sin suficiencia presupuestal del área
+
+						</button>
+					}
+					else if (!Model.TieneDisponibilidadTaller)
+					{
+						<button type="button"
+								class="btn btn-secondary"
+								disabled>
+
+							<i class="bi bi-building-lock me-1"></i>
+
+							Taller sin disponibilidad presupuestal
+
+						</button>
+					}
+					else if (Model.ViolaPolitica20Porciento)
+					{
+						<button type="button"
+								class="btn btn-secondary"
+								disabled>
+
+							<i class="bi bi-lock-fill me-1"></i>
+
+							Quedaría menos del 20% en alguna partida
+
+						</button>
+					}
+					else if (puedeAutorizar)
+					{
+						<button type="submit"
+								class="btn text-light"
+								style="background-color:#198754">
+
+							<i class="bi bi-cash-stack me-1"></i>
+
+							Autorizar DSP
+
+						</button>
+					}
+				}
+
+			</div>
+
+		</form>
+
+	</div>
+
+</div>
+
+@section Scripts {
+
+	@{
+		await Html.RenderPartialAsync(
+			"_ValidationScriptsPartial");
+	}
+
+
+	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+	<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+	<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+
+
+	<script>
+
+		$(document).ready(function () {
+
+		// ============================================
+		// SELECT2 DSP
+		// ============================================
+
+		$("#IdDispPresupuestal").select2({
+
+		placeholder:
+		'Buscar DSP...',
+
+		allowClear: true,
+
+		width: '100%'
+
+		});
+
+		});
+
+	</script>
+
+
+
+	<script>
+
+		$(document).ready(function () {
+
+		// ============================================
+		// VALIDAR FORM DSP
+		// ============================================
+
+		$("#formDSP").submit(function (e) {
+
+		const dsp =
+		$("#IdDispPresupuestal").val();
+
+		if (
+		dsp === null
+		||
+		dsp === ""
+		)
+		{
+		e.preventDefault();
+
+		Swal.fire({
+
+		icon: 'warning',
+
+		title: 'DSP requerida',
+
+		text:
+		'Debe seleccionar una disponibilidad presupuestal para continuar.',
+
+		confirmButtonColor:
+		'#800705'
+		});
+
+		return false;
+		}
+
+		return true;
+		});
+
+		});
+
+	</script>
+
+
+
+
+	<script>
+
+		$(document).ready(function () {
+
+		// ============================================
+		// CONFIRMAR DSP
+		// ============================================
+
+		$("#formDSP").submit(function (e) {
+
+		e.preventDefault();
+
+		const form =
+		this;
+
+		const dsp =
+		$("#IdDispPresupuestal").val();
+
+		// ========================================
+		// VALIDAR DSP
+		// ========================================
+
+		if (
+		dsp === null
+		||
+		dsp === ""
+		)
+		{
+		Swal.fire({
+
+		icon: 'warning',
+
+		title: 'DSP requerida',
+
+		text:
+		'Debe seleccionar una disponibilidad presupuestal para continuar.',
+
+		confirmButtonColor:
+		'#800705'
+		});
+
+		return false;
+		}
+
+		// ========================================
+		// CONFIRMAR PROCESO
+		// ========================================
+
+		Swal.fire({
+
+		title:
+		'¿Autorizar afectación presupuestal?',
+
+		text:
+		'Se realizará el compromiso presupuestal de la solicitud de mantenimiento.',
+
+		icon: 'question',
+
+		showCancelButton: true,
+
+		confirmButtonColor: '#198754',
+
+		cancelButtonColor: '#6c757d',
+
+		confirmButtonText:
+		'Sí, continuar',
+
+		cancelButtonText:
+		'Cancelar'
+
+		}).then((result) => {
+
+		if (result.isConfirmed) {
+
+		form.submit();
+		}
+		});
+
+		return false;
+		});
+
+		});
+
+	</script>
+
+
+
+}

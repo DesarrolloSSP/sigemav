@@ -1,0 +1,271 @@
+﻿@using SIGEMAV.Models.ViewModels.Maquinaria
+
+@model ConfiguracionValidacionTecnicaViewModel
+
+<div class="container">
+
+	<div class="card shadow-sm">
+
+		<div class="card-header text-white"
+			 style="background:#800705">
+
+			<h5 class="mb-0">
+				Configuración de validación técnica
+			</h5>
+
+		</div>
+
+		<div class="card-body">
+
+			<form asp-action="Guardar">
+
+				<input asp-for="ConfiguracionValidacionTecnicaId"
+					   type="hidden" />
+
+				<div class="row g-3">
+
+					<div class="col-md-6">
+
+						<label class="form-label">
+							Tipo de catálogo de servicio
+						</label>
+
+						<select asp-for="TipoCatalogoServicioId"
+								asp-items="Model.TiposCatalogoServicio"
+								class="form-select">
+
+							<option value="">
+								Seleccione
+							</option>
+
+						</select>
+
+					</div>
+
+					<div class="col-md-6">
+
+						<label class="form-label">
+							Servicio
+						</label>
+
+						<select asp-for="ConceptoServicioId"
+								asp-items="Model.ConceptosServicio"
+								class="form-select">
+
+							<option value="">
+								Seleccione
+							</option>
+
+						</select>
+
+					</div>
+
+					<div class="col-md-6">
+
+						<div class="form-check mt-4">
+
+							<input asp-for="ValidarSolicitudesAbiertas"
+								   class="form-check-input" />
+
+							<label class="form-check-label">
+
+								Validar solicitudes de mantenimiento abiertas
+
+							</label>
+
+						</div>
+
+					</div>
+
+					<div class="col-md-6">
+
+						<label class="form-label">
+							Estados en los que aplica la validación
+						</label>
+
+						<select asp-for="EstatusPermitidos"
+								asp-items="Model.EstatusDisponibles"
+								multiple
+								class="form-select">
+						</select>
+
+
+					</div>
+
+					<div class="col-md-6">
+
+						<div class="form-check mt-4">
+
+							<input asp-for="ValidarRecurrencia"
+								   class="form-check-input" />
+							<label class="form-check-label">
+								Validar recurrencia de mantenimientos
+
+							</label>
+
+						</div>
+
+					</div>
+
+					<div class="col-md-6">
+
+						<label class="form-label">
+
+							Días mínimos
+
+						</label>
+
+						<input asp-for="DiasRecurrencia"
+							   class="form-control" />
+
+					</div>
+
+					<div class="col-md-6">
+
+						<div class="form-check mt-4">
+
+							<input asp-for="Activo"
+								   class="form-check-input" />
+
+							<label class="form-check-label">
+
+								Concepto activo
+
+							</label>
+
+						</div>
+
+					</div>
+
+				</div>
+
+				<hr />
+
+				<div class="text-end">
+
+					<a asp-action="Index"
+					   class="btn btn-secondary">
+
+						Cancelar
+
+					</a>
+
+					<button type="submit"
+							class="btn text-light"
+							style="background:#800705">
+
+						Guardar
+
+					</button>
+
+				</div>
+
+			</form>
+
+		</div>
+
+	</div>
+
+</div>
+
+
+
+@section Scripts {
+
+	@{
+		await Html.RenderPartialAsync(
+			"_ValidationScriptsPartial");
+	}
+
+
+
+
+
+	<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+	<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
+	<script>
+		window.onload = function () {
+
+		const msg = '@TempData["SweetAlertMessage"]';
+		const type = '@TempData["SweetAlertType"]';
+
+		if (msg) {
+
+		Swal.fire({
+		icon: type || 'info',
+		title: 'Sistema',
+		text: msg
+		});
+
+		}
+
+		};
+	</script>
+
+
+
+
+	<script>
+		window.addEventListener("DOMContentLoaded", function () {
+
+		const tipo = document.getElementById("TipoCatalogoServicioId");
+		const selectConcepto = document.getElementById("ConceptoServicioId");
+
+		if (!tipo || !selectConcepto) return;
+
+		async function cargarConceptos(tipoId, selectedValue = null) {
+
+		selectConcepto.innerHTML = "<option value=''>Seleccione</option>";
+
+		if (!tipoId) return;
+
+		try {
+
+		const response =
+		await fetch(`/Maquinaria/ConfiguracionValidacionTecnica/ObtenerConceptosPorTipo?tipoCatalogoServicioId=${tipoId}`);
+
+		const data = await response.json();
+
+		data.forEach(x => {
+		const option = document.createElement("option");
+		option.value = x.value;
+		option.text = x.text;
+
+		// mantener seleccionado en Edit
+		if (selectedValue && selectedValue == x.value) {
+		option.selected = true;
+		}
+
+		selectConcepto.appendChild(option);
+		});
+
+		} catch (e) {
+		console.error(e);
+
+		selectConcepto.innerHTML =
+		"<option value=''>Error al cargar</option>";
+		}
+		}
+
+		// ==========================
+		// EVENTO CHANGE
+		// ==========================
+		tipo.addEventListener("change", function () {
+		cargarConceptos(this.value);
+		});
+
+		// ==========================
+		// AUTO LOAD EN EDIT
+		// ==========================
+		if (tipo.value) {
+		cargarConceptos(tipo.value, selectConcepto.value);
+		}
+
+		});
+	</script>
+
+
+}

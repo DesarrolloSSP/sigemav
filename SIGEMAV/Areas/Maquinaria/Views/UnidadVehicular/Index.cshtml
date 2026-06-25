@@ -1,0 +1,527 @@
+﻿@using SIGEMAV.Models.ViewModels.Maquinaria
+@model PaginacionViewModel<SIGEMAV.Models.ViewModels.Maquinaria.UnidadVehicularViewModel>
+
+@* @{
+	ViewData["Title"] = "Vehículos";
+}
+ *@
+
+<div class="container-fluid px-2 px-md-3">
+	<div class="card shadow-sm border-0 w-100">
+
+		<div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
+
+			<div>
+				<h4 class="mb-0 fw-bold">
+					Plantilla vehicular
+				</h4>
+
+				<small class="text-muted">
+					Listado del parque vehicular de la Institución
+				</small>
+			</div>
+
+			<div>
+				<a asp-action="Create" class="btn text-light" style="background-color:#800705">
+					<i class="bi bi-plus-circle me-1"></i>
+					Agregar Vehículo
+				</a>
+			</div>
+
+		</div>
+
+		<div class="card-body">
+
+
+			<!-- FILTROS -->
+
+			<form method="get"
+				  asp-action="Index"
+				  class="mb-4">
+
+				<div class="row g-3">
+
+					<!-- BUSQUEDA -->
+
+					<div class="col-md-3">
+
+						<label class="form-label fw-semibold">
+							Buscar
+						</label>
+
+						<input type="text"
+							   name="busqueda"
+							   value="@ViewBag.Busqueda"
+							   class="form-control form-control-sm"
+							   placeholder="Serie, placa, económico..." />
+
+					</div>
+
+					<!-- MARCA -->
+					<!-- MARCA -->
+
+					<div class="col-md-3">
+
+						<label class="form-label fw-semibold">
+							Marca
+						</label>
+
+						<select name="marcaId"
+								id="marcaId"
+								class="form-select">
+
+							<option value="">
+								Todas
+							</option>
+
+							@foreach (var item in (List<SelectListItem>)ViewBag.Marcas)
+							{
+								if (ViewBag.MarcaId?.ToString() == item.Value)
+								{
+									<option value="@item.Value" selected>
+										@item.Text
+									</option>
+								}
+								else
+								{
+									<option value="@item.Value">
+										@item.Text
+									</option>
+								}
+							}
+
+						</select>
+
+					</div>
+
+					<!-- MODELO -->
+
+					<div class="col-md-3">
+
+						<label class="form-label fw-semibold">
+							Modelo
+						</label>
+
+						<select name="modeloId"
+								id="modeloId"
+								class="form-select">
+
+							<option value="">
+								Todos
+							</option>
+
+							@if (ViewBag.Modelos != null)
+							{
+								@foreach (var item in (List<SelectListItem>)ViewBag.Modelos)
+								{
+									if (ViewBag.ModeloId?.ToString() == item.Value)
+									{
+										<option value="@item.Value" selected>
+											@item.Text
+										</option>
+									}
+									else
+									{
+										<option value="@item.Value">
+											@item.Text
+										</option>
+									}
+								}
+							}
+
+						</select>
+
+					</div>
+
+					<!-- AREA -->
+
+					<div class="col-md-2">
+
+						<label class="form-label fw-semibold">
+							Área
+						</label>
+
+						<select name="areaId"
+								class="form-select form-select-sm">
+
+							<option value="">
+								Todas
+							</option>
+
+							@foreach (var item in ViewBag.Areas)
+							{
+								<option value="@item.Value"
+										selected="@(ViewBag.AreaId?.ToString() == item.Value)">
+
+									@item.Text
+
+								</option>
+							}
+
+						</select>
+
+					</div>
+
+					<!-- MUNICIPIO -->
+
+					<div class="col-md-2">
+
+						<label class="form-label fw-semibold">
+							Municipio
+						</label>
+
+						<select name="municipioId"
+								class="form-select form-select-sm">
+
+							<option value="">
+								Todos
+							</option>
+
+							@foreach (var item in ViewBag.Municipios)
+							{
+								<option value="@item.Value"
+										selected="@(ViewBag.MunicipioId?.ToString() == item.Value)">
+
+									@item.Text
+
+								</option>
+							}
+
+						</select>
+
+					</div>
+
+					<!-- BOTONES -->
+
+					<div class="col-md-1 d-flex align-items-end gap-2">
+
+						<button type="submit"
+								class="btn btn-sm text-light w-100"
+								style="background-color:#800705">
+
+							<i class="bi bi-search"></i>
+
+						</button>
+
+						<a asp-action="Index"
+						   class="btn btn-sm btn-outline-secondary w-100">
+
+							<i class="bi bi-arrow-clockwise"></i>
+
+						</a>
+
+					</div>
+
+				</div>
+
+			</form>
+
+
+
+
+
+
+
+			@if (!Model.Registros.Any())
+			{
+				<div class="alert alert-info text-center mb-0">
+					<i class="bi bi-info-circle me-2"></i>
+					No se encontraron vehículos registrados.
+				</div>
+			}
+			else
+			{
+
+				<div class="w-100">
+
+					<table class="table table-hover align-middle table-sm" style="width:100%; font-size:0.88rem;">
+
+
+						<thead class="table-light">
+							<tr>
+								<th>#</th>
+								<th>Número de serie</th>
+								<th>Número económico</th>
+								<th>Marca</th>
+								<th>Modelo</th>
+								<th>Año</th>
+								<th>Transmisión</th>
+								<th>Cilindro</th>
+								<th>Color</th>
+								<th>Área</th>
+								<th>Municipio</th>
+								<th>Placa</th>
+								<th class="text-center" style="width: 180px;">
+									Acciones
+								</th>
+							</tr>
+						</thead>
+
+						<tbody>
+
+							@foreach (var item in Model.Registros)
+							{
+								<tr>
+
+									<td class="fw-semibold">
+										@item.IdUnidadVehicular
+									</td>
+
+									<td>@item.NumeroSerie</td>
+									<td>@item.NumeroEconomico</td>
+									<td>@item.MarcaNombre</td>
+									<td>@item.ModeloNombre</td>
+									<td>@item.AnioNombre</td>
+									<td>@item.TransmisionNombre</td>
+									<td>@item.CilindroNombre</td>
+									<td>@item.ColorNombre</td>
+									<td>@item.AreaNombre</td>
+
+									<td>@item.MunicipioNombre</td>
+
+									<td>
+										<span class="badge bg-secondary">
+											@item.PlacaActual
+										</span>
+									</td>
+
+									<td class="text-center" style="width:140px;">
+
+										<div class="btn-group" role="group">
+
+											<a asp-action="Details"
+											   asp-route-id="@item.IdUnidadVehicular"
+											   class="btn btn-outline-secondary btn-sm"
+											   title="Detalle">
+
+												<i class="bi bi-eye"></i>
+											</a>
+
+											<a asp-action="Edit"
+											   asp-route-id="@item.IdUnidadVehicular"
+											   class="btn btn-outline-primary btn-sm"
+											   title="Editar">
+
+												<i class="bi bi-pencil-square"></i>
+											</a>
+
+											<a asp-action="Delete"
+											   asp-route-id="@item.IdUnidadVehicular"
+											   class="btn btn-outline-danger btn-sm"
+											   title="Eliminar">
+
+												<i class="bi bi-trash"></i>
+											</a>
+
+										</div>
+
+									</td>
+
+								</tr>
+							}
+
+						</tbody>
+
+					</table>
+
+
+
+
+
+
+					<div class="d-flex justify-content-between align-items-center mt-4 flex-wrap gap-2">
+
+						<div class="text-muted small">
+
+							Mostrando
+							<strong>@Model.Registros.Count</strong>
+							de
+							<strong>@Model.TotalRegistros</strong>
+							registros
+
+						</div>
+
+						<nav>
+
+							<ul class="pagination pagination-sm mb-0">
+
+								<!-- PRIMERA -->
+
+								<li class="page-item @(Model.PaginaActual == 1 ? "disabled" : "")">
+
+									<a class="page-link"
+									   asp-route-pagina="1"
+									   asp-route-busqueda="@ViewBag.Busqueda"
+									   asp-route-marcaId="@ViewBag.MarcaId"
+									   asp-route-modeloId="@ViewBag.ModeloId"
+									   asp-route-areaId="@ViewBag.AreaId"
+									   asp-route-municipioId="@ViewBag.MunicipioId">
+
+										<i class="bi bi-chevron-double-left"></i>
+
+									</a>
+
+								</li>
+
+								<!-- ANTERIOR -->
+
+								<li class="page-item @(!Model.TieneAnterior ? "disabled" : "")">
+
+									<a class="page-link"
+									   asp-route-pagina="@(Model.PaginaActual - 1)"
+									   asp-route-busqueda="@ViewBag.Busqueda"
+									   asp-route-marcaId="@ViewBag.MarcaId"
+									   asp-route-modeloId="@ViewBag.ModeloId"
+									   asp-route-areaId="@ViewBag.AreaId"
+									   asp-route-municipioId="@ViewBag.MunicipioId">
+
+										<i class="bi bi-chevron-left"></i>
+
+									</a>
+
+								</li>
+
+								@{
+									int inicio =
+										Math.Max(
+											1,
+											Model.PaginaActual - 2);
+
+									int fin =
+										Math.Min(
+											Model.TotalPaginas,
+											Model.PaginaActual + 2);
+								}
+
+								@for (int i = inicio; i <= fin; i++)
+								{
+									<li class="page-item @(i == Model.PaginaActual ? "active" : "")">
+
+										<a class="page-link"
+										   asp-route-pagina="@i"
+										   asp-route-busqueda="@ViewBag.Busqueda"
+										   asp-route-marcaId="@ViewBag.MarcaId"
+										   asp-route-modeloId="@ViewBag.ModeloId"
+										   asp-route-areaId="@ViewBag.AreaId"
+										   asp-route-municipioId="@ViewBag.MunicipioId">
+
+											@i
+
+										</a>
+
+									</li>
+								}
+
+								<!-- SIGUIENTE -->
+
+								<li class="page-item @(!Model.TieneSiguiente ? "disabled" : "")">
+
+									<a class="page-link"
+									   asp-route-pagina="@(Model.PaginaActual + 1)"
+									   asp-route-busqueda="@ViewBag.Busqueda"
+									   asp-route-marcaId="@ViewBag.MarcaId"
+									   asp-route-modeloId="@ViewBag.ModeloId"
+									   asp-route-areaId="@ViewBag.AreaId"
+									   asp-route-municipioId="@ViewBag.MunicipioId">
+
+										<i class="bi bi-chevron-right"></i>
+
+									</a>
+
+								</li>
+
+								<!-- ÚLTIMA -->
+
+								<li class="page-item @(Model.PaginaActual == Model.TotalPaginas ? "disabled" : "")">
+
+									<a class="page-link"
+									   asp-route-pagina="@Model.TotalPaginas"
+									   asp-route-busqueda="@ViewBag.Busqueda"
+									   asp-route-marcaId="@ViewBag.MarcaId"
+									   asp-route-modeloId="@ViewBag.ModeloId"
+									   asp-route-areaId="@ViewBag.AreaId"
+									   asp-route-municipioId="@ViewBag.MunicipioId">
+
+										<i class="bi bi-chevron-double-right"></i>
+
+									</a>
+								</li>
+							</ul>
+						</nav>
+					</div>
+
+
+
+
+
+				</div>
+			}
+
+		</div>
+
+
+
+	</div>
+</div>
+
+
+
+
+
+
+@section Scripts {
+
+	<script>
+
+		$(document).ready(function () {
+
+			$('#marcaId').change(function () {
+
+				const marcaId = $(this).val();
+
+				const modeloSelect = $('#modeloId');
+
+				modeloSelect.empty();
+
+				modeloSelect.append(
+					'<option value="">Todos</option>');
+
+				if (!marcaId) {
+					return;
+				}
+
+				$.ajax({
+
+					url: '@Url.Action("ObtenerModelosPorMarca", "UnidadVehicular", new { area = "Maquinaria" })',
+
+					type: 'GET',
+
+					data: {
+						marcaId: marcaId
+					},
+
+					success: function (data) {
+
+						$.each(data, function (i, item) {
+
+							modeloSelect.append(
+
+								`<option value="${item.value}">
+									${item.text}
+								</option>`
+
+							);
+						});
+					},
+
+					error: function () {
+
+						alert(
+							'No fue posible cargar los modelos.');
+					}
+				});
+			});
+		});
+
+	</script>
+}

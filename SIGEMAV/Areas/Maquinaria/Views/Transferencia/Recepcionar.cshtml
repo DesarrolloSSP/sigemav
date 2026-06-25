@@ -1,0 +1,130 @@
+﻿@using SIGEMAV.Models.ViewModels.Maquinaria
+
+
+@model TransferenciaUnidadRecepcionarViewModel
+
+<div class="card shadow-sm border-0">
+
+    <div class="card-header bg-white">
+
+        <h4 class="fw-bold mb-0">
+            Recepción de Unidad
+        </h4>
+
+    </div>
+
+    <div class="card-body">
+
+        <div class="row g-3">
+
+            <div class="col-md-3">
+
+                <label class="fw-semibold">
+                    Folio
+                </label>
+
+                <div>
+                    @Model.Folio
+                </div>
+
+            </div>
+
+            <div class="col-md-3">
+
+                <label class="fw-semibold">
+                    Vehículo
+                </label>
+
+                <div>
+                    @Model.Vehiculo
+                </div>
+
+            </div>
+
+            <div class="col-md-3">
+
+                <label class="fw-semibold">
+                    Área origen
+                </label>
+
+                <div>
+                    @Model.AreaOrigen
+                </div>
+
+            </div>
+
+            <div class="col-md-3">
+
+                <label class="fw-semibold">
+                    Área destino
+                </label>
+
+                <div>
+                    @Model.AreaDestino
+                </div>
+
+            </div>
+
+        </div>
+
+        <hr />
+
+        <form asp-action="Recepcionar"
+              method="post"
+              enctype="multipart/form-data"
+              id="formRecepcion">
+
+            @Html.AntiForgeryToken()
+
+            <input type="hidden"
+                   name="TransferenciaUnidadId"
+                   value="@Model.TransferenciaUnidadId" />
+
+            <input type="hidden"
+                   name="UsuarioRecibeId"
+                   value="1" />
+
+            <div class="mb-3">
+
+                <label class="fw-semibold">
+                    Observaciones recepción
+                </label>
+
+                <textarea name="ObservacionesRecepcion"
+                          class="form-control"
+                          rows="4"></textarea>
+
+            </div>
+
+            <div class="mb-3">
+
+                <label class="fw-semibold">
+                    Acta de recepción (PDF)
+                </label>
+
+                <input type="file"
+                       name="documento"
+                       class="form-control"
+                       accept=".pdf"
+                       required />
+
+            </div>
+
+            <div class="d-flex justify-content-end">
+
+                <button type="submit"
+                        class="btn btn-success">
+
+                    <i class="bi bi-check-circle me-1"></i>
+
+                    Confirmar recepción
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>

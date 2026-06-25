@@ -1,0 +1,290 @@
+﻿@model SIGEMAV.Models.ViewModels.Maquinaria.UnidadVehicularDetailsViewModel
+
+@{
+    ViewData["Title"] = "Detalle Unidad Vehicular";
+}
+
+<div class="container-fluid">
+
+    <div class="card shadow-sm border-0">
+
+        <div class="card-header bg-white">
+
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+
+                <div>
+
+                    <h4 class="fw-bold mb-0">
+                        Detalle de Unidad Vehicular
+                    </h4>
+
+                    <small class="text-muted">
+                        Información general y configuración de la unidad
+                    </small>
+
+                </div>
+
+                <div class="d-flex gap-2">
+
+                    <a asp-action="Edit"
+                       asp-route-id="@Model.UnidadVehicularId"
+                       class="btn btn-outline-primary">
+
+                        <i class="bi bi-pencil-square me-1"></i>
+                        Editar
+
+                    </a>
+
+                    <a asp-action="Index"
+                       class="btn btn-outline-secondary">
+
+                        <i class="bi bi-arrow-left me-1"></i>
+                        Regresar
+
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="card-body">
+
+            <!-- INFORMACIÓN GENERAL -->
+
+            <div class="row g-4">
+
+                <div class="col-12">
+
+                    <h5 class="fw-bold border-bottom pb-2 mb-3">
+                        Información General
+                    </h5>
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <label class="form-label text-muted small">
+                        Número de Serie
+                    </label>
+
+                    <div class="fw-semibold">
+                        @Model.NumeroSerie
+                    </div>
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <label class="form-label text-muted small">
+                        Placa Actual
+                    </label>
+
+                    <div>
+
+                        <span class="badge bg-primary-subtle text-primary fs-6">
+
+                            @Model.PlacaActual
+
+                        </span>
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <label class="form-label text-muted small">
+                        Número Económico
+                    </label>
+
+                    <div class="fw-semibold">
+                        @Model.NumeroEconomico
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- CONFIGURACIÓN VEHICULAR -->
+
+            <div class="row g-4 mt-2">
+
+                <div class="col-12">
+
+                    <h5 class="fw-bold border-bottom pb-2 mb-3">
+                        Configuración Vehicular
+                    </h5>
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <label class="form-label text-muted small">
+                        Marca
+                    </label>
+
+                    <div>
+                        @Model.MarcaNombre
+                    </div>
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <label class="form-label text-muted small">
+                        Modelo
+                    </label>
+
+                    <div>
+                        @Model.ModeloNombre
+                    </div>
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <label class="form-label text-muted small">
+                        Año
+                    </label>
+
+                    <div>
+                        @Model.AnioNombre
+                    </div>
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <label class="form-label text-muted small">
+                        Transmisión
+                    </label>
+
+                    <div>
+                        @Model.TransmisionNombre
+                    </div>
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <label class="form-label text-muted small">
+                        Cilindro
+                    </label>
+
+                    <div>
+                        @Model.CilindroNombre
+                    </div>
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <label class="form-label text-muted small">
+                        Color
+                    </label>
+
+                    <div>
+                        @Model.ColorNombre
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- UBICACIÓN -->
+
+            <div class="row g-4 mt-2">
+
+                <div class="col-12">
+
+                    <h5 class="fw-bold border-bottom pb-2 mb-3">
+                        Ubicación y Resguardo
+                    </h5>
+
+                </div>
+
+                <div class="col-md-6">
+
+                    <label class="form-label text-muted small">
+                        Área
+                    </label>
+
+                    <div>
+                        @Model.AreaNombre
+                    </div>
+
+                </div>
+
+                <div class="col-md-6">
+
+                    <label class="form-label text-muted small">
+                        Municipio
+                    </label>
+
+                    <div>
+                        @Model.MunicipioNombre
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- AUDITORÍA -->
+
+            <div class="row g-4 mt-2">
+
+                <div class="col-12">
+
+                    <h5 class="fw-bold border-bottom pb-2 mb-3">
+                        Auditoría
+                    </h5>
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <label class="form-label text-muted small">
+                        Fecha de Registro
+                    </label>
+
+                    <div>
+                        @Model.FechaCreacion.ToString("dd/MM/yyyy HH:mm")
+                    </div>
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <label class="form-label text-muted small">
+                        Estatus
+                    </label>
+
+                    <div>
+
+                        @if (Model.Activo)
+                        {
+                            <span class="badge bg-success">
+                                Activo
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger">
+                                Inactivo
+                            </span>
+                        }
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+

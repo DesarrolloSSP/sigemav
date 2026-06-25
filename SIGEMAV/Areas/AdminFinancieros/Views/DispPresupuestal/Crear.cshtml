@@ -1,0 +1,271 @@
+﻿@model SIGEMAV.Models.ViewModels.Financieros.Disponibilidad.DispCrearVM
+
+@{
+	ViewData["Title"] = "Crear Disponibilidad Presupuestal";
+}
+
+<div class="container-fluid py-4">
+
+	<!-- ENCABEZADO -->
+	<div class="card border-0 shadow-sm mb-4">
+
+		<div class="card-body">
+
+			<div class="d-flex align-items-center">
+
+				<div class="me-3">
+
+					<i class="bi bi-file-earmark-text-fill
+						text-primary"
+					   style="font-size: 3rem;">
+					</i>
+
+				</div>
+
+				<div>
+
+					<h2 class="fw-bold mb-1">
+						Disponibilidad Presupuestal
+					</h2>
+
+					<p class="text-muted mb-0">
+						Registro y Administración Presupuestal
+					</p>
+
+				</div>
+
+			</div>
+
+		</div>
+
+	</div>
+
+
+	<!-- FORMULARIO -->
+	<div class="card border-0 shadow-sm rounded-4">
+
+		<div class="card-body p-4">
+
+			<form asp-action="Crear"
+				  method="post"
+				  enctype="multipart/form-data">
+
+				<div class="row g-4">
+
+					<!-- OBJETO GASTO -->
+					<div class="col-md-6">
+
+						<label asp-for="IdObjetoGasto"
+							   class="form-label fw-semibold">
+						</label>
+
+						<select asp-for="IdObjetoGasto"
+								asp-items="Model.ObjetosGasto"
+								class="form-select shadow-sm"
+								onchange="this.form.submit()">
+
+							<option value="">
+								Seleccione...
+							</option>
+
+						</select>
+
+						<span asp-validation-for="IdObjetoGasto"
+							  class="text-danger small">
+						</span>
+
+					</div>
+
+
+					<!-- DESCRIPCION -->
+					<div class="col-md-6">
+
+						<label asp-for="DescripcionObjetoGasto"
+							   class="form-label fw-semibold">
+						</label>
+
+						<input asp-for="DescripcionObjetoGasto"
+							   class="form-control bg-light"
+							   readonly />
+
+					</div>
+
+
+					<!-- CLAVE AdminFinancieros -->
+					<div class="col-md-6">
+
+						<label asp-for="IdClaveAdmin"
+							   class="form-label fw-semibold">
+						</label>
+
+						<select asp-for="IdClaveAdmin"
+								asp-items="Model.ClavesAdministrativas"
+								class="form-select shadow-sm"
+								onchange="this.form.submit()">
+
+							<option value="">
+								Seleccione...
+							</option>
+
+						</select>
+
+						<span asp-validation-for="IdClaveAdmin"
+							  class="text-danger small">
+						</span>
+
+					</div>
+
+
+					<!-- PROYECTO -->
+					<div class="col-md-6">
+
+						<label asp-for="IdProyecto"
+							   class="form-label fw-semibold">
+						</label>
+
+						<select asp-for="IdProyecto"
+								asp-items="Model.Proyectos"
+								class="form-select shadow-sm"
+								onchange="this.form.submit()">
+
+							<option value="">
+								Seleccione...
+							</option>
+
+						</select>
+
+						<span asp-validation-for="IdProyecto"
+							  class="text-danger small">
+						</span>
+
+					</div>
+
+
+					<!-- AREA -->
+					<div class="col-md-6">
+
+						<label asp-for="IdArea"
+							   class="form-label fw-semibold">
+						</label>
+
+						<select asp-for="IdArea"
+								asp-items="Model.AreasUsuarias"
+								class="form-select shadow-sm">
+
+							<option value="">
+								Seleccione...
+							</option>
+
+						</select>
+
+						<span asp-validation-for="IdArea"
+							  class="text-danger small">
+						</span>
+
+					</div>
+
+
+					<!-- IMPORTE -->
+					<div class="col-md-6 mb-3">
+
+						<label asp-for="Importe"
+							   class="form-label">
+						</label>
+
+						<div class="input-group">
+
+							<span class="input-group-text">
+								$
+							</span>
+
+							<input name="Importe"
+								   id="Importe"
+								   type="text"
+								   class="form-control text-end shadow-sm"
+								   value="@(Model.Importe.HasValue
+																																																												  ? Model.Importe.Value.ToString("N2")
+																																																						  : "")" />
+
+						</div>
+
+						<span asp-validation-for="Importe"
+							  class="text-danger">
+						</span>
+
+					</div>
+
+
+				
+					<div class="col-md-6">
+
+						<label asp-for="IDsp"
+							   class="form-label fw-semibold">
+						</label>
+
+						<select asp-for="IDsp"
+								asp-items="Model.ListadoDsp"
+								class="form-select shadow-sm"
+								onchange="this.form.submit()">
+
+							<option value="">
+								Seleccione...
+							</option>
+
+						</select>
+
+						<span asp-validation-for="IDsp"
+							  class="text-danger small">
+						</span>
+
+					</div>
+
+
+
+				</div>
+
+
+				<!-- BOTONES -->
+				<hr class="my-4" />
+
+				<div class="d-flex flex-column flex-md-row
+					justify-content-end
+					gap-2">
+
+
+					<button type="submit"
+							formaction="@Url.Action("Guardar", "DispPresupuestal", new { area = "AdminFinancieros" })"
+							class="btn btn-success px-4 shadow-sm">
+
+						<i class="bi bi-save me-1"></i>
+						Guardar
+
+					</button>
+					<a asp-area="AdminFinancieros"
+					   asp-action="Index"
+					   class="btn btn-outline-secondary px-4">
+
+						<i class="bi bi-arrow-left-circle me-1"></i>
+						Cancelar
+
+					</a>
+
+
+				
+
+				</div>
+
+			</form>
+
+		</div>
+
+	</div>
+
+</div>
+
+
+@section Scripts {
+
+	<partial name="_ValidationScriptsPartial" />
+
+	
+}

@@ -1,0 +1,110 @@
+﻿@using SIGEMAV.Models.ViewModels.Maquinaria
+
+@model UnidadVehicularEliminarViewModel
+
+@{
+    ViewData["Title"] = "Eliminar unidad vehicular";
+}
+
+<div class="container-fluid">
+
+    <div class="card shadow-sm border-0">
+
+        <div class="card-header bg-danger text-white">
+            <h4 class="mb-0">
+                <i class="mdi mdi-delete-outline"></i>
+                Eliminar unidad vehicular
+            </h4>
+        </div>
+
+        <div class="card-body">
+
+            <div class="alert alert-warning">
+                <i class="mdi mdi-alert-outline"></i>
+                ¿Está seguro que desea eliminar esta unidad vehicular?
+            </div>
+
+            <dl class="row">
+
+                <dt class="col-sm-3">
+                    Número económico
+                </dt>
+
+                <dd class="col-sm-9">
+                    @Model.NumeroEconomico
+                </dd>
+
+                <dt class="col-sm-3">
+                    Placa
+                </dt>
+
+                <dd class="col-sm-9">
+                    @Model.PlacaActual
+                </dd>
+
+                <dt class="col-sm-3">
+                    Número de serie
+                </dt>
+
+                <dd class="col-sm-9">
+                    @Model.NumeroSerie
+                </dd>
+
+                <dt class="col-sm-3">
+                    Marca
+                </dt>
+
+                <dd class="col-sm-9">
+                    @Model.Marca
+                </dd>
+
+                <dt class="col-sm-3">
+                    Modelo
+                </dt>
+
+                <dd class="col-sm-9">
+                    @Model.Modelo
+                </dd>
+
+                <dt class="col-sm-3">
+                    Año
+                </dt>
+
+                <dd class="col-sm-9">
+                    @Model.Anio
+                </dd>
+
+            </dl>
+
+            <form asp-action="Delete" method="post">
+
+                @Html.AntiForgeryToken()
+
+                <input type="hidden"
+                       asp-for="UnidadVehicularId" />
+
+                <div class="d-flex gap-2">
+
+                    <button type="submit"
+                            class="btn btn-danger">
+
+                        <i class="mdi mdi-delete"></i>
+                        Eliminar
+                    </button>
+
+                    <a asp-action="Index"
+                           class="btn btn-secondary">
+
+                        <i class="mdi mdi-arrow-left"></i>
+                        Cancelar
+                    </a>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>

@@ -1,0 +1,166 @@
+﻿@using SIGEMAV.Models.ViewModels.Maquinaria
+@model TipoCatalogoServicioCreateViewModel
+
+@{
+    ViewData["Title"] = "Registrar Tipo Catálogo";
+}
+
+<div class="container-fluid">
+
+    <div class="card shadow-sm border-0">
+
+        <div class="card-header bg-white">
+
+            <div class="d-flex justify-content-between align-items-center">
+
+                <div>
+
+                    <h4 class="fw-bold mb-0">
+                        Registrar Tipo de Catálogo
+                    </h4>
+
+                    <small class="text-muted">
+                        Configuración de catálogos de servicios
+                    </small>
+
+                </div>
+
+                <div>
+
+                    <a asp-action="Index"
+                           class="btn btn-outline-secondary">
+
+                        <i class="bi bi-arrow-left me-1"></i>
+                        Regresar
+
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="card-body">
+
+            <form asp-action="Create"
+                  method="post"
+                  id="formCreate">
+
+                @Html.AntiForgeryToken()
+
+                <div asp-validation-summary="ModelOnly"
+                     class="alert alert-danger">
+                </div>
+
+                <div class="row g-4">
+
+                    <div class="col-md-12">
+
+                        <label asp-for="TipoCatalogoServicioNombre"
+                               class="form-label fw-semibold">
+                        </label>
+
+                        <input asp-for="TipoCatalogoServicioNombre"
+                               class="form-control"
+                               maxlength="150"
+                               autocomplete="off" required />
+
+                        <span asp-validation-for="TipoCatalogoServicioNombre"
+                              class="text-danger small">
+                        </span>
+
+                    </div>
+
+                </div>
+
+                <hr class="my-4" />
+
+                <div class="d-flex justify-content-end gap-2">
+
+                    <a asp-action="Index"
+                           class="btn btn-outline-secondary">
+
+                        Cancelar
+
+                    </a>
+
+                    <button type="submit"
+                            class="btn text-light"
+                            style="background-color:#800705">
+
+                        <i class="bi bi-save me-1"></i>
+                        Guardar
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts {
+
+    @{
+        await Html.RenderPartialAsync(
+            "_ValidationScriptsPartial");
+    }
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+
+        $(document).ready(function () {
+
+        $('#formCreate').submit(function (e) {
+
+        e.preventDefault();
+
+        const form = this;
+
+        if (!form.checkValidity()) {
+
+        form.reportValidity();
+
+        return;
+        }
+
+        Swal.fire({
+
+        title: '¿Guardar registro?',
+
+        text: 'Se registrará el tipo de catálogo.',
+
+        icon: 'question',
+
+        showCancelButton: true,
+
+        confirmButtonColor: '#800705',
+
+        cancelButtonColor: '#6c757d',
+
+        confirmButtonText: 'Sí, guardar',
+
+        cancelButtonText: 'Cancelar'
+
+        }).then((result) => {
+
+        if (result.isConfirmed) {
+
+        form.submit();
+        }
+
+        });
+
+        });
+
+        });
+
+    </script>
+
+}

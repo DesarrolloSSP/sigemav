@@ -1,0 +1,285 @@
+﻿
+
+
+@model SIGEMAV.Models.ViewModels.Maquinaria.MantenimientoCreateViewModel
+
+@{
+    ViewData["Title"] = "Ingresar a taller";
+}
+
+<div class="card shadow-sm border-0">
+
+    <div class="card-header bg-white">
+
+        <div class="d-flex justify-content-between align-items-center">
+
+            <div>
+
+                <h4 class="fw-bold mb-0">
+                    Ingresar solicitud al taller
+                </h4>
+
+                <small class="text-muted">
+                    Confirmación de ingreso
+                </small>
+
+            </div>
+
+
+            <div>
+
+                <a asp-action="Index"
+                   class="btn btn-outline-secondary">
+
+                    <i class="bi bi-arrow-left me-1"></i>
+                    Regresar
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="card-body">
+
+        <form asp-action="IngresarATaller"
+              method="post">
+
+            @Html.AntiForgeryToken()
+
+            @* <input type="hidden" asp-for="SolicitudMantenimientoId" /> *@
+            
+            <input type="hidden" name="solicitudMantenimientoId" value="@Model.SolicitudMantenimientoId" />
+
+            <div class="row g-3">
+
+                <div class="col-md-3">
+
+                    <label class="form-label fw-semibold">
+                        Folio
+                    </label>
+
+                    <input class="form-control"
+                           value="@Model.Folio"
+                           readonly />
+
+                </div>
+
+                <div class="col-md-3">
+
+                    <label class="form-label fw-semibold">
+                        Número de oficio
+                    </label>
+
+                    <input class="form-control"
+                           value="@Model.NumeroOficio"
+                           readonly />
+
+                </div>
+
+                <div class="col-md-3">
+
+                    <label class="form-label fw-semibold">
+                        Unidad vehicular
+                    </label>
+
+                    <input class="form-control"
+                           value="@Model.UnidadTexto"
+                           readonly />
+
+                </div>
+
+                <div class="col-md-3">
+
+                    <label class="form-label fw-semibold">
+                        Kilometraje
+                    </label>
+
+                    <input class="form-control"
+                           value="@Model.KilometrajeEntrada"
+                           readonly />
+
+                </div>
+
+
+                  <div class="col-md-12">
+
+                    <label class="form-label fw-semibold">
+                        Taller
+                    </label>
+
+                    <input class="form-control"
+                           value="@Model.Taller"
+                           readonly />
+
+                </div>
+
+
+            </div>
+
+            <hr />
+
+
+
+
+
+            <div class="mt-4">
+
+                <h5 class="fw-bold">
+                    Servicios autorizados
+                </h5>
+
+                <div class="table-responsive">
+
+                    <table class="table table-bordered table-hover align-middle">
+
+                        <thead class="table-light">
+
+                            <tr>
+
+                                <th>
+                                    Concepto
+                                </th>
+
+                                <th class="text-center">
+                                    Cantidad
+                                </th>
+
+                                <th class="text-end">
+                                    Mano de Obra
+                                </th>
+
+                                <th class="text-end">
+                                    Refacciones
+                                </th>
+
+                                <th class="text-end">
+                                    Total
+                                </th>
+
+                                <th>
+                                    Observaciones
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            @foreach (var servicio in Model.Servicios)
+                            {
+                                <tr>
+
+                                    <td>
+                                        @servicio.ConceptoServicio
+                                    </td>
+
+                                    <td class="text-center">
+                                        @servicio.Cantidad
+                                    </td>
+
+                                    <td class="text-end">
+                                        @servicio.CostoEstimadoManoObra.ToString("C")
+                                    </td>
+
+                                    <td class="text-end">
+                                        @servicio.CostoEstimadoRefacciones.ToString("C")
+                                    </td>
+
+                                    <td class="text-end fw-bold">
+                                        @servicio.TotalEstimado.ToString("C")
+                                    </td>
+
+                                    <td>
+                                        @servicio.Observaciones
+                                    </td>
+
+                                </tr>
+                            }
+
+                        </tbody>
+
+                        <tfoot>
+
+                            <tr class="table-secondary">
+
+                                <th colspan="4"
+                                    class="text-end">
+
+                                    Total estimado autorizado
+
+                                </th>
+
+                                <th class="text-end">
+
+                                    @Model.Servicios.Sum(x => x.TotalEstimado).ToString("C")
+
+                                </th>
+
+                                <th></th>
+
+                            </tr>
+
+                        </tfoot>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+
+
+            <hr />
+
+
+
+
+
+
+
+
+
+
+            <div class="alert alert-warning">
+
+                <strong>Importante:</strong>
+
+                Al confirmar esta acción:
+
+                <ul class="mb-0 mt-2">
+                    <li>Se creará el registro de mantenimiento.</li>
+                    <li>La solicitud cambiará a estatus "En Taller".</li>
+                    <li>Se generará el primer seguimiento del mantenimiento.</li>
+                </ul>
+
+            </div>
+
+            <div class="d-flex justify-content-end gap-2">
+
+                <a asp-action="Index"
+                   class="btn btn-outline-secondary">
+
+                    Cancelar
+
+                </a>
+
+                <button type="submit"
+                        class="btn btn-dark">
+
+                    <i class="bi bi-car-front-fill me-1"></i>
+                    Confirmar Ingreso
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+

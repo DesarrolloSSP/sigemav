@@ -1,0 +1,577 @@
+﻿@model SIGEMAV.Models.ViewModels.Maquinaria.MantenimientoEditViewModel
+
+@{
+	ViewData["Title"] = "Editar Mantenimiento";
+}
+
+<div class="card shadow-sm border-0">
+
+    
+	<div class="card-header bg-white">
+
+		<div class="d-flex justify-content-between align-items-center">
+
+			<div>
+
+				<h4 class="fw-bold mb-0">
+					Mantenimiento en proceso
+				</h4>
+
+				<small class="text-muted">
+					Seguimiento de trabajos realizados
+				</small>
+
+			</div>
+
+			<a asp-action="Index"
+			   class="btn btn-outline-secondary">
+
+				<i class="bi bi-arrow-left"></i>
+				Regresar
+
+			</a>
+
+		</div>
+
+	</div>
+
+	<div class="card-body">
+
+		<form asp-action="Edit" method="post" id="formEditMantenimiento">
+
+			@Html.AntiForgeryToken()
+
+			<input asp-for="MantenimientoId" type="hidden" />
+			<input asp-for="SolicitudMantenimientoId" type="hidden" />
+
+			<div class="row g-3">
+
+				<div class="col-md-2">
+
+					<label class="form-label fw-semibold">
+						Folio
+					</label>
+
+					<input class="form-control"
+						   value="@Model.Folio"
+						   readonly />
+
+				</div>
+
+				<div class="col-md-3">
+
+					<label class="form-label fw-semibold">
+						Oficio
+					</label>
+
+					<input class="form-control"
+						   value="@Model.NumeroOficio"
+						   readonly />
+
+				</div>
+
+				<div class="col-md-4">
+
+					<label class="form-label fw-semibold">
+						Vehículo
+					</label>
+
+					<input class="form-control"
+						   value="@Model.UnidadVehicularTexto"
+						   readonly />
+
+				</div>
+
+				<div class="col-md-3">
+
+					<label class="form-label fw-semibold">
+						Taller
+					</label>
+
+					<input class="form-control"
+						   value="@Model.TallerTexto"
+						   readonly />
+
+				</div>
+
+			</div>
+
+			<hr />
+
+			<div class="row g-3">
+
+				<div class="col-md-3">
+
+					<label asp-for="FechaInicioTrabajo"
+						   class="form-label fw-semibold">
+
+						Inicio de trabajo
+
+					</label>
+
+					<input asp-for="FechaInicioTrabajo"
+						   type="datetime-local"
+						   class="form-control" />
+
+				</div>
+
+				<div class="col-md-3">
+
+					<label asp-for="FechaFinTrabajo"
+						   class="form-label fw-semibold">
+
+						Fin de trabajo
+
+					</label>
+
+					<input asp-for="FechaFinTrabajo"
+						   type="datetime-local"
+						   class="form-control" />
+
+				</div>
+
+				<div class="col-md-3">
+
+					<label class="form-label fw-semibold">
+						Kilometraje de entrada
+					</label>
+
+					<input class="form-control"
+						   value="@Model.KilometrajeEntrada"
+						   readonly />
+
+				</div>
+
+				<div class="col-md-3">
+
+					<label asp-for="KilometrajeSalida"
+						   class="form-label fw-semibold">
+
+						Kilometraje de salida
+
+					</label>
+
+					<input asp-for="KilometrajeSalida"
+						   class="form-control" />
+
+				</div>
+
+			</div>
+
+			<div class="row mt-3">
+
+				<div class="col-md-6">
+
+					<label asp-for="Diagnostico"
+						   class="form-label fw-semibold">
+
+						Diagnóstico
+
+					</label>
+
+					<textarea asp-for="Diagnostico"
+							  rows="5"
+							  class="form-control">
+                </textarea>
+
+				</div>
+
+				<div class="col-md-6">
+
+					<label asp-for="TrabajoRealizado"
+						   class="form-label fw-semibold">
+
+						Trabajo Realizado
+
+					</label>
+
+					<textarea asp-for="TrabajoRealizado"
+							  rows="5"
+							  class="form-control">
+                </textarea>
+
+				</div>
+
+			</div>
+
+			<div class="row mt-3">
+
+				<div class="col-md-12">
+
+					<label asp-for="Observaciones"
+						   class="form-label fw-semibold">
+
+						Observaciones
+
+					</label>
+
+					<textarea asp-for="Observaciones"
+							  rows="3"
+							  class="form-control">
+                </textarea>
+
+				</div>
+
+			</div>
+
+			<hr />
+
+			<div class="card shadow-sm">
+
+				<div class="card-header bg-light">
+
+					<div class="d-flex justify-content-between">
+
+						<h6 class="mb-0 fw-bold">
+							Servicios realizados
+						</h6>
+
+						<button type="button"
+								id="btnAgregarServicio"
+								class="btn btn-sm btn-primary">
+
+							Agregar servicio
+
+						</button>
+
+					</div>
+
+				</div>
+
+				<div class="card-body">
+
+
+
+
+					<div class="alert alert-info border-start border-4 border-info mb-3">
+
+						<div class="d-flex align-items-start">
+
+							<i class="bi bi-shield-check fs-4 me-3"></i>
+
+							<div>
+
+								<h6 class="fw-bold mb-1">
+									Servicios autorizados
+								</h6>
+
+								<p class="mb-1">
+
+									Los servicios mostrados fueron autorizados durante
+									el proceso de validación y aprobación de la solicitud.
+
+								</p>
+
+								<p class="mb-0">
+
+									Los conceptos, cantidades y costos no pueden
+									modificarse.
+
+								</p>
+
+							</div>
+
+						</div>
+
+					</div>
+
+
+
+
+					<div class="table-responsive">
+
+						<table class="table table-bordered"
+							   id="tablaServicios">
+
+							<thead>
+
+								<tr>
+
+									<th>Concepto</th>
+									<th width="100">Cantidad</th>
+									<th width="150">Mano Obra</th>
+									@* <th width="150">Partida</th> *@
+									<th width="150">Refacciones</th>
+									@* <th width="150">Partida</th> *@
+									<th width="150">Total</th>
+									<th>Observaciones</th>
+									<th width="80"></th>
+
+								</tr>
+
+							</thead>
+
+							<tbody>
+
+								@for (var i = 0; i < Model.Servicios.Count; i++)
+								{
+									<tr>
+
+										<td>
+
+											<input type="hidden"
+												   name="Servicios[@i].MantenimientoDetalleId"
+												   value="@Model.Servicios[i].MantenimientoDetalleId" />
+
+											<input type="hidden"
+												   name="Servicios[@i].ConceptoServicioId"
+												   value="@Model.Servicios[i].ConceptoServicioId" />
+
+											@Model.Servicios[i].ConceptoServicio
+
+										</td>
+
+
+
+										<td>
+
+											<input type="hidden"
+												   name="Servicios[@i].Cantidad"
+												   value="@Model.Servicios[i].Cantidad" />
+
+											<input type="number"
+												   value="@Model.Servicios[i].Cantidad"
+												   class="form-control"
+												   readonly />
+
+										</td>
+
+
+
+
+										<td>
+
+											<input type="number"
+												   step="0.01"
+												   name="Servicios[@i].CostoUnitarioManoObra"
+												   value="@Model.Servicios[i].CostoUnitarioManoObra"
+												   class="form-control manoObra" readonly />
+
+
+
+										</td>
+
+
+
+										<td>
+
+											<input type="hidden"
+												   name="Servicios[@i].IdObjetoGastoManoObra"
+												   value="@Model.Servicios[i].IdObjetoGastoManoObra" />
+
+											<input type="text"
+												   value="@Model.Servicios[i].ObjetoGastoManoObraTexto"
+												   class="form-control"
+												   readonly />
+
+										</td>
+
+
+
+
+										<td>
+
+											<input type="number"
+												   step="0.01"
+												   name="Servicios[@i].CostoUnitarioRefacciones"
+												   value="@Model.Servicios[i].CostoUnitarioRefacciones"
+												   class="form-control refacciones" readonly />
+
+										</td>
+
+
+
+										<td>
+
+											<input type="hidden"
+												   name="Servicios[@i].IdObjetoGastoRefacciones"
+												   value="@Model.Servicios[i].IdObjetoGastoRefacciones" />
+
+											<input type="text"
+												   value="@Model.Servicios[i].ObjetoGastoRefaccionesTexto"
+												   class="form-control"
+												   readonly />
+
+										</td>
+
+
+
+										<td>
+
+											<input type="text"
+												   value="@Model.Servicios[i].TotalLinea.ToString("N2")"
+												   class="form-control totalLinea text-end"
+												   readonly />
+
+										</td>
+
+										<td>
+
+											<input type="text"
+												   name="Servicios[@i].Observaciones"
+												   value="@Model.Servicios[i].Observaciones"
+												   class="form-control" />
+
+										</td>
+
+										<td class="text-center">
+
+											<button type="button"
+													class="btn btn-danger btn-sm btnEliminar">
+
+												<i class="bi bi-trash"></i>
+
+											</button>
+
+										</td>
+
+									</tr>
+								}
+
+							</tbody>
+
+						</table>
+
+					</div>
+
+				</div>
+
+			</div>
+
+			<div class="row mt-4">
+
+				<div class="col-md-4 offset-md-8">
+
+					<label class="form-label fw-bold">
+						Costo Real Total
+					</label>
+
+					<input asp-for="CostoRealTotal"
+						   id="CostoRealTotal"
+						   readonly
+						   class="form-control form-control-lg text-end fw-bold" />
+
+				</div>
+
+			</div>
+
+			<div class="mt-4 d-flex justify-content-end gap-2">
+
+				@if (Model.EstatusMantenimientoId == 1)
+				{
+					<button type="submit"
+							class="btn btn-primary">
+						<i class="bi bi-save"></i>
+						Guardar avance
+					</button>
+
+					<button type="submit"
+							formaction="@Url.Action("Finalizar", "Mantenimiento")"
+							class="btn btn-success">
+						<i class="bi bi-check-circle"></i>
+						Finalizar mantenimiento
+					</button>
+				}
+				else
+				{
+					<div class="alert alert-success">
+						Mantenimiento finalizado.
+					</div>
+				}
+
+			</div>
+
+		</form>
+
+	</div>
+
+    
+</div>
+
+<script>
+
+	function recalcularTotales() {
+
+		let totalGeneral = 0;
+
+		$("#tablaServicios tbody tr").each(function () {
+
+			const cantidad =parseInt(
+				$(this).find(".cantidad").val(),
+				10
+			) || 0;
+
+			const mo =
+				parseFloat(
+					$(this).find(".manoObra").val() || 0);
+
+			const ref =
+				parseFloat(
+					$(this).find(".refacciones").val() || 0);
+
+			const total =
+				cantidad * (mo + ref);
+
+			$(this)
+				.find(".totalLinea")
+				.val(total.toFixed(2));
+
+			totalGeneral += total;
+		});
+
+		$("#CostoRealTotal")
+			.val(totalGeneral.toFixed(2));
+	}
+
+	$(document).on(
+		"input",
+		".cantidad,.manoObra,.refacciones",
+		recalcularTotales);
+
+	$(document).ready(function () {
+
+		recalcularTotales();
+
+	});
+</script>
+
+@* 
+<script>
+		$("#formEditMantenimiento").on("submit", function (e) {
+
+		const fechaInicio =
+			$("#FechaInicioTrabajo").val();
+
+		const fechaFin =
+			$("#FechaFinTrabajo").val();
+
+		if (!fechaInicio) {
+
+			e.preventDefault();
+
+			Swal.fire({
+				icon: "warning",
+				title: "Validación",
+				text: "Debe indicar la fecha de inicio del trabajo."
+			});
+
+			return;
+		}
+
+		if (!fechaFin) {
+
+			e.preventDefault();
+
+			Swal.fire({
+				icon: "warning",
+				title: "Validación",
+				text: "Debe indicar la fecha de fin del trabajo."
+			});
+
+			return;
+		}
+
+	});
+</script> *@
+
+

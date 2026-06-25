@@ -1,0 +1,257 @@
+﻿@model SIGEMAV.Models.ViewModels.OrdeDePago.OrdenDePagoConsultaVM
+
+
+@{
+	ViewData["Title"] = "Orden de Pago";
+}
+
+<div class="card shadow-sm">
+
+    
+	<div class="card-header bg-white">
+
+		<h4 class="mb-0">
+
+			<i class="bi bi-receipt"></i>
+
+			Generar Orden de Pago
+
+		</h4>
+
+	</div>
+
+	<div class="card-body">
+
+		<form method="post">
+
+			<div class="row g-3 align-items-end">
+
+				<div class="col-md-4">
+
+					<label asp-for="Folio"
+						   class="form-label">
+
+						Folio
+
+					</label>
+
+					<input asp-for="Folio"
+						   class="form-control"
+						   placeholder="Ejemplo: JUN-ADM-0004" />
+
+				</div>
+
+				@* <div class="col-md-2">
+
+					<button type="submit"
+							class="btn btn-primary w-100">
+
+						<i class="bi bi-search"></i>
+
+						Buscar
+
+					</button>
+
+				</div> *@
+
+                
+
+                <div class="col-md-4">
+
+                    <div class="d-flex gap-2">
+
+                        <button type="submit"
+                                class="btn btn-primary">
+
+                            <i class="bi bi-search"></i>
+                            Buscar
+
+                        </button>
+
+                        @if (Model.Detalles != null && Model.Detalles.Any())
+                        {
+                            <a asp-area="AdminFinancieros"
+                               asp-controller="OrdenDePago"
+                               asp-action="ExportarExcel"
+                               asp-route-folio="@Model.Folio"
+                               class="btn btn-success"
+                               title="Generar Orden de Pago en Excel">
+
+                                <i class="bi bi-file-earmark-excel"></i>
+                                Exportar Excel
+
+                            </a>
+                        }
+
+                    </div>
+
+                </div>
+
+			</div>
+
+		</form>
+
+	</div>
+
+    
+</div>
+
+@if (Model.Detalles != null && Model.Detalles.Any())
+{
+    var subtotalMantenimiento = Model.Detalles
+        .Where(x => x.Tipo == "MANTENIMIENTO")
+        .Sum(x => x.Subtotal ?? 0);
+
+    var subtotalRefacciones = Model.Detalles
+        .Where(x => x.Tipo == "REFACCIONES")
+        .Sum(x => x.Subtotal ?? 0);
+
+    var subtotalNeumaticos = Model.Detalles
+        .Where(x => x.Tipo == "NEUMATICOS")
+        .Sum(x => x.Subtotal ?? 0);
+
+    var totalGeneral = Model.Detalles
+        .Sum(x => x.Subtotal ?? 0);
+
+    var grupos = Model.Detalles
+        .GroupBy(x => x.Tipo)
+        .OrderBy(x => x.Key)
+        .ToList();
+
+  
+
+    <!-- DETALLE -->
+    <div class="card shadow-sm mt-4">
+
+        <div class="card-header bg-white">
+
+            <h5 class="mb-0">
+
+                Resultados encontrados
+
+            </h5>
+
+        </div>
+
+        <div class="card-body">
+
+            <div class="table-responsive">
+
+                <table class="table table-hover align-middle">
+
+                    <thead class="table-light">
+
+                        <tr>
+
+                            <th style="width:15%">
+                                Tipo
+                            </th>
+
+                            <th>
+                                Descripción
+                            </th>
+
+                            <th class="text-end" style="width:15%">
+                               Parcial
+                            </th>
+
+                            <th class="text-end" style="width:15%">
+                                Importe
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        @foreach (var grupo in grupos)
+                        {
+                            <tr class="table-secondary">
+
+                                <th colspan="4">
+
+                                    @grupo.Key
+
+                                </th>
+
+                            </tr>
+
+                            @foreach (var item in grupo)
+                            {
+                                <tr>
+
+                                    <td></td>
+
+                                    <td>
+
+                                        @item.Descripcion
+
+                                    </td>
+
+                                    <td class="text-end">
+
+                                        @((item.CostoUnitario ?? 0).ToString("C"))
+
+                                    </td>
+
+                                    <td class="text-end fw-bold">
+
+                                        @((item.Subtotal ?? 0).ToString("C"))
+
+                                    </td>
+
+                                </tr>
+                            }
+
+                            <tr class="table-light">
+
+                                <th colspan="3"
+                                    class="text-end">
+
+                                   @*  Parcial @grupo.Key *@
+                                    @* Parcial *@
+                                </th>
+
+                                <th class="text-end text-primary">
+
+                                    @(grupo
+                                        .Sum(x => x.Subtotal ?? 0)
+                                        .ToString("C"))
+
+                                </th>
+
+                            </tr>
+                        }
+
+                    </tbody>
+
+                    <tfoot>
+
+                        <tr class="table-success">
+
+                            <th colspan="3"
+                                class="text-end">
+
+                                TOTAL
+
+                            </th>
+
+                            <th class="text-end fs-5">
+
+                                @totalGeneral.ToString("C")
+
+                            </th>
+
+                        </tr>
+
+                    </tfoot>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+}

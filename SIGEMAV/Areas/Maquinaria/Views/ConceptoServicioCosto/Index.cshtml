@@ -1,0 +1,295 @@
+﻿@using static SIGEMAV.Areas.Maquinaria.DTOs.DTOs
+
+@model SIGEMAV.Areas.Maquinaria.DTOs.DTOs.ConceptoServicioCostoIndexDto
+
+@{
+    ViewData["Title"] = "Costos de Conceptos de Servicio";
+}
+
+<div class="container-fluid px-4">
+
+    <div class="card shadow-sm border-0">
+
+        <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap gap-3">
+
+            <div>
+
+                <h4 class="mb-0 fw-bold">
+                    Gestión de Costos de Servicio
+                </h4>
+
+                <small class="text-muted">
+                    Administración de costos y vigencias de servicios
+                </small>
+
+            </div>
+
+            <div>
+
+                <a asp-action="Create"
+                       class="btn text-light"
+                       style="background-color:#800705">
+
+                    <i class="bi bi-plus-circle me-1"></i>
+
+                    Agregar Costo
+
+                </a>
+
+            </div>
+
+        </div>
+
+        <div class="card-body">
+
+            @if (!Model.Registros.Any())
+            {
+                <div class="alert alert-info text-center mb-0">
+
+                    <i class="bi bi-info-circle me-2"></i>
+
+                    No se encontraron costos registrados.
+
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+
+                    <table class="table table-hover table-sm align-middle w-100">
+
+                        <thead class="table-light">
+
+                            <tr>
+
+                                <th>ID</th>
+
+                                <th>Concepto</th>
+
+                                <th>Mano Obra</th>
+
+                                <th>Refacciones</th>
+
+                                <th>Marca</th>
+
+                                <th>Modelo</th>
+
+                                <th>Año</th>
+
+                                <th>Transmisión</th>
+
+                                <th>Cilindro</th>
+
+                                <th>Inicio Vigencia</th>
+                                <th>Fin Vigencia</th>
+
+                                <th>Observaciones</th>
+
+                                <th class="text-center"
+                                    style="width:180px;">
+
+                                    Acciones
+
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            @foreach (var item in Model.Registros)
+                            {
+                                <tr>
+
+                                    <td class="fw-semibold">
+                                        @item.ConceptoServicioCostoId
+                                    </td>
+
+                                    <td>
+                                        @item.ConceptoServicioNombre
+                                    </td>
+
+                                    <td>
+
+                                        <span class="badge bg-success-subtle text-success">
+
+                                            @item.CostoManoObra.ToString("C")
+
+                                        </span>
+
+                                    </td>
+
+                                    <td>
+
+                                        <span class="badge bg-primary-subtle text-primary">
+
+                                            @item.CostoRefacciones.ToString("C")
+
+                                        </span>
+
+                                    </td>
+
+                                    <td>@item.MarcaNombre</td>
+
+                                    <td>@item.ModeloNombre</td>
+
+                                    <td>@item.AnioNombre</td>
+
+                                    <td>@item.TransmisionNombre</td>
+
+                                    <td>@item.CilindroNombre</td>
+
+                                    <td>
+                                        @item.FechaInicioVigencia.ToString("dd/MM/yyyy")    
+                                    </td>
+
+                                    <td>
+                                        @(item.FechaFinVigencia.HasValue? item.FechaFinVigencia.Value.ToString("dd/MM/yyyy"): "Vigente")
+                                    </td>
+
+                                    <td>
+
+                                        @(string.IsNullOrWhiteSpace(item.Observaciones)? "-": item.Observaciones)
+
+                                    </td>
+
+                                    <td class="text-center">
+
+                                        <div class="btn-group"
+                                             role="group">
+
+                                         @*    <a asp-action="Details"
+                                                   asp-route-id="@item.ConceptoServicioCostoId"
+                                                   class="btn btn-outline-secondary btn-sm"
+                                                   title="Detalle">
+
+                                                <i class="bi bi-eye"></i>
+
+                                            </a> *@
+
+                                            <a asp-action="Edit"
+                                                   asp-route-id="@item.ConceptoServicioCostoId"
+                                                   class="btn btn-outline-primary btn-sm"
+                                                   title="Editar">
+
+                                                <i class="bi bi-pencil-square"></i>
+
+                                            </a>
+
+                                            <a asp-action="Delete"
+                                                   asp-route-id="@item.ConceptoServicioCostoId"
+                                                   class="btn btn-outline-danger btn-sm"
+                                                   title="Eliminar">
+
+                                                <i class="bi bi-trash"></i>
+
+                                            </a>
+
+                                        </div>
+
+                                    </td>
+
+                                </tr>
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mt-4 flex-wrap gap-3">
+
+                    <div class="text-muted small">
+
+                        Mostrando
+                        <strong>@Model.Registros.Count</strong>
+                        de
+                        <strong>@Model.TotalRegistros</strong>
+                        registros
+
+                    </div>
+
+                    <nav>
+
+                        <ul class="pagination pagination-sm mb-0">
+
+                            <li class="page-item @(Model.PaginaActual == 1 ? "disabled" : "")">
+
+                                <a class="page-link"
+                                       asp-route-pagina="1">
+
+                                    <i class="bi bi-chevron-double-left"></i>
+
+                                </a>
+
+                            </li>
+
+                            <li class="page-item @(!Model.TieneAnterior ? "disabled" : "")">
+
+                                <a class="page-link"
+                                       asp-route-pagina="@(Model.PaginaActual - 1)">
+
+                                    <i class="bi bi-chevron-left"></i>
+
+                                </a>
+
+                            </li>
+
+                            @{
+                                int inicio = Math.Max(1, Model.PaginaActual - 2);
+                                int fin = Math.Min(Model.TotalPaginas, Model.PaginaActual + 2);
+                            }
+
+                            @for (int i = inicio; i <= fin; i++)
+                            {
+                                <li class="page-item @(i == Model.PaginaActual ? "active" : "")">
+
+                                    <a class="page-link"
+                                           asp-route-pagina="@i">
+
+                                        @i
+
+                                    </a>
+
+                                </li>
+                            }
+
+                            <li class="page-item @(!Model.TieneSiguiente ? "disabled" : "")">
+
+                                <a class="page-link"
+                                       asp-route-pagina="@(Model.PaginaActual + 1)">
+
+                                    <i class="bi bi-chevron-right"></i>
+
+                                </a>
+
+                            </li>
+
+                            <li class="page-item @(Model.PaginaActual == Model.TotalPaginas ? "disabled" : "")">
+
+                                <a class="page-link"
+                                       asp-route-pagina="@Model.TotalPaginas">
+
+                                    <i class="bi bi-chevron-double-right"></i>
+
+                                </a>
+
+                            </li>
+
+                        </ul>
+
+                    </nav>
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+
+
+
+</div>

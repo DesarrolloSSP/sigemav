@@ -1,0 +1,292 @@
+﻿@model SIGEMAV.Models.ViewModels.Maquinaria.SolicitudMantenimientoDetallePageViewModel
+
+@{
+    ViewData["Title"] = "Detalle Solicitud";
+}
+
+<div class="card shadow-sm border-0">
+
+    <div class="card-header bg-white">
+
+        <div class="d-flex justify-content-between align-items-center">
+
+            <div>
+
+                <h4 class="fw-bold mb-0">
+                    Detalle de la solicitud
+                </h4>
+
+                <small class="text-muted">
+                    Servicios y conceptos solicitados
+                </small>
+
+            </div>
+
+            <div>
+
+                <a asp-action="Index"
+                       class="btn btn-outline-secondary">
+
+                    <i class="bi bi-arrow-left me-1"></i>
+                    Regresar
+
+                </a>
+
+            </div>
+        </div>
+
+
+
+    </div>
+
+    <div class="card-body">
+
+        <!-- CABECERA -->
+
+        <div class="row mb-4">
+
+            <div class="col-md-3">
+
+                <div class="border rounded p-3 h-100">
+
+                    <small class="text-muted">
+                        Folio
+                    </small>
+
+                    <div class="fw-semibold">
+                        @Model.Folio
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="col-md-5">
+
+                <div class="border rounded p-3 h-100">
+
+                    <small class="text-muted">
+                        Vehículo 
+                    </small>
+
+                    <div class="fw-semibold">
+                        @Model.Vehiculo
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="col-md-2">
+
+                <div class="border rounded p-3 h-100">
+
+                    <small class="text-muted">
+                        Taller
+                    </small>
+
+                    <div class="fw-semibold">
+                        @Model.Taller
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="col-md-2">
+
+                <div class="border rounded p-3 h-100">
+
+                    <small class="text-muted">
+                        Estatus
+                    </small>
+
+                    <div>
+
+                        <span class="badge bg-primary">
+                            @Model.Estatus
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- BOTÓN -->
+
+     @*    <div class="d-flex justify-content-end mb-3">
+
+            <a asp-action="AgregarConcepto"
+                   asp-route-id="@Model.SolicitudMantenimientoId"
+                   class="btn text-light"
+                   style="background-color:#800705">
+
+                <i class="bi bi-plus-circle me-1"></i>
+                Agregar Servicio
+
+            </a>
+
+        </div> *@
+
+        <!-- TABLA -->
+        @if (!Model.Detalles.Any())
+        {
+            <div class="alert alert-info">
+
+                <i class="bi bi-info-circle me-2"></i>
+
+                No existen conceptos registrados.
+
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+
+                <table class="table table-hover align-middle">
+
+                    <thead class="table-light">
+
+                        <tr>
+
+                            <th>
+                                Servicio
+                            </th>
+
+                            <th class="text-center">
+                                Cantidad
+                            </th>
+
+                            <th class="text-end">
+                                Mano de Obra
+                            </th>
+
+                            <th class="text-end">
+                                Refacciones
+                            </th>
+
+                            <th class="text-end">
+                                Total
+                            </th>
+
+                            <th>
+                                Observaciones
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        @foreach (var item in Model.Detalles)
+                        {
+                            <tr>
+
+                                <td class="fw-semibold">
+                                    @item.ConceptoServicio
+                                </td>
+
+                                <td class="text-center">
+                                    @item.Cantidad
+                                </td>
+
+                                <td class="text-end">
+
+                                    @item.CostoEstimadoManoObra.ToString("C")
+
+                                </td>
+
+                                <td class="text-end">
+
+                                    @item.CostoEstimadoRefacciones.ToString("C")
+
+                                </td>
+
+                                <td class="text-end fw-bold">
+
+                                    @item.Total.ToString("C")
+
+                                </td>
+
+                                <td>
+                                    @item.Observaciones
+                                </td>
+
+                            </tr>
+                        }
+
+                    </tbody>
+
+                    <tfoot class="table-light">
+
+                        <tr>
+
+                            <th colspan="2"
+                                class="text-end">
+
+                                Totales:
+
+                            </th>
+
+                            <th class="text-end">
+
+                                @Model.TotalManoObra.ToString("C")
+
+                            </th>
+
+                            <th class="text-end">
+
+                                @Model.TotalRefacciones.ToString("C")
+
+                            </th>
+
+                            <th class="text-end fw-bold">
+
+                                @Model.TotalCotizacion.ToString("C")
+
+                            </th>
+
+                            <th></th>
+
+                        </tr>
+
+                    </tfoot>
+
+                </table>
+
+            </div>
+        }
+
+    </div>
+
+</div>
+@if (Model.Estatus?.ToUpper().Contains("FINALIZADA") == true)
+{
+    <div class="alert alert-success border-start border-5 border-success shadow-sm mb-4">
+
+        <div class="d-flex align-items-center">
+
+            <i class="bi bi-check-circle-fill fs-1 me-3"></i>
+
+            <div>
+
+                <h4 class="mb-1 fw-bold">
+                    Mantenimiento Finalizado
+                </h4>
+
+                <p class="mb-0">
+                    Esta solicitud ya concluyó su proceso de mantenimiento.
+                    No existen acciones pendientes y la información se muestra
+                    únicamente para consulta.
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+}

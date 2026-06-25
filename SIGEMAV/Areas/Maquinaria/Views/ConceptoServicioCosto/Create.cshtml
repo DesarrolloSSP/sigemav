@@ -1,0 +1,414 @@
+﻿@using SIGEMAV.Models.ViewModels.Maquinaria
+
+
+@model ConceptoServicioCostoCreateViewModel
+
+@{
+	ViewData["Title"] = "Registrar Costo Servicio";
+}
+
+<div class="container-fluid">
+
+	<div class="card shadow-sm border-0">
+
+		<div class="card-header bg-white">
+
+			<div class="d-flex justify-content-between align-items-center">
+
+				<div>
+
+					<h4 class="fw-bold mb-0">
+						Registrar Configuración de Costos
+					</h4>
+
+					<small class="text-muted">
+						Configuración de mano de obra y refacciones
+					</small>
+
+				</div>
+
+				<a asp-action="Index"
+					   class="btn btn-outline-secondary">
+
+					<i class="bi bi-arrow-left me-1"></i>
+					Regresar
+
+				</a>
+
+			</div>
+
+		</div>
+
+		<div class="card-body">
+
+			<form asp-action="Create" method="post" id="formCreate">
+
+				@Html.AntiForgeryToken()
+
+				<div asp-validation-summary="ModelOnly"
+					 class="alert alert-danger">
+				</div>
+
+				<div class="row g-4">
+
+					<div class="col-md-6">
+
+						<label class="form-label fw-semibold">
+							Concepto Servicio
+						</label>
+
+						<select asp-for="ConceptoServicioId"
+								asp-items="Model.ConceptosServicio"
+								class="form-select" required>
+
+							<option value="">
+								Seleccione concepto
+							</option>
+
+						</select>
+
+					</div>
+
+					<div class="col-md-6">
+
+						<label class="form-label fw-semibold">
+							Marca
+						</label>
+
+						<select asp-for="MarcaId"
+								asp-items="Model.Marcas"
+								class="form-select"
+								id="marcaSelect" required>
+
+							<option value="">
+								Seleccione marca
+							</option>
+
+						</select>
+
+					</div>
+
+					<div class="col-md-6">
+
+						<label class="form-label fw-semibold">
+							Modelo
+						</label>
+
+						<select asp-for="ModeloId"
+								asp-items="Model.Modelos"
+								class="form-select"
+								id="modeloSelect" required>
+
+							<option value="">
+								Seleccione modelo
+							</option>
+
+						</select>
+
+					</div>
+
+					<div class="col-md-6">
+
+						<label class="form-label fw-semibold">
+							Año
+						</label>
+
+						<select asp-for="AnioId"
+								asp-items="Model.Anios"
+								class="form-select" required>
+
+							<option value="">
+								Seleccione año
+							</option>
+
+						</select>
+
+					</div>
+
+
+					<div class="col-md-6">
+
+						<label asp-for="FechaInicioVigencia"
+							   class="form-label fw-semibold">
+
+							Inicio Vigencia
+
+						</label>
+
+						<input asp-for="FechaInicioVigencia"
+							   type="date"
+							   class="form-control"
+							   required />
+
+						<span asp-validation-for="FechaInicioVigencia"
+							  class="text-danger small">
+						</span>
+
+					</div>
+
+					<div class="col-md-6">
+
+						<label asp-for="FechaFinVigencia"
+							   class="form-label fw-semibold">
+
+							Fin Vigencia
+
+						</label>
+
+						<input asp-for="FechaFinVigencia"
+							   type="date"
+							   class="form-control" />
+
+						<small class="text-muted">
+							Déjelo vacío para vigencia indefinida.
+						</small>
+
+					</div>
+
+
+
+					<div class="col-md-6">
+
+						<label class="form-label fw-semibold">
+							Transmisión
+						</label>
+
+						<select asp-for="TransmisionId"
+								asp-items="Model.Transmisiones"
+								class="form-select" required>
+
+							<option value="">
+								Seleccione transmisión
+							</option>
+
+						</select>
+
+					</div>
+
+					<div class="col-md-6">
+
+						<label class="form-label fw-semibold">
+							Cilindros
+						</label>
+
+						<select asp-for="CilindroId"
+								asp-items="Model.Cilindros"
+								class="form-select" required>
+
+							<option value="">
+								Seleccione cilindros
+							</option>
+
+						</select>
+
+					</div>
+
+					<div class="col-md-6">
+
+						<label class="form-label fw-semibold">
+							Mano de Obra
+						</label>
+
+						<input asp-for="CostoManoObra"
+							   class="form-control" required />
+
+					</div>
+
+					<div class="col-md-6">
+
+						<label class="form-label fw-semibold">
+							Refacciones
+						</label>
+
+						<input asp-for="CostoRefacciones"
+							   class="form-control" required />
+
+					</div>
+
+					<div class="col-md-12">
+
+						<label class="form-label fw-semibold">
+							Observaciones
+						</label>
+
+						<textarea asp-for="Observaciones"
+								  rows="4"
+									  class="form-control">
+                        </textarea>
+
+						</div>
+
+					</div>
+
+					<hr class="my-4" />
+
+					<div class="d-flex justify-content-end gap-2">
+
+						<a asp-action="Index"
+							   class="btn btn-outline-secondary">
+
+							Cancelar
+
+						</a>
+
+						<button type="submit"
+								class="btn text-light"
+								style="background-color:#800705">
+
+							<i class="bi bi-save me-1"></i>
+							Guardar
+
+						</button>
+
+					</div>
+
+				</form>
+
+			</div>
+
+		</div>
+
+	</div>
+
+
+
+	@section Scripts {
+
+		@{
+			await Html.RenderPartialAsync("_ValidationScriptsPartial");
+		}
+
+		<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+		<script>
+
+			$(document).ready(function () {
+
+			// ============================================
+			// FILTRAR MODELOS POR MARCA
+			// ============================================
+
+			$('#marcaSelect').on('change', function () {
+
+			const marcaId = $(this).val();
+
+			$('#modeloSelect')
+			.empty()
+			.prop('disabled', true);
+
+			if (!marcaId) {
+
+			$('#modeloSelect').append(
+			'<option value="">Seleccione un modelo</option>'
+			);
+
+			return;
+			}
+
+			$('#modeloSelect').append(
+			'<option value="">Cargando modelos...</option>'
+			);
+
+			$.ajax({
+
+			url: '@Url.Action("ObtenerModelosPorMarca", "ConceptoServicioCosto", new { area = "Maquinaria" })',
+
+			type: 'GET',
+
+			data: {
+			marcaId: marcaId
+			},
+
+			success: function (data) {
+
+			$('#modeloSelect').empty();
+
+			$('#modeloSelect').append(
+			'<option value="">Seleccione un modelo</option>'
+			);
+
+			$.each(data, function (i, item) {
+
+			$('#modeloSelect').append(
+			`<option value="${item.value}">
+			${item.text}
+			</option>`
+			);
+
+			});
+
+			$('#modeloSelect')
+			.prop('disabled', false);
+			},
+
+			error: function () {
+
+			$('#modeloSelect').empty();
+
+			$('#modeloSelect').append(
+			'<option value="">Error al cargar modelos</option>'
+			);
+
+			Swal.fire({
+
+			icon: 'error',
+
+			title: 'Error',
+
+			text: 'No fue posible cargar los modelos.',
+
+			confirmButtonColor: '#800705'
+			});
+
+			}
+
+			});
+
+			});
+
+			// ============================================
+			// CONFIRMAR GUARDADO
+			// ============================================
+
+			$('#formCreate').on('submit', function (e) {
+
+			e.preventDefault();
+
+			const form = this;
+
+			if (!$(form).valid()) {
+			return;
+			}
+
+			Swal.fire({
+
+			title: '¿Guardar configuración?',
+
+			text: 'Se registrará el costo del servicio.',
+
+			icon: 'question',
+
+			showCancelButton: true,
+
+			confirmButtonColor: '#800705',
+
+			cancelButtonColor: '#6c757d',
+
+			confirmButtonText: 'Sí, guardar',
+
+			cancelButtonText: 'Cancelar'
+
+			}).then((result) => {
+
+			if (result.isConfirmed) {
+			form.submit();
+			}
+
+			});
+
+			});
+
+			});
+
+		</script>
+	}

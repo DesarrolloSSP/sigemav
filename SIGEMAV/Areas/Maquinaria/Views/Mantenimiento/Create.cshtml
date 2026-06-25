@@ -1,0 +1,288 @@
+﻿@model SIGEMAV.Models.ViewModels.Maquinaria.MantenimientoCreateViewModel
+
+@{
+	ViewData["Title"] = "Nuevo Mantenimiento";
+}
+
+<div class="card shadow-sm border-0">
+
+	<div class="card-header bg-white">
+
+		<div class="d-flex justify-content-between align-items-center">
+
+			<div>
+
+				<h4 class="fw-bold mb-0">
+					Registrar Mantenimiento
+				</h4>
+
+				<small class="text-muted">
+					Captura de mantenimiento vehicular
+				</small>
+
+			</div>
+
+			<div>
+
+				<a asp-action="Index"
+					   class="btn btn-outline-secondary">
+
+					<i class="bi bi-arrow-left me-1"></i>
+					Regresar
+
+				</a>
+
+			</div>
+
+		</div>
+
+	</div>
+
+	<div class="card-body">
+
+		<form asp-action="Create"
+			  method="post">
+
+			<div asp-validation-summary="ModelOnly"
+				 class="alert alert-danger">
+			</div>
+
+			<div class="row g-4">
+
+				<!-- Unidad -->
+				<div class="col-md-6">
+
+					<label asp-for="UnidadVehicularId"
+						   class="form-label fw-semibold">
+
+						Unidad Vehicular
+
+					</label>
+
+					<select asp-for="UnidadVehicularId"
+							asp-items="Model.UnidadesVehiculares"
+							class="form-select" required>
+
+						<option value="">
+							Seleccione una unidad
+						</option>
+
+					</select>
+
+				</div>
+
+				<!-- Tipo -->
+				<div class="col-md-3">
+
+					<label asp-for="TipoMantenimientoId"
+						   class="form-label fw-semibold">
+
+						Tipo
+
+					</label>
+
+					<select asp-for="TipoMantenimientoId"
+							asp-items="Model.TiposMantenimiento"
+							class="form-select" required>
+
+						<option value="">
+							Seleccione tipo
+						</option>
+
+					</select>
+
+				</div>
+
+				<!-- Taller -->
+				<div class="col-md-3">
+
+					<label asp-for="TallerId"
+						   class="form-label fw-semibold">
+
+						Taller
+
+					</label>
+
+					<select asp-for="TallerId"
+							asp-items="Model.Talleres"
+							class="form-select" required>
+
+						<option value="">
+							Seleccione taller
+						</option>
+
+					</select>
+
+				</div>
+
+				<!-- Fecha ingreso -->
+				<div class="col-md-3">
+
+					<label asp-for="FechaIngreso"
+						   class="form-label fw-semibold">
+
+						Fecha Ingreso
+
+					</label>
+
+					<input asp-for="FechaIngreso"
+						   type="datetime-local"
+						   class="form-control" required />
+
+				</div>
+
+				<!-- Fecha salida -->
+				<div class="col-md-3">
+
+					<label asp-for="FechaSalida"
+						   class="form-label fw-semibold">
+
+						Fecha Salida
+
+					</label>
+
+					<input asp-for="FechaSalida"
+						   type="datetime-local"
+						   class="form-control" required />
+
+				</div>
+
+				<!-- Km entrada -->
+				<div class="col-md-3">
+
+					<label asp-for="KilometrajeEntrada"
+						   class="form-label fw-semibold">
+
+						Kilometraje Entrada
+
+					</label>
+
+					<input asp-for="KilometrajeEntrada" class="form-control" required/>
+
+				</div>
+
+				<!-- Km salida -->
+				<div class="col-md-3">
+
+					<label asp-for="KilometrajeSalida"
+						   class="form-label fw-semibold">
+
+						Kilometraje Salida
+
+					</label>
+
+					<input asp-for="KilometrajeSalida"
+						   class="form-control" required />
+
+				</div>
+
+				<!-- Motivo -->
+				<div class="col-md-12">
+
+					<label asp-for="MotivoMantenimiento"
+						   class="form-label fw-semibold">
+
+						Motivo del mantenimiento
+
+					</label>
+
+					<textarea asp-for="MotivoMantenimiento"
+							  class="form-control"
+								  rows="3" required>
+                    </textarea>
+
+					</div>
+
+					<!-- Diagnóstico -->
+					<div class="col-md-6">
+
+						<label asp-for="Diagnostico"
+							   class="form-label fw-semibold">
+
+							Diagnóstico
+
+						</label>
+
+						<textarea asp-for="Diagnostico"
+								  class="form-control"
+									  rows="4" required>
+                    </textarea>
+
+						</div>
+
+						<!-- Trabajo -->
+						<div class="col-md-6">
+
+							<label asp-for="TrabajoRealizado"
+								   class="form-label fw-semibold">
+
+								Trabajo realizado
+
+							</label>
+
+							<textarea asp-for="TrabajoRealizado"
+									  class="form-control"
+										  rows="4" required>
+                    </textarea>
+
+							</div>
+
+							<!-- Observaciones -->
+							<div class="col-md-12">
+
+								<label asp-for="Observaciones"
+									   class="form-label fw-semibold">
+
+									Observaciones
+
+								</label>
+
+								<textarea asp-for="Observaciones"
+										  class="form-control"
+											  rows="3">
+                    </textarea>
+
+								</div>
+
+							</div>
+
+							<hr class="my-4" />
+
+							<div class="d-flex justify-content-end gap-2">
+
+								<a asp-action="Index"
+									   class="btn btn-outline-secondary">
+
+									Cancelar
+
+								</a>
+
+								<button type="submit"
+										class="btn text-light"
+										style="background-color:#800705">
+
+									<i class="bi bi-save me-1"></i>
+									Guardar Mantenimiento
+
+								</button>
+
+							</div>
+
+						</form>
+
+					</div>
+
+				</div>
+
+		
+				@section Scripts {
+
+					@{
+						await Html.RenderPartialAsync("_ValidationScriptsPartial");
+					}
+
+				}
+
+
+
+

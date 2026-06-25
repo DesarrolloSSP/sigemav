@@ -1,0 +1,558 @@
+﻿@model SIGEMAV.Models.ViewModels.Maquinaria.UnidadVehicularCreateViewModel
+
+@{
+    ViewData["Title"] = "Registrar Vehículo";
+}
+
+<div class="container-fluid">
+
+    <div class="card shadow-sm border-0">
+
+        <div class="card-header bg-white">
+
+            <div class="d-flex justify-content-between align-items-center">
+
+                <div>
+                    <h4 class="mb-0 fw-bold">
+                        Editar Vehículo
+                    </h4>
+
+
+                    <small class="text-muted">
+                        Actualización de información vehicular
+                    </small>
+                </div>
+
+                <div>
+                    <a asp-action="Index"
+                           class="btn btn-outline-secondary">
+
+                        <i class="bi bi-arrow-left me-1"></i>
+                        Regresar
+
+                    </a>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="card-body">
+
+            <form asp-action="Edit" method="post">
+                
+                <input asp-for="IdUnidadVehicular" type="hidden" />
+
+                <div asp-validation-summary="ModelOnly"
+                     class="alert alert-danger">
+                </div>
+
+                <div class="row g-4">
+
+                    <!-- Número de serie -->
+                    <div class="col-md-4">
+
+                        <label asp-for="NumeroSerie" class="form-label fw-semibold">Número de serie</label>
+
+                        <input asp-for="NumeroSerie"
+                               class="form-control"
+                               maxlength="30"
+                               autocomplete="off" required />
+
+                        <span asp-validation-for="NumeroSerie"
+                              class="text-danger small">
+                        </span>
+
+                    </div>
+
+                    <!-- Placa -->
+                    <div class="col-md-4">
+
+                        <label asp-for="PlacaActual"
+                               class="form-label fw-semibold">
+                            Placa actual
+                        </label>
+
+                        <input asp-for="PlacaActual"
+                               class="form-control"
+                               maxlength="10"
+                               autocomplete="off" required />
+
+                        <span asp-validation-for="PlacaActual"
+                              class="text-danger small">
+                        </span>
+
+                    </div>
+
+                    <!-- Número económico -->
+                    <div class="col-md-4">
+
+                        <label asp-for="NumeroEconomico"
+                               class="form-label fw-semibold">
+                            Número económico
+                        </label>
+
+                        <input asp-for="NumeroEconomico"
+                               class="form-control"
+                               maxlength="15"
+                               autocomplete="off" required />
+
+                        <span asp-validation-for="NumeroEconomico"
+                              class="text-danger small">
+                        </span>
+
+                    </div>
+
+                    <!-- Marca -->
+                    <div class="col-md-4">
+
+                        <label asp-for="IdMarca"
+                               class="form-label fw-semibold">
+                            Marca
+                        </label>
+
+                        <select asp-for="IdMarca"
+                                asp-items="Model.Marcas"
+                                class="form-select"
+                                id="marcaSelect" selected="selected" required>
+
+                            <option value="">
+                                Seleccione una marca
+                            </option>
+
+                        </select>
+
+                        <span asp-validation-for="IdMarca"
+                              class="text-danger small">
+                        </span>
+
+                    </div>
+
+                    <!-- Modelo -->
+                    <div class="col-md-4">
+
+                        <label asp-for="IdModelo"
+                               class="form-label fw-semibold">
+                            Modelo
+                        </label>
+
+                        <select asp-for="IdModelo"
+                                asp-items="Model.Modelos"
+                                class="form-select"
+                                id="modeloSelect" selected="selected" required>
+
+                            <option value="">
+                                Seleccione un modelo
+                            </option>
+
+                        </select>
+
+                        <span asp-validation-for="IdModelo"
+                              class="text-danger small">
+                        </span>
+
+                    </div>
+
+                    <!-- Año -->
+                    <div class="col-md-4">
+
+                        <label asp-for="IdAnio"
+                               class="form-label fw-semibold">
+                            Año
+                        </label>
+
+                        <select asp-for="IdAnio"
+                                asp-items="Model.Anios"
+                                class="form-select" selected="selected"  required>
+
+                            <option value="">
+                                Seleccione un año
+                            </option>
+
+                        </select>
+
+                        <span asp-validation-for="IdAnio"
+                              class="text-danger small">
+                        </span>
+
+                    </div>
+
+
+
+                    <!-- Transmisión -->
+                    <div class="col-md-6">
+
+                        <label asp-for="IdTransmision"
+                               class="form-label fw-semibold">
+                            Transmisión
+                        </label>
+
+                        <select asp-for="IdTransmision"
+                                asp-items="Model.Transmisiones"
+                                class="form-select" selected="selected" required>
+
+                            <option value="">
+                                Seleccione una transmisión
+                            </option>
+
+                        </select>
+
+                        <span asp-validation-for="IdTransmision"
+                              class="text-danger small">
+                        </span>
+
+                    </div>
+
+
+
+                    <!-- Cilindros -->
+                    <div class="col-md-6">
+
+                        <label asp-for="IdCilindro"
+                               class="form-label fw-semibold">
+                            Cilindro
+                        </label>
+
+                        <select asp-for="IdCilindro"
+                                asp-items="Model.Cilindros"
+                                class="form-select" selected="selected" required>
+
+                            <option value="">
+                                Seleccione un cilindro
+                            </option>
+
+                        </select>
+
+                        <span asp-validation-for="IdCilindro"
+                              class="text-danger small">
+                        </span>
+
+                    </div>
+
+
+
+
+
+                    <!-- Área -->
+                    <div class="col-md-12">
+
+                        <label asp-for="IdArea"
+                               class="form-label fw-semibold">
+                            Área
+                        </label>
+
+                        <select asp-for="IdArea"
+                                asp-items="Model.Areas"
+                                class="form-select" selected="selected" required>
+
+                            <option value="">
+                                Seleccione un área
+                            </option>
+
+                        </select>
+
+                        <span asp-validation-for="IdArea"
+                              class="text-danger small">
+                        </span>
+
+                    </div>
+
+
+
+
+
+
+
+
+
+                    <!-- Color -->
+                    <div class="col-md-6">
+
+                        <label asp-for="IdColor"
+                               class="form-label fw-semibold">
+                            Color
+                        </label>
+
+                        <select asp-for="IdColor"
+                                asp-items="Model.Colores"
+                                class="form-select" selected="selected" required>
+
+                            <option value="">
+                                Seleccione un color
+                            </option>
+
+                        </select>
+
+                        <span asp-validation-for="IdColor"
+                              class="text-danger small">
+                        </span>
+
+                    </div>
+
+                    <!-- Municipio -->
+                    <div class="col-md-6">
+
+                        <label asp-for="IdMunicipio"
+                               class="form-label fw-semibold">
+                            Municipio
+                        </label>
+
+                        <select asp-for="IdMunicipio"
+                                asp-items="Model.Municipios"
+                                class="form-select" selected="selected" required>
+
+                            <option value="">
+                                Seleccione un municipio
+                            </option>
+
+                        </select>
+
+                        <span asp-validation-for="IdMunicipio"
+                              class="text-danger small">
+                        </span>
+
+                    </div>
+
+                </div>
+
+                <hr class="my-4" />
+
+                <div class="d-flex justify-content-end gap-2">
+
+                    <a asp-action="Index"
+                           class="btn btn-outline-secondary">
+
+                        Cancelar
+
+                    </a>
+
+                    <button type="submit"
+                            class="btn text-light"
+                            style="background-color:#800705">
+
+                        <i class="bi bi-save me-1"></i>
+
+                        Actualizar Vehículo
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts {
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+
+        $(document).ready(function () {
+
+            $('#marcaSelect').on('change', function () {
+
+                const marcaId = $(this).val();
+
+                $('#modeloSelect').empty();
+
+                if (!marcaId) {
+
+                    $('#modeloSelect').append(
+                        '<option value="">Seleccione un modelo</option>'
+                    );
+
+                    return;
+                }
+
+                $('#modeloSelect').append(
+                    '<option value="">Cargando modelos...</option>'
+                );
+
+                $.ajax({
+
+                    url: '@Url.Action("ObtenerModelosPorMarca", "UnidadVehicular", new { area = "Maquinaria" })',
+                    type: 'GET',
+                    data: { marcaId: marcaId },
+                    success: function (data) {
+
+                        $('#modeloSelect').empty();
+
+                        $('#modeloSelect').append(
+                            '<option value="">Seleccione un modelo</option>'
+                        );
+
+                        $.each(data, function (i, item) {
+
+                            $('#modeloSelect').append(
+                                `<option value="${item.value}">
+                                    ${item.text}
+                                </option>`
+                            );
+
+                        });
+
+                    },
+
+                    error: function (xhr) {
+
+                        console.error(xhr);
+
+                        $('#modeloSelect').empty();
+
+                        $('#modeloSelect').append(
+                            '<option value="">Error al cargar modelos</option>'
+                        );
+                    }
+
+                });
+
+            });
+
+        });
+
+    </script>
+
+
+    
+
+    <script>
+
+        $(document).ready(function () {
+
+        // ============================
+        // CARGA MODELOS POR MARCA
+        // ============================
+
+        $('#marcaSelect').on('change', function () {
+
+        const marcaId = $(this).val();
+
+        $('#modeloSelect').empty();
+
+        if (!marcaId) {
+
+        $('#modeloSelect').append(
+        '<option value="">Seleccione un modelo</option>'
+        );
+
+        return;
+        }
+
+        $('#modeloSelect').append(
+        '<option value="">Cargando modelos...</option>'
+        );
+
+        $.ajax({
+
+        url: '@Url.Action("ObtenerModelosPorMarca", "UnidadVehicular", new { area = "Maquinaria" })',
+
+        type: 'GET',
+
+        data: { marcaId: marcaId },
+
+        success: function (data) {
+
+        $('#modeloSelect').empty();
+
+        $('#modeloSelect').append(
+        '<option value="">Seleccione un modelo</option>'
+        );
+
+        $.each(data, function (i, item) {
+
+        $('#modeloSelect').append(
+        `<option value="${item.value}">
+        ${item.text}
+        </option>`
+        );
+
+        });
+
+        },
+
+        error: function () {
+
+        $('#modeloSelect').empty();
+
+        $('#modeloSelect').append(
+        '<option value="">Error al cargar modelos</option>'
+        );
+
+        }
+
+        });
+
+        });
+
+      
+    </script>
+
+
+    <script>
+
+        $(document).ready(function () {
+
+        $('form').on('submit', function (e) {
+
+        // VALIDAR FORMULARIO MVC + JQUERY VALIDATION
+
+        if (!$(this).valid()) {
+
+        // DEJA QUE MVC MUESTRE LOS MENSAJES
+        return;
+        }
+
+        // EVITA ENVÍO DIRECTO
+        e.preventDefault();
+
+        const form = this;
+
+        Swal.fire({
+
+        title: '¿Guardar información?',
+
+        text: 'Se registrarán los cambios del vehículo.',
+
+        icon: 'question',
+
+        showCancelButton: true,
+
+        confirmButtonColor: '#800705',
+
+        cancelButtonColor: '#6c757d',
+
+        confirmButtonText: 'Sí, guardar',
+
+        cancelButtonText: 'Cancelar'
+
+        }).then((result) => {
+
+        if (result.isConfirmed) {
+
+        // ENVÍO REAL
+        form.submit();
+        }
+
+        });
+
+        });
+
+        });
+
+    </script>
+
+}
+
+
+
+
+

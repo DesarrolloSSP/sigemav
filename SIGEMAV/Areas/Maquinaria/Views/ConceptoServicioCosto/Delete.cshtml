@@ -1,0 +1,241 @@
+﻿@using SIGEMAV.Models.ViewModels.Maquinaria
+
+@model ConceptoServicioCostoDeleteViewModel
+
+@{
+    ViewData["Title"] = "Eliminar Costo Servicio";
+}
+
+<div class="container-fluid">
+
+    <div class="card shadow-sm border-0">
+
+        <div class="card-header bg-white">
+
+            <div class="d-flex justify-content-between align-items-center">
+
+                <div>
+
+                    <h4 class="fw-bold mb-0 text-danger">
+
+                        Eliminar configuración
+
+                    </h4>
+
+                    <small class="text-muted">
+
+                        Confirmación de eliminación lógica
+
+                    </small>
+
+                </div>
+
+                <a asp-action="Index"
+                       class="btn btn-outline-secondary">
+
+                    <i class="bi bi-arrow-left me-1"></i>
+
+                    Regresar
+
+                </a>
+
+            </div>
+
+        </div>
+
+        <div class="card-body">
+
+            <div class="alert alert-warning">
+
+                <i class="bi bi-exclamation-triangle me-2"></i>
+
+                ¿Está seguro de eliminar esta configuración?
+
+            </div>
+
+            <dl class="row">
+
+                <dt class="col-sm-3">
+                    Concepto
+                </dt>
+
+                <dd class="col-sm-9">
+                    @Model.ConceptoServicioNombre
+                </dd>
+
+                <dt class="col-sm-3">
+                    Marca
+                </dt>
+
+                <dd class="col-sm-9">
+                    @Model.MarcaNombre
+                </dd>
+
+                <dt class="col-sm-3">
+                    Modelo
+                </dt>
+
+                <dd class="col-sm-9">
+                    @Model.ModeloNombre
+                </dd>
+
+                <dt class="col-sm-3">
+                    Año
+                </dt>
+
+                <dd class="col-sm-9">
+                    @Model.AnioNombre
+                </dd>
+
+                <dt class="col-sm-3">
+                    Transmisión
+                </dt>
+
+                <dd class="col-sm-9">
+                    @Model.TransmisionNombre
+                </dd>
+
+                <dt class="col-sm-3">
+                    Cilindros
+                </dt>
+
+                <dd class="col-sm-9">
+                    @Model.CilindroNombre
+                </dd>
+
+                <dt class="col-sm-3">
+                    Mano de Obra
+                </dt>
+
+                <dd class="col-sm-9">
+                    @Model.CostoManoObra.ToString("C")
+                </dd>
+
+                <dt class="col-sm-3">
+                    Refacciones
+                </dt>
+
+                <dd class="col-sm-9">
+                    @Model.CostoRefacciones.ToString("C")
+                </dd>
+
+                <dt class="col-sm-3">
+                    Inicio Vigencia
+                </dt>
+
+                <dd class="col-sm-9">
+                    @Model.FechaInicioVigencia.ToString("dd/MM/yyyy")
+                </dd>
+
+                <dt class="col-sm-3">
+                    Fin Vigencia
+                </dt>
+
+                <dd class="col-sm-9">
+
+                    @(Model.FechaFinVigencia.HasValue
+                        ? Model.FechaFinVigencia.Value
+                            .ToString("dd/MM/yyyy")
+                        : "Vigente")
+
+                </dd>
+
+                <dt class="col-sm-3">
+                    Observaciones
+                </dt>
+
+                <dd class="col-sm-9">
+
+                    @(string.IsNullOrWhiteSpace(Model.Observaciones)
+                        ? "-"
+                        : Model.Observaciones)
+
+                </dd>
+
+            </dl>
+
+            <hr />
+
+            <form asp-action="Delete"
+                  method="post"
+                  id="formDelete">
+
+                @Html.AntiForgeryToken()
+
+                <input asp-for="ConceptoServicioCostoId"
+                       type="hidden" />
+
+                <div class="d-flex justify-content-end gap-2">
+
+                    <a asp-action="Index"
+                           class="btn btn-outline-secondary">
+
+                        Cancelar
+
+                    </a>
+
+                    <button type="submit"
+                            class="btn btn-danger">
+
+                        <i class="bi bi-trash me-1"></i>
+
+                        Eliminar
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts {
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+
+        $(document).ready(function () {
+
+        $('#formDelete').on('submit', function (e) {
+
+        e.preventDefault();
+
+        const form = this;
+
+        Swal.fire({
+
+        title: '¿Eliminar registro?',
+
+        text: 'La configuración quedará inactiva.',
+
+        icon: 'warning',
+
+        showCancelButton: true,
+
+        confirmButtonColor: '#800705',
+
+        cancelButtonColor: '#6c757d',
+
+        confirmButtonText: 'Sí, eliminar',
+
+        cancelButtonText: 'Cancelar'
+
+        }).then((result) => {
+
+        if (result.isConfirmed) {
+        form.submit();
+        }
+
+        });
+
+        });
+
+        });
+
+    </script>
+}

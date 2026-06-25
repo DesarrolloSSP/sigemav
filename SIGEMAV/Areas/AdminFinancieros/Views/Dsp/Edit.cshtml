@@ -1,0 +1,294 @@
+﻿@model SIGEMAV.Models.ViewModels.Financieros.Dsp.DspEditarVM
+
+@{
+	ViewData["Title"] = "Editar DSP";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+
+
+	@if (TempData["Error"] != null)
+	{
+		<div class="alert alert-danger alert-dismissible fade show auto-hide-alert"
+			 role="alert">
+
+			<i class="bi bi-exclamation-triangle-fill me-2"></i>
+
+			@TempData["Error"]
+
+			<button type="button"
+					class="btn-close"
+					data-bs-dismiss="alert">
+			</button>
+
+		</div>
+	}
+
+	@if (TempData["Success"] != null)
+	{
+		<div class="alert alert-success alert-dismissible fade show auto-hide-alert"
+			 role="alert">
+
+			<i class="bi bi-check-circle-fill me-2"></i>
+
+			@TempData["Success"]
+
+			<button type="button"
+					class="btn-close"
+					data-bs-dismiss="alert">
+			</button>
+
+		</div>
+	}
+
+	
+	<form asp-area="AdminFinancieros" asp-controller="Dsp" asp-action="Edit" method="post" enctype="multipart/form-data">
+
+		<input asp-for="IdDsp" type="hidden" />
+		<input asp-for="RutaArchivo" type="hidden" />
+
+		<div class="card shadow-sm border-0">
+
+			<div class="card-header bg-white">
+
+				<div class="d-flex justify-content-between align-items-center">
+
+					<div>
+
+						<h3 class="fw-bold mb-0">
+							<i class="bi bi-pencil-square"></i>
+							Editar DSP
+						</h3>
+
+						<small class="text-muted">
+							Actualización de DSP
+						</small>
+
+					</div>
+
+					<div>
+
+						<a asp-area="AdminFinancieros"
+						   asp-controller="Dsp"
+						   asp-action="Index"
+						   class="btn btn-outline-secondary">
+
+							<i class="bi bi-arrow-left"></i>
+							Regresar
+
+						</a>
+
+					</div>
+
+				</div>
+
+			</div>
+
+			<div class="card-body">
+
+				<div asp-validation-summary="ModelOnly"
+					 class="alert alert-danger">
+				</div>
+
+				<div class="row">
+
+					<div class="col-md-3 mb-3">
+
+						<label asp-for="Fecha"
+							   class="form-label fw-semibold">
+
+							Fecha
+
+						</label>
+
+						<input asp-for="Fecha"
+							   type="date"
+							   class="form-control" />
+
+						<span asp-validation-for="Fecha"
+							  class="text-danger">
+						</span>
+
+					</div>
+
+					<div class="col-md-3 mb-3">
+
+						<label asp-for="NoDsp"
+							   class="form-label fw-semibold">
+
+							No. DSP
+
+						</label>
+
+						<div class="input-group">
+
+							<span class="input-group-text">
+								#
+							</span>
+
+							<input asp-for="NoDsp"
+								   class="form-control text-start" />
+
+						</div>
+
+						<span asp-validation-for="NoDsp"
+							  class="text-danger">
+						</span>
+
+					</div>
+
+					<div class="col-md-3 mb-3">
+
+						<label asp-for="Importe"
+							   class="form-label fw-semibold">
+
+							Importe
+
+						</label>
+
+						<div class="input-group">
+
+							<span class="input-group-text">
+								$
+							</span>
+
+							<input asp-for="Importe"
+								   class="form-control text-start" />
+
+						</div>
+
+						<span asp-validation-for="Importe"
+							  class="text-danger">
+						</span>
+
+					</div>
+
+				</div>
+
+				<div class="row">
+
+					<div class="col-md-12 mb-3">
+
+						<label asp-for="Descripcion"
+							   class="form-label fw-semibold">
+
+							Descripción
+
+						</label>
+
+						<textarea asp-for="Descripcion"
+								  class="form-control"
+								  rows="4"></textarea>
+
+						<span asp-validation-for="Descripcion"
+							  class="text-danger">
+						</span>
+
+					</div>
+
+				</div>
+
+				<div class="row">
+
+					<div class="col-md-6 mb-3">
+
+						<label asp-for="Archivo"
+							   class="form-label fw-semibold">
+
+							Nuevo archivo PDF
+
+						</label>
+
+						<input asp-for="Archivo"
+							   type="file"
+							   class="form-control"
+							   accept=".pdf" />
+
+						<small class="text-muted">
+							Seleccione un PDF únicamente si desea reemplazar el actual.
+						</small>
+
+						<span asp-validation-for="Archivo"
+							  class="text-danger">
+						</span>
+
+					</div>
+
+					<div class="col-md-6 mb-3">
+
+						<label class="form-label fw-semibold">
+
+							Archivo actual
+
+						</label>
+
+						<div>
+
+							@if (!string.IsNullOrWhiteSpace(Model.RutaArchivo))
+							{
+								<a asp-area="AdminFinancieros"
+								   asp-controller="Dsp"
+								   asp-action="VerPdf"
+								   asp-route-id="@Model.IdDsp"
+								   target="_blank"
+								   class="btn btn-outline-danger">
+
+									<i class="bi bi-file-earmark-pdf"></i>
+									Ver PDF Actual
+
+								</a>
+							}
+							else
+							{
+								<span class="text-muted">
+									No existe archivo adjunto
+								</span>
+							}
+
+						</div>
+
+					</div>
+
+				</div>
+
+				<hr />
+
+				<div class="d-flex justify-content-end gap-2">
+
+					<a asp-area="AdminFinancieros"
+					   asp-controller="Dsp"
+					   asp-action="Index"
+					   class="btn btn-outline-secondary">
+
+						<i class="bi bi-x-circle"></i>
+						Cancelar
+
+					</a>
+
+					<button type="submit"
+							class="btn btn-primary">
+
+						<i class="bi bi-save"></i>
+						Actualizar DSP
+
+					</button>
+
+				</div>
+
+			</div>
+
+		</div>
+
+	</form>
+	
+
+</div>
+
+@section Scripts {
+
+	@{
+		await Html.RenderPartialAsync("_ValidationScriptsPartial");
+	}
+
+}
