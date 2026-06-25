@@ -6,11 +6,10 @@ using SIGEMAV.Services.Interfaces.SIA;
 
 namespace SIGEMAV.Controllers
 {
-    
-    
-    //[Authorize(Roles = "AdminFinancieros,Sysadmin")]
 
 
+    
+    [Authorize]
 
     public class HomeController : Controller
     {
