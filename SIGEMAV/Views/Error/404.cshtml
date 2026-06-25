@@ -1,0 +1,39 @@
+﻿@{
+    ViewData["Title"] = "Página No Encontrada";
+}
+
+<div class="container py-5">
+
+    <div class="text-center">
+
+        <img src="~/img/logo/SIGEMAV_01.png"
+             alt="SIGEMAV"
+             style="max-width:220px;"
+             class="mb-4" />
+
+        <h1 class="display-1 text-info fw-bold">
+            404
+        </h1>
+
+        <h2 class="mb-3">
+            Página No Encontrada
+        </h2>
+
+        <p class="lead text-muted">
+
+            La dirección solicitada no existe o fue movida.
+
+        </p>
+
+        <a asp-controller="Home"
+           asp-action="Index"
+           class="btn btn-primary btn-lg">
+
+            <i class="bi bi-house-door-fill"></i>
+            Regresar al Inicio
+
+        </a>
+
+    </div>
+
+</div>
