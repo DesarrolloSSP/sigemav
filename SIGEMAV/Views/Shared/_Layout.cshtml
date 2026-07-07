@@ -1,14 +1,20 @@
 ﻿@using System.Security.Claims
 
-
-
 @{
 	var roles = User.Claims
 		.Where(x => x.Type == ClaimTypes.Role)
-		.Select(x => x.Value)
+		.Select(x => x.Value.Trim())
 		.ToList();
 
-	bool esSysadmin = roles.Contains("Sysadmin");
+	bool esSysadmin = roles.Any(x =>
+		x.Equals("Sysadmin", StringComparison.OrdinalIgnoreCase));
+
+	bool esAdminFinancieros = roles.Any(x =>
+		x.Equals("AdminFinancieros", StringComparison.OrdinalIgnoreCase));
+
+	bool esAdminMaquinaria = roles.Any(x =>
+		x.Equals("AdminMaquinaria", StringComparison.OrdinalIgnoreCase));
+
 }
 
 
@@ -42,8 +48,9 @@
 		<aside id="sidebar" class="sidebar">
 
 			<div class="sidebar-header">
-
-				<img src="~/img/logo/SIGEMAV_blanco.png" class="logo-img" alt="SIGEMAV" />
+				@*
+				<img src="~/img/logo/SIGEMAV_blanco.png" class="logo-img" alt="SIGEMAV" /> *@
+				<img src="~/img/logo/SIGEMAV_app-03.png" class="logo-img" alt="SIGEMAV" />
 
 			</div>
 
@@ -65,7 +72,7 @@
 				</div>
 
 
-				@if (roles.Contains("AdminFinancieros") || esSysadmin)
+				@if (esAdminFinancieros || esSysadmin)
 				{
 					<div class="menu-section">
 
@@ -178,7 +185,7 @@
 					</div>
 				}
 
-				@if (roles.Contains("AdminMaquinaria") || esSysadmin)
+				@if (esAdminMaquinaria || esSysadmin)
 				{
 					<div class="menu-section">
 

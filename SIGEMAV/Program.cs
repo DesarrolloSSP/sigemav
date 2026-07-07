@@ -40,7 +40,6 @@ builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddScoped<IMaquinariaService, MaquinariaService>();
 builder.Services.AddScoped<MaquinariaService>();
-
 builder.Services.AddScoped<IDispService, DispService>();
 builder.Services.AddScoped<IObjetoGastoCatalogoService, ObjetoGastoCatalogoService>();
 builder.Services.AddScoped<IClaveAdministrativaService, ClaveAdministrativaService>();
@@ -49,8 +48,9 @@ builder.Services.AddScoped<IProyectoAreaService, ProyectoAreaService>();
 builder.Services.AddScoped<IOdpService, OdpService>();
 builder.Services.AddScoped<IDspService, DspService>();
 builder.Services.AddScoped<IOrdenDePago, OrdenDePagoService>();
-
 builder.Services.AddHttpClient<ISiaService, SiaService>();
+
+
 
 #endregion
 
