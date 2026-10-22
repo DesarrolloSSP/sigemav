@@ -13,6 +13,7 @@
         public string AreaSolicitante { get; set; } = string.Empty;
 
         public string NumeroEconomico { get; set; } = string.Empty;
+
         public string NumeroSerie { get; set; } = string.Empty;
 
         public string PlacaActual { get; set; } = string.Empty;
@@ -31,11 +32,17 @@
 
         public string ColorEstatus { get; set; } = string.Empty;
 
-        public bool Activo { get; set; }
-
         public int TotalConceptos { get; set; }
 
         public int EstatusSolicitudMantenimientoId { get; set; }
+
+        public bool Activo { get; set; }
+
+        public string? Unidad { get; set; }
+
+        public int? UnidadVehicularId { get; set; }
+
+        public string? UnidadSeleccionada { get; set; }
     }
 
 

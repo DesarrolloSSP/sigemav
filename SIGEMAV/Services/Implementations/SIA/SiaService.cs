@@ -13,7 +13,6 @@ namespace SIGEMAV.Services.Implementations.SIA
         {
             _httpClient = httpClient;
             _configuration = configuration;
-
             _httpClient.BaseAddress = new Uri(_configuration["SiaApi:BaseUrl"]!);
         }
 

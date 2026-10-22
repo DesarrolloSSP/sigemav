@@ -19,11 +19,11 @@ namespace SIGEMAV.Models.ViewModels.Maquinaria
         public string? ColorNombre { get; set; }
         public int IdMunicipio { get; set; }
         public string? MunicipioNombre { get; set; }
-        public int IdArea { get; set; }
+        public int? IdArea { get; set; }
         public string? AreaNombre { get; set; }
-        public int IdCilindro { get; set; }
+        public int? IdCilindro { get; set; }
         public string? CilindroNombre { get; set; }
-        public int IdTransmision { get; set; }
+        public int? IdTransmision { get; set; }
         public string? TransmisionNombre { get; set; } 
 
         public bool? Activo { get; set; }

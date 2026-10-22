@@ -6,7 +6,7 @@ namespace SIGEMAV.Models.ViewModels.Maquinaria
     {
         public int ConceptoServicioId { get; set; }
 
-        public decimal Cantidad { get; set; }
+        public int Cantidad { get; set; }
 
         public decimal CostoEstimadoManoObra { get; set; }
 
@@ -27,12 +27,11 @@ namespace SIGEMAV.Models.ViewModels.Maquinaria
         public string? ClaveObjetoGastoRefacciones { get; set; }
 
 
+        //presentacion
+        public string? ConceptoServicio { get; set; }
+
+        public string? ObjetoGastoManoObraTexto { get; set; }
+
+        public string? ObjetoGastoRefaccionesTexto { get; set; }
     }
-
-
-
-
-
-
-
 }

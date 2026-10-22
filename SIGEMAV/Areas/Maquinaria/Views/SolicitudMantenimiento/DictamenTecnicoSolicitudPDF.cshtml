@@ -1,0 +1,551 @@
+﻿
+@using SIGEMAV.Models.Entities
+@model SolicitudMantenimiento
+
+
+
+@{
+    Layout = null;
+
+    
+    var unidad = Model.UnidadVehicular;
+    var marca = unidad?.Marca?.MarcaNombre ?? "N/A";
+    var modeloNombre = unidad?.Modelo?.ModeloNombre ?? "N/A";
+    var placa = string.IsNullOrWhiteSpace(Model.PlacaVehiculo) ? (unidad?.PlacaActual ?? "N/A") : Model.PlacaVehiculo;
+    var numSerie = unidad?.NumeroSerie ?? "N/A";
+    var numEcon = unidad?.NumeroEconomico ?? "S/N";
+    var anioModelo = unidad?.Anio?.AnioDescripcion?.ToString() ?? "N/A";
+    var cilindros = unidad?.Cilindro?.CilindroNombre?.ToString() ?? "N/A";
+    var kilometraje = Model.KilometrajeActual.ToString("N0");
+
+    // Lógica para marcar casillas con X
+    bool esPreventivo = Model.TipoMantenimientoId == 1 || (Model.TipoMantenimiento?.Nombre?.Contains("Preventivo", StringComparison.OrdinalIgnoreCase) ?? false);
+    bool esCorrectivo = Model.TipoMantenimientoId == 2 || (Model.TipoMantenimiento?.Nombre?.Contains("Correctivo", StringComparison.OrdinalIgnoreCase) ?? false);
+    bool esEnLlantado = Model.TipoMantenimientoId == 7 || (Model.TipoMantenimiento?.Nombre?.Contains("Enllantado", StringComparison.OrdinalIgnoreCase) ?? false);
+
+    // Verificar si hay servicios de refacciones / mano de obra
+    bool tieneRefacciones = Model.SolicitudMantenimientoDetalles.Any(d => d.CostoEstimadoRefacciones > 0);
+    bool tieneManoObra = Model.SolicitudMantenimientoDetalles.Any(d => d.CostoEstimadoManoObra > 0);
+
+
+    // Diccionario de firmantes enviado desde el controlador
+    var firmantes = ViewBag.Firmantes as Dictionary<string, Firmante>;
+
+    // Devuelve el Nombre de la BD o una cadena vacía / línea si no existe registro en la BD
+    string ObtenerNombre(string clave) =>
+        (firmantes != null && firmantes.TryGetValue(clave, out var f)) ? f.NombreCompleto : "";
+
+    // Devuelve el Cargo de la BD o una cadena vacía si no existe registro en la BD
+    string ObtenerCargo(string clave) =>
+        (firmantes != null && firmantes.TryGetValue(clave, out var f)) ? f.Cargo : "";
+}
+
+
+
+
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <title>Dictamen Técnico - @Model.Folio</title>
+    <style>
+            @@page {
+                size: letter portrait;
+                margin: 10mm 12mm 10mm 12mm;
+            }
+
+            * {
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: Arial, Helvetica, sans-serif;
+                font-size: 8.5pt;
+                color: #000;
+                background-color: #fff;
+                margin: 0;
+                padding: 0;
+                line-height: 1.15;
+            }
+
+            /* Utilidades de Impresión */
+            .no-print {
+                background-color: #f8f9fa;
+                padding: 8px;
+                margin-bottom: 12px;
+                border: 1px solid #ccc;
+                text-align: right;
+            }
+
+                .no-print button {
+                    padding: 6px 14px;
+                    font-weight: bold;
+                    cursor: pointer;
+                    border-radius: 3px;
+                }
+
+            .btn-print {
+                background-color: #800705;
+                color: white;
+                border: none;
+            }
+
+            .btn-close {
+                background-color: #6c757d;
+                color: white;
+                border: none;
+                margin-left: 6px;
+            }
+
+            /* TABLAS BASE */
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-bottom: 6px;
+            }
+
+            /* ENCABEZADO INSTITUCIONAL */
+            .header-table td {
+                vertical-align: middle;
+                padding: 2px;
+            }
+
+            .logo-img {
+                max-height: 52px;
+                width: auto;
+            }
+
+            .doc-title {
+                text-align: center;
+                font-weight: bold;
+                font-size: 10pt;
+                padding: 0 8px;
+                text-transform: uppercase;
+            }
+
+            .meta-box {
+                border: 1px solid #000;
+                font-size: 7.5pt;
+            }
+
+                .meta-box td {
+                    padding: 2px 4px;
+                    border: 1px solid #000;
+                }
+
+            .meta-label {
+                font-weight: bold;
+                background-color: #f0f0f0;
+                width: 35%;
+            }
+
+            /* SECCIÓN DE ÁREA */
+            .area-header {
+                border: 1px solid #000;
+                background-color: #fff;
+                padding: 4px 6px;
+                font-weight: bold;
+                font-size: 8.5pt;
+                margin-bottom: 6px;
+                text-transform: uppercase;
+            }
+
+            .dictamen-header {
+                border: 1px solid #000;
+                background-color: #fff;
+                padding: 4px 6px;
+                font-weight: bold;
+                font-size: 8.5pt;
+                margin-bottom: 6px;
+                text-transform: uppercase;
+            }
+
+            /* TABLA MATRIZ DE LA UNIDAD */
+            .grid-table {
+                border: 1px solid #000;
+                margin-bottom: 6px;
+            }
+
+                .grid-table th, .grid-table td {
+                    border: 1px solid #000;
+                    padding: 3px 4px;
+                    text-align: center;
+                    font-size: 8pt;
+                }
+
+                .grid-table th {
+                    background-color: #f0f0f0;
+                    font-weight: bold;
+                    text-transform: uppercase;
+                }
+
+            /* DETALLE DE SERVICIOS Y CHECKBOXES */
+            .details-table {
+                border: 1px solid #000;
+                margin-bottom: 6px;
+            }
+
+                .details-table td {
+                    border: 1px solid #000;
+                    padding: 4px;
+                    vertical-align: top;
+                }
+
+            .services-list {
+                min-height: 120px;
+                font-size: 8.5pt;
+            }
+
+                .services-list ol, .services-list ul {
+                    margin: 2px 0 2px 18px;
+                    padding: 0;
+                }
+
+                .services-list li {
+                    margin-bottom: 3px;
+                }
+
+            .checkbox-cell {
+                text-align: center;
+                font-weight: bold;
+                font-size: 9pt;
+                width: 28px;
+            }
+
+            .label-cell {
+                font-size: 7.5pt;
+                font-weight: bold;
+                background-color: #fafafa;
+            }
+
+            /* ESTRUCTURA DE FIRMAS */
+            .signatures-grid {
+                border: 1px solid #000;
+                margin-top: 8px;
+            }
+
+                .signatures-grid td {
+                    border: 1px solid #000;
+                    vertical-align: top;
+                    padding: 4px;
+                    text-align: center;
+                }
+
+            .signature-title {
+                font-size: 7.5pt;
+                font-weight: bold;
+                text-transform: uppercase;
+                border-bottom: 1px solid #000;
+                padding-bottom: 3px;
+                margin-bottom: 40px; /* Espacio para la firma autógrafa */
+                background-color: #f9f9f9;
+            }
+
+            .signature-name {
+                font-weight: bold;
+                font-size: 8pt;
+                text-transform: uppercase;
+            }
+
+            .signature-role {
+                font-size: 7pt;
+                color: #333;
+                text-transform: uppercase;
+                margin-top: 2px;
+            }
+
+            .text-center {
+                text-align: center;
+            }
+
+            .fw-bold {
+                font-weight: bold;
+            }
+
+          @@media print {
+                /* Elimina los encabezados y pies de página predeterminados del navegador (URL, fecha, título) */
+                @@page {
+                    margin: 0;
+                    size: auto;
+                }
+
+                body {
+                    font-size: 8pt;
+                    /* Compensa la eliminación de los márgenes de hoja para mantener el contenido centrado */
+                    padding: 10mm 15mm 10mm 15mm; 
+                }
+
+                .no-print {
+                    display: none !important;
+                }
+           }
+    </style>
+</head>
+<body>
+
+    <!-- BOTONES AUXILIARES -->
+    <div class="no-print">
+        <button onclick="window.print();" class="btn-print">🖨️ Imprimir dictamen</button>
+        <button onclick="window.close();" class="btn-close">Cerrar</button>
+    </div>
+
+    <!-- 1. ENCABEZADO OFICIAL CON LOGOTIPOS -->
+    <table class="header-table">
+        <tr>
+            <td style="width: 25%;">
+                @* <img src="wwwroot/img/Veracruz2025_2.png" alt="Gobierno del Estado de Veracruz - SSP" class="logo-img" /> *@
+                <img src="/img/veracruz/veracruz2025_2.png" alt="Gobierno del Estado de Veracruz - SSP" class="logo-img" />
+
+            </td>
+        </tr>
+    </table>
+
+
+
+
+    @* <div class="doc-title" style="width: 70%;"> *@
+
+    <table class="details-table" style="width: 100%; border-collapse: collapse; border: 1px solid #000; margin-bottom: 6px; table-layout: fixed;">
+    <!-- FILA 1: TÍTOL DEL DICTAMEN (IZQUIERDA) Y FOLIO (DERECHA) -->
+    <tr>
+        <td class="theme-inverse" style="width: 65%; vertical-align: middle; padding: 6px; border: 1px solid #000; text-align: center;">
+            <div class="fw-bold" style="font-weight: bold; font-size: 8.5pt; text-transform: uppercase;">
+                DICTAMEN TÉCNICO DE AUTORIZACIÓN PARA INGRESO A TALLER
+            </div>
+        </td>
+        <td class="meta-label" style="width: 12%; font-weight: bold; background-color: #f0f0f0; padding: 4px; font-size: 7.5pt; border: 1px solid #000;">
+            FOLIO:
+        </td>
+        <td style="width: 23%; padding: 4px; font-size: 8pt; font-weight: bold; border: 1px solid #000;">
+            @Model.Folio
+        </td>
+    </tr>
+
+    <!-- FILA 2: ÁREA SOLICITANTE (IZQUIERDA) Y FECHA (DERECHA) -->
+    <tr>
+        <td rowspan="2" style="width: 65%; vertical-align: middle; padding: 6px; border: 1px solid #000;">
+            <div class="fw-bold" style="font-weight: bold; font-size: 8.5pt; text-transform: uppercase;">
+                ÁREA: @(Model.AreaSolicitante?.AreaNombre ?? "N/A")
+            </div>
+        </td>
+        <td class="meta-label" style="width: 12%; font-weight: bold; background-color: #f0f0f0; padding: 4px; font-size: 7.5pt; border: 1px solid #000;">
+            FECHA:
+        </td>
+        <td style="width: 23%; padding: 4px; font-size: 8pt; border: 1px solid #000;">
+            @(Model.FechaAutorizacion?.ToString("dd/MM/yyyy") ?? Model.FechaSolicitud.ToString("dd/MM/yyyy"))
+        </td>
+    </tr>
+
+    <!-- FILA 3: No. OFICIO (DERECHA) -->
+    <tr>
+        <td class="meta-label" style="width: 12%; font-weight: bold; background-color: #f0f0f0; padding: 4px; font-size: 7.5pt; border: 1px solid #000;">
+            No. OFICIO:
+        </td>
+        <td style="width: 23%; padding: 4px; font-size: 7pt; border: 1px solid #000;">
+            @Model.NumeroOficio
+        </td>
+    </tr>
+</table>
+
+<!-- 3. MATRIZ DE DATOS DE LA UNIDAD VEHICULAR -->
+        <table class="grid-table">
+            <thead>
+             <tr style="background-color: #f2f2f2;">
+                <th style="width: 14%; border: 1px solid #000; padding: 4px; font-size: 7.5pt; font-weight: bold; text-align: center;">MARCA</th>
+                <th style="width: 22%; border: 1px solid #000; padding: 4px; font-size: 7.5pt; font-weight: bold; text-align: center;">TIPO</th>
+                <th style="width: 12%; border: 1px solid #000; padding: 4px; font-size: 7.5pt; font-weight: bold; text-align: center;">PLACA</th>
+                <th style="width: 22%; border: 1px solid #000; padding: 4px; font-size: 7.5pt; font-weight: bold; text-align: center;">SERIE</th>
+                <th style="width: 10%; border: 1px solid #000; padding: 4px; font-size: 7.5pt; font-weight: bold; text-align: center;">NUM. ECON.</th>
+                <th style="width: 8%; border: 1px solid #000; padding: 4px; font-size: 7.5pt; font-weight: bold; text-align: center;">MODELO</th>
+                <th style="width: 6%; border: 1px solid #000; padding: 4px; font-size: 7.5pt; font-weight: bold; text-align: center;">CIL.</th>
+                <th style="width: 6%; border: 1px solid #000; padding: 4px; font-size: 7.5pt; font-weight: bold; text-align: center;">KM</th>
+            </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="fw-bold">@marca</td>
+                    <td>@modeloNombre</td>
+                    <td class="fw-bold">@placa</td>
+                    <td style="font-size: 7.5pt;">@numSerie</td>
+                    <td>@numEcon</td>
+                    <td>@anioModelo</td>
+                    <td>@cilindros</td>
+                    <td>@kilometraje</td>
+                </tr>
+            </tbody>
+        </table>
+
+
+         <table class="details-table" style="width: 100%; border-collapse: collapse; border: 1px solid #000; margin-bottom: 6px;">
+            <tr>
+            <td class="theme-inverse" style="width: 50%; vertical-align: middle; padding: 6px; border: 1px solid #000;">
+                <strong>PRESTADOR DE SERVICIOS:</strong>
+                <td style="padding: 4px; font-size: 7pt;">
+                   <strong> @(Model.Taller?.RazonSocial ?? "POR ASIGNAR") </strong>
+                </td>
+            </tr>
+        </table>
+
+
+
+
+        
+
+        <!-- 4. DETALLE DE SERVICIOS Y REQUISITOS -->
+<table class="details-table" style="width: 100%; border-collapse: collapse; border: 1px solid #000; margin-bottom: 6px; table-layout: fixed;">
+    <tr>
+        <!-- COLUMNA IZQUIERDA: DETALLE DE SERVICIOS Y PRESTADOR -->
+        <td style="width: 100%; vertical-align: top; padding: 6px; border: 1px solid #000;">
+            
+            <div class="fw-bold" style="border-bottom: 1px solid #000; padding-bottom: 3px; margin-bottom: 6px; font-size: 8pt; font-weight: bold; text-transform: uppercase; background-color: #f2f2f2; padding: 3px 5px;">
+                DETALLE DE SERVICIOS AUTORIZADOS:
+            </div>
+
+            <!-- CONTENEDOR CON ALTURA MÍNIMA AMPLIADA PARA LLENAR EL ESPACIO VERTICAL -->
+            <div class="services-list" style="min-height: 300px; padding: 2px 4px;">
+                @if (Model.SolicitudMantenimientoDetalles != null && Model.SolicitudMantenimientoDetalles.Any(d => d.Activo))
+                {
+                    <ul style="list-style-type: disc; margin: 4px 0 4px 18px; padding: 0;">
+                        @foreach (var item in Model.SolicitudMantenimientoDetalles.Where(d => d.Activo))
+                        {
+                            <li style="margin-bottom: 5px; font-size: 8.5pt; line-height: 1.3;">
+                                <strong style="color: #000;">(@item.Cantidad)</strong> @(item.ConceptoServicio?.ConceptoServicioNombre ?? "SERVICIO")
+                                @if (!string.IsNullOrWhiteSpace(item.Observaciones))
+                                {
+                                    <span style="font-size: 7.5pt; color: #444;"> — (@item.Observaciones)</span>
+                                }
+                            </li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <div style="font-style: italic; color: #555; padding: 8px; font-size: 8.5pt;">
+                        @(string.IsNullOrWhiteSpace(Model.MotivoSolicitud) ? "Según diagnóstico inicial de revisión técnica." : Model.MotivoSolicitud)
+                    </div>
+                }
+            </div>
+        </td>
+    </tr>
+</table>
+
+
+<table class="details-table" style="width: 100%; border-collapse: collapse; border: 1px solid #000; margin-bottom: 6px; table-layout: fixed;">
+    <!-- FILA 1: 2 BLOQUES DE 50% CADA UNO (REFACCIONES Y MANO DE OBRA) -->
+    <tr>
+        <!-- BLOQUE REFACCIONES (50% TOTAL DE LA MESA) -->
+        <td class="label-cell" colspan="2" style="width: 38%; border: 1px solid #000; padding: 4px; font-size: 7.5pt; font-weight: bold; background-color: #fafafa;">
+            REFACCIONES:
+        </td>
+        <td class="checkbox-cell" colspan="1" style="width: 12%; border: 1px solid #000; text-align: center; font-weight: bold; font-size: 9pt;">
+            @(tieneRefacciones ? "X" : "")
+        </td>
+
+        <!-- BLOQUE MANO DE OBRA (50% TOTAL DE LA MESA) -->
+        <td class="label-cell" colspan="2" style="width: 38%; border: 1px solid #000; padding: 4px; font-size: 7.5pt; font-weight: bold; background-color: #fafafa;">
+            MANO DE OBRA:
+        </td>
+        <td class="checkbox-cell" colspan="1" style="width: 12%; border: 1px solid #000; text-align: center; font-weight: bold; font-size: 9pt;">
+            @(tieneManoObra ? "X" : "")
+        </td>
+    </tr>
+
+    <!-- FILA 2: 3 BLOQUES DE 33.33% CADA UNO (PREVENTIVO, CORRECTIVO Y ENLLANTADO) -->
+    <tr>
+        <!-- BLOQUE PREVENTIVO (33.33% TOTAL) -->
+        <td class="label-cell" colspan="1" style="width: 25.33%; border: 1px solid #000; padding: 4px; font-size: 6.8pt; font-weight: bold; background-color: #fafafa;">
+            SERVICIO MECÁNICO PREVENTIVO:
+        </td>
+        <td class="checkbox-cell" colspan="1" style="width: 8%; border: 1px solid #000; text-align: center; font-weight: bold; font-size: 9pt;">
+            @(esPreventivo ? "X" : "")
+        </td>
+
+        <!-- BLOQUE CORRECTIVO (33.33% TOTAL) -->
+        <td class="label-cell" colspan="1" style="width: 25.33%; border: 1px solid #000; padding: 4px; font-size: 6.8pt; font-weight: bold; background-color: #fafafa;">
+            SERVICIO MECÁNICO CORRECTIVO:
+        </td>
+        <td class="checkbox-cell" colspan="1" style="width: 8%; border: 1px solid #000; text-align: center; font-weight: bold; font-size: 9pt;">
+            @(esCorrectivo ? "X" : "")
+        </td>
+
+        <!-- BLOQUE ENLLANTADO (33.33% TOTAL) -->
+        <td class="label-cell" colspan="1" style="width: 25.33%; border: 1px solid #000; padding: 4px; font-size: 6.8pt; font-weight: bold; background-color: #fafafa;">
+            SERVICIO DE ENLLANTADO:
+        </td>
+        <td class="checkbox-cell" colspan="1" style="width: 8%; border: 1px solid #000; text-align: center; font-weight: bold; font-size: 9pt;">
+            @(esEnLlantado ? "X" : "")
+        </td>
+    </tr>
+</table>
+
+
+
+
+
+
+<!-- 5. BLOQUE OFICIAL DE FIRMAS EN 2 NIVELES -->
+<!-- NIVEL 1: TRES FIRMAS (SOLICITUD / SUPERVISA / REVISIÓN) -->
+<table class="signatures-grid" style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+    <tr>
+        <td style="width: 33.33%; text-align: center; vertical-align: top; padding: 5px;">
+            <div class="signature-title" style="font-weight: bold; font-size: 7.5pt;">SOLICITUD DEL ÁREA USUARIA</div>
+            <div style="height: 45px;"></div> <!-- Espacio para firma física -->
+            <div class="signature-name" style="font-weight: bold; font-size: 8pt; text-transform: uppercase;">
+                @ObtenerNombre("SOLICITANTE")
+            </div>
+            <div class="signature-role" style="font-size: 7pt; color: #333;">
+                @ObtenerCargo("SOLICITANTE")
+            </div>
+        </td>
+        <td style="width: 33.33%; text-align: center; vertical-align: top; padding: 5px;">
+            <div class="signature-title" style="font-weight: bold; font-size: 7.5pt;">SUPERVISA, VERIFICA Y VALIDA REPARACIÓN</div>
+            <div style="height: 45px;"></div>
+            <div class="signature-name" style="font-weight: bold; font-size: 8pt; text-transform: uppercase;">
+                @ObtenerNombre("SUPERVISOR")
+            </div>
+            <div class="signature-role" style="font-size: 7pt; color: #333;">
+                @ObtenerCargo("SUPERVISOR")
+            </div>
+        </td>
+        <td style="width: 33.33%; text-align: center; vertical-align: top; padding: 5px;">
+            <div class="signature-title" style="font-weight: bold; font-size: 7.5pt;">REVISIÓN DE SOLICITUD</div>
+            <div style="height: 45px;"></div>
+            <div class="signature-name" style="font-weight: bold; font-size: 8pt; text-transform: uppercase;">
+                @ObtenerNombre("SUBDIRECTOR_MAQUINARIA")
+            </div>
+            <div class="signature-role" style="font-size: 7pt; color: #333;">
+                @ObtenerCargo("SUBDIRECTOR_MAQUINARIA")
+            </div>
+        </td>
+    </tr>
+</table>
+
+<!-- NIVEL 2: DOS FIRMAS (Vo. Bo. / AUTORIZA) -->
+<table class="signatures-grid" style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+    <tr>
+        <td style="width: 50%; text-align: center; vertical-align: top; padding: 5px;">
+            <div class="signature-title" style="font-weight: bold; font-size: 7.5pt;">Vo. Bo.</div>
+            <div style="height: 45px;"></div>
+            <div class="signature-name" style="font-weight: bold; font-size: 8pt; text-transform: uppercase;">
+                @ObtenerNombre("DIRECTOR_RECURSOS")
+            </div>
+            <div class="signature-role" style="font-size: 7pt; color: #333;">
+                @ObtenerCargo("DIRECTOR_RECURSOS")
+            </div>
+        </td>
+        <td style="width: 50%; text-align: center; vertical-align: top; padding: 5px;">
+            <div class="signature-title" style="font-weight: bold; font-size: 7.5pt;">AUTORIZA</div>
+            <div style="height: 45px;"></div>
+            <div class="signature-name" style="font-weight: bold; font-size: 8pt; text-transform: uppercase;">
+                @ObtenerNombre("AUTORIZA")
+            </div>
+            <div class="signature-role" style="font-size: 7pt; color: #333;">
+                @ObtenerCargo("AUTORIZA")
+            </div>
+        </td>
+    </tr>
+</table>
+
+    </body>
+</html>

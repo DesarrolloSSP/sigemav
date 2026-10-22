@@ -7,8 +7,6 @@ public partial class TallerControlPresupuestal
 {
     public int IdControlTaller { get; set; }
 
-    public int TallerId { get; set; }
-
     public short Ejercicio { get; set; }
 
     public decimal PresupuestoAsignado { get; set; }
@@ -27,5 +25,9 @@ public partial class TallerControlPresupuestal
 
     public decimal? PresupuestoDisponible { get; set; }
 
-    public virtual Taller Taller { get; set; } = null!;
+    public int TallerConfiguracionPresupuestalId { get; set; }
+
+    public virtual TallerConfiguracionPresupuestal TallerConfiguracionPresupuestal { get; set; } = null!;
+
+    public virtual ICollection<TallerMovimientoPresupuesto> TallerMovimientoPresupuestos { get; set; } = new List<TallerMovimientoPresupuesto>();
 }

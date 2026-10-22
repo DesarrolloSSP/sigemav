@@ -90,13 +90,13 @@
         // USUARIOS
         // =========================================
 
-        public int? UsuarioSolicitaId { get; set; }
+        public string? UsuarioSolicitaId { get; set; }
 
-        public int? UsuarioAutorizaId { get; set; }
+        public string? UsuarioAutorizaId { get; set; }
 
-        public int? UsuarioEntregaId { get; set; }
+        public string? UsuarioEntregaId { get; set; }
 
-        public int? UsuarioRecibeId { get; set; }
+        public string? UsuarioRecibeId { get; set; }
 
         // =========================================
         // SEGUIMIENTO

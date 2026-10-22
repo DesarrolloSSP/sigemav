@@ -1,0 +1,566 @@
+﻿@using SIGEMAV.Models.ViewModels.Maquinaria
+
+@model SIGEMAV.Models.ViewModels.Maquinaria.PaginacionViewModel<SIGEMAV.Models.ViewModels.Maquinaria.TallerViewModel>
+
+
+
+@{
+    string? busqueda =
+        ViewData["Busqueda"]?.ToString();
+
+    bool? activo =
+        ViewData["Activo"] as bool?;
+}
+
+<div class="card shadow-sm">
+
+    <!-- ===================================================== -->
+    <!-- HEADER -->
+    <!-- ===================================================== -->
+
+    <div class="card-header bg-light">
+
+        <div class="d-flex
+                    justify-content-between
+                    align-items-center
+                    flex-wrap
+                    gap-3">
+
+            <!-- TÍTULO -->
+
+            <div>
+
+                <h4 class="mb-1">
+
+                    Talleres
+
+                    <span class="badge bg-light-primary ms-2">
+                        @Model.TotalRegistros
+                    </span>
+
+                </h4>
+
+                <p class="text-muted mb-0">
+                    Administración y actualización
+                    de talleres registrados.
+                </p>
+
+            </div>
+
+
+            <!-- AGREGAR -->
+
+            <div>
+
+              <a asp-action="Create"
+					   class="btn text-light"
+					   style="background-color:#800705">
+
+					<i class="bi bi-plus-circle me-1"></i>
+					Agregar taller
+				</a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ===================================================== -->
+    <!-- FILTROS -->
+    <!-- ===================================================== -->
+
+    <div class="card-body border-bottom">
+
+        <form method="get"
+              asp-action="Index">
+
+            <div class="row g-3 align-items-end">
+
+                <!-- BÚSQUEDA -->
+
+                <div class="col-md-6">
+
+                    <label class="form-label">
+                        Buscar
+                    </label>
+
+                    <div class="input-group">
+
+                        <span class="input-group-text">
+                            <i class="bi bi-search"></i>
+                        </span>
+
+                        <input type="text"
+                               name="busqueda"
+                               value="@busqueda"
+                               class="form-control"
+                               placeholder="Razón social, RFC, contrato, banco o recurso..." />
+
+                    </div>
+
+                </div>
+
+
+                <!-- ESTADO -->
+
+                <div class="col-md-3">
+
+                    <label class="form-label">
+                        Estado
+                    </label>
+
+                    <select name="activo"
+                            class="form-select">
+
+                        <option value="">
+                            Todos
+                        </option>
+
+                        @if (activo == true)
+                        {
+                            <option value="true" selected>
+                                Activos
+                            </option>
+                        }
+                        else
+                        {
+                            <option value="true">
+                                Activos
+                            </option>
+                        }
+
+                        @if (activo == false)
+                        {
+                            <option value="false" selected>
+                                Inactivos
+                            </option>
+                        }
+                        else
+                        {
+                            <option value="false">
+                                Inactivos
+                            </option>
+                        }
+
+                    </select>
+
+                </div>
+
+
+                <!-- BOTONES -->
+
+                <div class="col-md-3">
+
+                    <div class="d-flex gap-2">
+
+                        <button type="submit"
+                                class="btn btn-primary">
+
+                            <i class="bi bi-search me-1"></i>
+
+                            Buscar
+
+                        </button>
+
+                        <a asp-action="Index"
+                           class="btn btn-outline-secondary">
+
+                            <i class="bi bi-arrow-counterclockwise me-1"></i>
+
+                            Limpiar
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </form>
+
+    </div>
+
+
+    <!-- ===================================================== -->
+    <!-- INFORMACIÓN -->
+    <!-- ===================================================== -->
+
+    <div class="card-body pb-2">
+
+        <div class="d-flex
+                    justify-content-between
+                    align-items-center
+                    flex-wrap
+                    gap-2">
+
+            <div class="text-muted">
+
+                @if (Model.TotalRegistros == 0)
+                {
+                    <span>
+                        No hay registros.
+                    </span>
+                }
+                else
+                {
+                    int inicio =
+                        ((Model.PaginaActual - 1) *
+                        Model.RegistrosPorPagina) + 1;
+
+                    int fin =
+                        Math.Min(
+                            Model.PaginaActual *
+                            Model.RegistrosPorPagina,
+                            Model.TotalRegistros);
+
+                    <span>
+
+                        Mostrando
+                        <strong>@inicio</strong>
+                        -
+                        <strong>@fin</strong>
+                        de
+                        <strong>@Model.TotalRegistros</strong>
+                        registros
+
+                    </span>
+                }
+
+            </div>
+
+
+            <div>
+
+                <span class="badge bg-light-primary">
+
+                    Total:
+                    @Model.TotalRegistros
+
+                </span>
+
+                <span class="badge bg-light-secondary ms-1">
+
+                    Página:
+                    @Model.PaginaActual
+                    de
+                    @Model.TotalPaginas
+
+                </span>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ===================================================== -->
+    <!-- TABLA -->
+    <!-- ===================================================== -->
+
+    <div class="table-responsive">
+
+    <table class="table table-hover align-middle mb-0">
+
+        <thead class="table-light">
+
+            <tr>
+
+                <!-- RAZÓN SOCIAL -->
+
+                <th>
+                    Razón social
+                </th>
+
+
+                <!-- RFC -->
+
+                <th>
+                    RFC
+                </th>
+
+
+                <!-- BANCO -->
+
+                <th>
+                    Banco
+                </th>
+
+
+                <!-- UBICACIÓN -->
+
+                <th>
+                    Ubicación
+                </th>
+
+
+                <!-- ESTADO -->
+
+                <th class="text-center">
+                    Estado
+                </th>
+
+
+                <!-- ACCIONES -->
+
+                <th class="text-center"
+                    style="width: 100px;">
+
+                    Acciones
+
+                </th>
+
+            </tr>
+
+        </thead>
+
+
+        <tbody>
+
+            @if (Model.Registros == null ||
+                 !Model.Registros.Any())
+            {
+                <tr>
+
+                    <td colspan="6"
+                        class="text-center py-5">
+
+                        <div class="text-muted">
+
+                            <h5 class="mb-2">
+                                No se encontraron talleres
+                            </h5>
+
+                            <p class="mb-0">
+                                No existen registros que
+                                coincidan con los filtros
+                                seleccionados.
+                            </p>
+
+                        </div>
+
+                    </td>
+
+                </tr>
+            }
+            else
+            {
+                foreach (var taller in Model.Registros)
+                {
+                    <tr>
+
+                        <!-- ================================================= -->
+                        <!-- RAZÓN SOCIAL -->
+                        <!-- ================================================= -->
+
+                        <td>
+
+                            <div class="fw-semibold">
+                                @taller.RazonSocial
+                            </div>
+
+                        </td>
+
+
+                        <!-- ================================================= -->
+                        <!-- RFC -->
+                        <!-- ================================================= -->
+
+                        <td>
+
+                            <span class="text-nowrap">
+                                @taller.Rfc
+                            </span>
+
+                        </td>
+
+
+                        <!-- ================================================= -->
+                        <!-- BANCO -->
+                        <!-- ================================================= -->
+
+                        <td>
+
+                            @if (!string.IsNullOrWhiteSpace(taller.BancoNombre))
+                            {
+                                @taller.BancoNombre
+                            }
+                            else
+                            {
+                                <span class="text-muted">
+                                    Sin banco
+                                </span>
+                            }
+
+                        </td>
+
+
+                        <!-- ================================================= -->
+                        <!-- UBICACIÓN -->
+                        <!-- ================================================= -->
+
+                        <td>
+
+                            <span title="@taller.Ubicacion">
+                                @taller.Ubicacion
+                            </span>
+
+                        </td>
+
+
+                        <!-- ================================================= -->
+                        <!-- ESTADO -->
+                        <!-- ================================================= -->
+
+                        <td class="text-center">
+
+                            @if (taller.Activo)
+                            {
+                                <span class="badge bg-success">
+
+                                    <i class="bi bi-check-circle me-1"></i>
+
+                                    Activo
+
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">
+
+                                    <i class="bi bi-x-circle me-1"></i>
+
+                                    Inactivo
+
+                                </span>
+                            }
+
+                        </td>
+
+
+                        <!-- ================================================= -->
+                        <!-- ACCIONES -->
+                        <!-- ================================================= -->
+
+                        <td class="text-center">
+
+                            <div class="d-inline-flex gap-1">
+
+                                <a asp-action="Edit"
+                                   asp-route-id="@taller.TallerId"
+                                   class="btn btn-sm btn-outline-primary"
+                                   title="Editar taller"
+                                   aria-label="Editar taller">
+
+                                    <i class="bi bi-pencil-square"></i>
+
+                                </a>
+
+                            </div>
+
+                        </td>
+
+                    </tr>
+                }
+            }
+
+        </tbody>
+
+    </table>
+
+</div>
+
+
+    <!-- ===================================================== -->
+    <!-- PAGINACIÓN -->
+    <!-- ===================================================== -->
+
+    @if (Model.TotalPaginas > 1)
+    {
+        <div class="card-footer">
+
+            <div class="d-flex
+                        justify-content-center">
+
+                <nav>
+
+                    <ul class="pagination mb-0">
+
+                        <!-- ANTERIOR -->
+
+                        <li class="page-item
+                            @(Model.PaginaActual <= 1
+                                ? "disabled"
+                                : "")">
+
+                            <a class="page-link"
+                               asp-action="Index"
+                               asp-route-pagina="@(Model.PaginaActual - 1)"
+                               asp-route-busqueda="@busqueda"
+                               asp-route-activo="@activo">
+
+                                <i class="bi bi-chevron-left"></i>
+
+                            </a>
+
+                        </li>
+
+
+                        <!-- PÁGINAS -->
+
+                        @for (
+                            int i = 1;
+                            i <= Model.TotalPaginas;
+                            i++)
+                        {
+                            <li class="page-item
+                                @(i == Model.PaginaActual
+                                    ? "active"
+                                    : "")">
+
+                                <a class="page-link"
+                                   asp-action="Index"
+                                   asp-route-pagina="@i"
+                                   asp-route-busqueda="@busqueda"
+                                   asp-route-activo="@activo">
+
+                                    @i
+
+                                </a>
+
+                            </li>
+                        }
+
+
+                        <!-- SIGUIENTE -->
+
+                        <li class="page-item
+                            @(Model.PaginaActual >= Model.TotalPaginas
+                                ? "disabled"
+                                : "")">
+
+                            <a class="page-link"
+                               asp-action="Index"
+                               asp-route-pagina="@(Model.PaginaActual + 1)"
+                               asp-route-busqueda="@busqueda"
+                               asp-route-activo="@activo">
+
+                                <i class="bi bi-chevron-right"></i>
+
+                            </a>
+
+                        </li>
+
+                    </ul>
+
+                </nav>
+
+            </div>
+
+        </div>
+    }
+
+</div>

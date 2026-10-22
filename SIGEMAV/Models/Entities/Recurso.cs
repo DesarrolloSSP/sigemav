@@ -11,5 +11,5 @@ public partial class Recurso
 
     public bool Activo { get; set; }
 
-    public virtual ICollection<Taller> Tallers { get; set; } = new List<Taller>();
+    public virtual ICollection<TallerConfiguracionPresupuestal> TallerConfiguracionPresupuestals { get; set; } = new List<TallerConfiguracionPresupuestal>();
 }

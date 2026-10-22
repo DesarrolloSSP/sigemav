@@ -12,7 +12,7 @@ using static SIGEMAV.Areas.Maquinaria.DTOs.DTOs;
 namespace SIGEMAV.Areas.Maquinaria.Controllers
 {
     [Area("Maquinaria")]
-    [Authorize(Roles = "AdminMaquinaria,Sysadmin")]
+    [Authorize(Roles = "AdminMaquinaria,Sysadmin,AreaOperativa")]
 
     public class TransferenciaController : Controller
     {
@@ -365,8 +365,8 @@ namespace SIGEMAV.Areas.Maquinaria.Controllers
                             TransferenciaUnidadId =
                                 vm.TransferenciaUnidadId,
 
-                            UsuarioEntregaId =
-                                vm.UsuarioEntregaId,
+                            //UsuarioEntregaId =
+                            //    vm.UsuarioEntregaId,
 
                             ObservacionesEntrega =
                                 vm.ObservacionesEntrega

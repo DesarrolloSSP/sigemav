@@ -16,7 +16,7 @@ namespace SIGEMAV.Areas.Account.Controllers
 
 
     [Area("Account")]
-    
+
     public class AccountController : Controller
     {
         private readonly ISiaService _sicaService;
@@ -103,6 +103,11 @@ namespace SIGEMAV.Areas.Account.Controllers
 
             var claims = new List<Claim>
             {
+
+                new Claim(ClaimTypes.NameIdentifier, usuario.IdUsuario),
+
+                 //new Claim(ClaimTypes.NameIdentifier,usuario.UserId.ToString()),
+
                 new Claim(
                     ClaimTypes.Name,
                     usuario.UserName),
@@ -164,6 +169,8 @@ namespace SIGEMAV.Areas.Account.Controllers
         {
             return View();
         }
+
+
     }
 
 

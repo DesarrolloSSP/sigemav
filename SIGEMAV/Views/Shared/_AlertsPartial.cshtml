@@ -1,6 +1,8 @@
-﻿<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+﻿@using System.Text.Json 
+@using System.Text.Encodings.Web 
+@using System.Net
 
-@if (TempData["Success"] != null)
+@* @if (TempData["Success"] != null)
 {
     <script>
 
@@ -76,3 +78,42 @@
     </script>
 }
 
+ *@
+
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+@if (TempData["Success"] != null) { 
+    <script> 
+        Swal.fire({ icon: 'success', title: 'Operación realizada', 
+        text: @Html.Raw( Json.Serialize( TempData["Success"])), confirmButtonColor: '#800705' }); 
+    </script> 
+}
+        
+@if (TempData["Error"] != null) { 
+        <script> 
+            Swal.fire({ icon: 'error', title: 'Error', text: @Html.Raw( Json.Serialize( TempData["Error"])), 
+            confirmButtonColor: '#800705' }); 
+        </script>
+}
+
+@if (TempData["Warning"] != null) { 
+            <script>
+                Swal.fire({ icon: 'warning', title: 'Atención',
+                text: @Html.Raw( Json.Serialize( TempData["Warning"])), confirmButtonColor: '#800705'
+                });
+
+            </script>
+} 
+
+@if (TempData["Info"] != null) { 
+                <script> 
+                    Swal.fire({ icon: 'info', 
+                    title: 'Información', 
+                    text: @Html.Raw( Json.Serialize( TempData["Info"])), 
+                    confirmButtonColor: '#800705'
+                    });
+                    </script> 
+}

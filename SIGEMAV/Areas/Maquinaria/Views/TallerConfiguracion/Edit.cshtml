@@ -1,0 +1,241 @@
+﻿@model SIGEMAV.Models.ViewModels.Maquinaria.TallerConfiguracionEditViewModel
+
+<div class="card shadow-sm">
+
+    <!-- ===================================================== -->
+    <!-- ENCABEZADO -->
+    <!-- ===================================================== -->
+
+    <div class="card-header bg-light">
+
+        <h4 class="mb-1">
+            <i class="mdi mdi-pencil me-2"></i>
+            Editar configuración del taller
+        </h4>
+
+        <div class="text-muted">
+            Administre la configuración presupuestal utilizada por este taller.
+        </div>
+
+    </div>
+
+
+    <!-- ===================================================== -->
+    <!-- FORMULARIO -->
+    <!-- ===================================================== -->
+
+    <div class="card-body">
+
+        <form asp-action="Edit"
+              method="post">
+
+            @Html.AntiForgeryToken()
+
+
+            <!-- ================================================= -->
+            <!-- VALIDACIONES -->
+            <!-- ================================================= -->
+
+            <div asp-validation-summary="ModelOnly"
+                 class="alert alert-danger">
+            </div>
+
+
+            <!-- ================================================= -->
+            <!-- IDENTIFICADORES -->
+            <!-- ================================================= -->
+
+            <input asp-for="TallerId"
+                   type="hidden" />
+
+            <input asp-for="ConfiguracionPresupuestalOriginalId"
+                   type="hidden" />
+
+
+            <!-- ================================================= -->
+            <!-- TALLER -->
+            <!-- ================================================= -->
+
+            <div class="mb-3">
+
+                <label asp-for="TallerNombre"
+                       class="form-label">
+                </label>
+
+                <input asp-for="TallerNombre"
+                       class="form-control"
+                       readonly />
+
+            </div>
+
+
+            <!-- ================================================= -->
+            <!-- RFC -->
+            <!-- ================================================= -->
+
+            <div class="mb-3">
+
+                <label asp-for="RFC"
+                       class="form-label">
+                </label>
+
+                <input asp-for="RFC"
+                       class="form-control"
+                       readonly />
+
+            </div>
+
+
+            <!-- ================================================= -->
+            <!-- UBICACIÓN -->
+            <!-- ================================================= -->
+
+            <div class="mb-3">
+
+                <label asp-for="Ubicacion"
+                       class="form-label">
+                </label>
+
+                <input asp-for="Ubicacion"
+                       class="form-control"
+                       readonly />
+
+            </div>
+
+
+            <!-- ================================================= -->
+            <!-- CONFIGURACIÓN PRESUPUESTAL -->
+            <!-- ================================================= -->
+
+            <div class="mb-3">
+
+                <label asp-for="TallerConfiguracionPresupuestalId"
+                       class="form-label">
+                </label>
+
+                <select asp-for="TallerConfiguracionPresupuestalId"
+                        asp-items="Model.ConfiguracionesPresupuestales"
+                        class="form-select">
+
+                    <option value="">
+                        Seleccione una configuración...
+                    </option>
+
+                </select>
+
+                <span asp-validation-for="TallerConfiguracionPresupuestalId"
+                      class="text-danger">
+                </span>
+
+                <div class="form-text">
+                    Puede seleccionar otra configuración presupuestal
+                    siempre que la configuración actual no tenga
+                    movimientos presupuestales asociados.
+                </div>
+
+            </div>
+
+
+            <!-- ================================================= -->
+            <!-- CONFIGURACIÓN ACTUAL -->
+            <!-- ================================================= -->
+
+            <div class="alert alert-light border">
+
+                <div class="fw-semibold mb-2">
+
+                    <i class="mdi mdi-information-outline me-1"></i>
+
+                    Configuración actual
+
+                </div>
+
+                <div>
+
+                    <strong>
+                        Contrato:
+                    </strong>
+
+                    @Model.ContratoActual
+
+                </div>
+
+                <div>
+
+                    <strong>
+                        Recurso:
+                    </strong>
+
+                    @Model.RecursoActual
+
+                </div>
+
+            </div>
+
+
+            <!-- ================================================= -->
+            <!-- ESTADO -->
+            <!-- ================================================= -->
+
+            <div class="form-check form-switch mb-3">
+
+                <input asp-for="Activo"
+                       class="form-check-input"
+                       type="checkbox" />
+
+                <label asp-for="Activo"
+                       class="form-check-label">
+                </label>
+
+            </div>
+
+
+            <div class="form-text mb-3">
+
+                Una configuración utilizada en movimientos
+                presupuestales no puede modificarse ni cambiar
+                de estado.
+
+            </div>
+
+
+            <!-- ================================================= -->
+            <!-- ACCIONES -->
+            <!-- ================================================= -->
+
+            <div class="d-flex justify-content-end gap-2">
+
+                <a asp-action="Index"
+                   class="btn btn-outline-secondary">
+
+                    <i class="mdi mdi-close-circle-outline me-1"></i>
+
+                    Cancelar
+
+                </a>
+
+                <button type="submit"
+                        class="btn btn-primary">
+
+                    <i class="mdi mdi-content-save me-1"></i>
+
+                    Guardar cambios
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+@section Scripts
+{
+    @{
+        await Html.RenderPartialAsync(
+            "_ValidationScriptsPartial");
+    }
+}

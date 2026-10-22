@@ -17,6 +17,8 @@ public partial class Area
 
     public virtual ICollection<DispPresupuestal> DispPresupuestals { get; set; } = new List<DispPresupuestal>();
 
+    public virtual ICollection<Firmante> Firmantes { get; set; } = new List<Firmante>();
+
     public virtual ICollection<ProyectoArea> ProyectoAreas { get; set; } = new List<ProyectoArea>();
 
     public virtual ICollection<SolicitudMantenimiento> SolicitudMantenimientos { get; set; } = new List<SolicitudMantenimiento>();

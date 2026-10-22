@@ -1,292 +1,474 @@
 ﻿@model SIGEMAV.Models.ViewModels.Maquinaria.SolicitudMantenimientoDetallePageViewModel
 
-@{
+@* @{
     ViewData["Title"] = "Detalle Solicitud";
 }
+ *@
 
-<div class="card shadow-sm border-0">
 
-    <div class="card-header bg-white">
 
-        <div class="d-flex justify-content-between align-items-center">
 
+ <!-- ENCABEZADO Y ACCIONES PRINCIPALES -->
+<div class="card border-0 shadow-sm rounded-3 mb-4 overflow-hidden">
+    <div class="card-header bg-light border-bottom d-flex justify-content-between align-items-center py-3 px-4 flex-wrap gap-2">
+        <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-file-earmark-text text-primary fs-4"></i>
             <div>
-
-                <h4 class="fw-bold mb-0">
-                    Detalle de la solicitud
-                </h4>
-
-                <small class="text-muted">
-                    Servicios y conceptos solicitados
+                <h5 class="fw-bold mb-0 text-dark">
+                    Solicitud <span class="text-primary">@Model.Folio</span>
+                </h5>
+                <small class="text-muted extra-small">
+                    Detalle administrativo, técnico y financiero del mantenimiento
                 </small>
-
-            </div>
-
-            <div>
-
-                <a asp-action="Index"
-                       class="btn btn-outline-secondary">
-
-                    <i class="bi bi-arrow-left me-1"></i>
-                    Regresar
-
-                </a>
-
             </div>
         </div>
 
+        <div class="d-flex align-items-center gap-2">
+            <!-- BADGE DINÁMICO SEGÚN EL ESTATUS DE LA SOLICITUD -->
+            @{
+                var estatusTexto = Model.Estatus ?? "Desconocido";
+                var estatusUpper = estatusTexto.ToUpper();
+                
+                string badgeClass = "bg-secondary-subtle text-secondary border-secondary-subtle";
+                string iconClass = "bi-info-circle-fill";
 
+                if (estatusUpper.Contains("FINALIZAD") || estatusUpper.Contains("CONCLUID"))
+                {
+                    badgeClass = "bg-success-subtle text-success border-success-subtle";
+                    iconClass = "bi-check-circle-fill";
+                }
+                 else if (estatusUpper.Contains("REVISIÓN"))
+                {
+                    badgeClass = "bg-dark text-white border-indigo-subtle";
+                    iconClass = "bi-cash-coin";
+                }
+                else if (estatusUpper.Contains("AUTORIZAD") || estatusUpper.Contains("Aprobad"))
+                {
+                    badgeClass = "bg-primary-subtle text-primary border-primary-subtle";
+                    iconClass = "bi-patch-check-fill";
+                }
+                else if (estatusUpper.Contains("MANTENIMIENTO") || estatusUpper.Contains("TALLER") || estatusUpper.Contains("PROCESO"))
+                {
+                    badgeClass = "bg-info text-info-emphasis border-info-subtle";
+                    iconClass = "bi-gear-wide-connected";
+                }
+                else if (estatusUpper.Contains("DSP") || estatusUpper.Contains("VALIDAD"))
+                {
+                    badgeClass = "bg-indigo-subtle text-black border-indigo-subtle";
+                    iconClass = "bi-cash-coin";
+                }
+                else if (estatusUpper.Contains("RECHAZAD") || estatusUpper.Contains("CANCELAD"))
+                {
+                    badgeClass = "bg-danger-subtle text-danger border-danger-subtle";
+                    iconClass = "bi-x-circle-fill";
+                }
+                else if (estatusUpper.Contains("REGISTRAD") || estatusUpper.Contains("PENDIENTE"))
+                {
+                    badgeClass = "bg-warning-subtle text-warning-emphasis border-warning-subtle";
+                    iconClass = "bi-hourglass-split";
+                }
+                
+            }
 
+            <span class="badge @badgeClass border fs-6 px-3 py-2 rounded-pill d-flex align-items-center gap-1 fw-bold">
+                <i class="bi @iconClass"></i>
+                <span>@estatusTexto</span>
+            </span>
+
+            <a asp-action="Index" class="btn btn-outline-secondary btn-sm px-3 rounded-2 d-flex align-items-center gap-1">
+                <i class="bi bi-arrow-left"></i>
+                <span>Regresar</span>
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- RESUMEN EJECUTIVO / INDICADORES (KPIS) -->
+<div class="row g-3 mb-4">
+    <!-- UNIDAD VEHICULAR -->
+    <div class="col-xl-3 col-md-6">
+        <div class="p-3 bg-white border shadow-sm rounded-3 h-100 d-flex flex-column justify-content-center">
+            <div class="text-uppercase text-muted extra-small fw-bold mb-1">
+                Unidad Vehicular
+            </div>
+            <div class="fs-6 fw-bold text-dark text-truncate" title="@Model.Vehiculo">
+                <i class="bi bi-car-front text-secondary me-1"></i>@Model.Vehiculo
+            </div>
+            <div class="extra-small text-muted mt-1">
+                Vehículo asignado
+            </div>
+        </div>
     </div>
 
-    <div class="card-body">
-
-        <!-- CABECERA -->
-
-        <div class="row mb-4">
-
-            <div class="col-md-3">
-
-                <div class="border rounded p-3 h-100">
-
-                    <small class="text-muted">
-                        Folio
-                    </small>
-
-                    <div class="fw-semibold">
-                        @Model.Folio
-                    </div>
-
-                </div>
-
+    <!-- TALLER ASIGNADO -->
+    <div class="col-xl-3 col-md-6">
+        <div class="p-3 bg-white border shadow-sm rounded-3 h-100 d-flex flex-column justify-content-center">
+            <div class="text-uppercase text-muted extra-small fw-bold mb-1">
+                Taller Asignado
             </div>
-
-            <div class="col-md-5">
-
-                <div class="border rounded p-3 h-100">
-
-                    <small class="text-muted">
-                        Vehículo 
-                    </small>
-
-                    <div class="fw-semibold">
-                        @Model.Vehiculo
-                    </div>
-
-                </div>
-
+            <div class="fs-6 fw-bold text-dark text-truncate" title="@Model.Taller">
+                <i class="bi bi-tools text-secondary me-1"></i>@Model.Taller
             </div>
-
-            <div class="col-md-2">
-
-                <div class="border rounded p-3 h-100">
-
-                    <small class="text-muted">
-                        Taller
-                    </small>
-
-                    <div class="fw-semibold">
-                        @Model.Taller
-                    </div>
-
-                </div>
-
+            <div class="extra-small text-muted mt-1">
+                Proveedor de servicio
             </div>
-
-            <div class="col-md-2">
-
-                <div class="border rounded p-3 h-100">
-
-                    <small class="text-muted">
-                        Estatus
-                    </small>
-
-                    <div>
-
-                        <span class="badge bg-primary">
-                            @Model.Estatus
-                        </span>
-
-                    </div>
-
-                </div>
-
-            </div>
-
         </div>
+    </div>
 
-        <!-- BOTÓN -->
+    <!-- TOTAL CONCEPTOS / SERVICIOS -->
+    <div class="col-xl-3 col-md-6">
+        <div class="p-3 bg-white border shadow-sm rounded-3 h-100 d-flex flex-column justify-content-center">
+            <div class="text-uppercase text-muted extra-small fw-bold mb-1">
+                Servicios Solicitados
+            </div>
+            <div class="fs-4 fw-bold text-dark mb-0">
+                @Model.Detalles.Count <span class="fs-6 fw-normal text-muted">concepto(s)</span>
+            </div>
+            <div class="extra-small text-muted mt-1">
+                Partidas registradas
+            </div>
+        </div>
+    </div>
 
-     @*    <div class="d-flex justify-content-end mb-3">
+    <!-- IMPORTE TOTAL ESTIMADO -->
+    <div class="col-xl-3 col-md-6">
+        <div class="p-3 bg-white border shadow-sm rounded-3 h-100 d-flex flex-column justify-content-center">
+            <div class="text-uppercase text-muted extra-small fw-bold mb-1">
+                Importe Total Estimado
+            </div>
+            <div class="fs-4 fw-bold text-success mb-0">
+                @Model.TotalCotizacion.ToString("C")
+            </div>
+            <div class="extra-small text-muted mt-1">
+                Monto presupuestado acumulado
+            </div>
+        </div>
+    </div>
+</div>
 
-            <a asp-action="AgregarConcepto"
-                   asp-route-id="@Model.SolicitudMantenimientoId"
-                   class="btn text-light"
-                   style="background-color:#800705">
 
-                <i class="bi bi-plus-circle me-1"></i>
-                Agregar Servicio
 
-            </a>
 
-        </div> *@
 
-        <!-- TABLA -->
+<!-- SECCIÓN DE DOCUMENTOS ADJUNTOS -->
+<div class="row g-3 mb-4">
+<div class="card shadow-sm border-0 mt-4">
+    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+        <h5 class="fw-bold mb-0 text-dark">
+            <i class="fas fa-file-pdf me-2 text-danger"></i>Documentos adjuntos de la solicitud
+        </h5>
+        <span class="badge bg-secondary">@Model.Documentos.Count() adjunto(s)</span>
+    </div>
+    <div class="card-body p-0">
+        @if (Model.Documentos != null && Model.Documentos.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr class="small text-muted text-uppercase">
+                            <th style="width: 25%;">Tipo de Documento</th>
+                            <th style="width: 35%;">Nombre del Archivo</th>
+                            <th style="width: 20%;">Fecha de Carga</th>
+                            <th style="width: 20%;" class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var doc in Model.Documentos)
+                        {
+                            <tr>
+                                <td>
+                                    <span class="badge bg-info text-dark font-monospace fw-normal">
+                                        <i class="fas fa-paperclip me-1"></i>@doc.TipoDocumento
+                                    </span>
+                                </td>
+                                <td class="fw-bold text-dark small">
+                                    @doc.NombreArchivo
+                                </td>
+                                <td class="small text-muted">
+                                    <i class="far fa-calendar-alt me-1"></i>@doc.FechaCarga.ToString("dd/MM/yyyy hh:mm tt")
+                                </td>
+                                <td class="text-center">
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        
+                                        
+                                        
+                                        <!-- Ver / Previsualizar -->
+                                         <a asp-area="Maquinaria" 
+                                           asp-controller="SolicitudMantenimiento" 
+                                           asp-action="VerDocumento" 
+                                           asp-route-id="@doc.SolicitudMantenimientoDocumentoId" 
+                                           target="_blank" 
+                                           class="btn btn-outline-primary" 
+                                           title="Ver / Previsualizar Documento">
+                                            <i class="fas fa-eye me-1"></i> Ver
+                                        </a>
+                                          <!-- Botón Descargar -->
+                                        <a asp-area="Maquinaria" 
+                                           asp-controller="SolicitudMantenimiento" 
+                                           asp-action="DescargarDocumento" 
+                                           asp-route-id="@doc.SolicitudMantenimientoDocumentoId" 
+                                           class="btn btn-outline-success" 
+                                           title="Descargar Archivo">
+                                            <i class="fas fa-download me-1"></i> Descargar
+                                        </a>
+                                     @*    <a href="@Url.Content(doc.RutaArchivo)" target="_blank" 
+                                           class="btn btn-outline-primary" title="Ver / Previsualizar Documento">
+                                            <i class="fas fa-eye me-1"></i> Ver
+                                        </a>
+                                        <!-- Descargar -->
+                                        <a href="@Url.Content(doc.RutaArchivo)" download="@doc.NombreArchivo" 
+                                           class="btn btn-outline-success" title="Descargar Archivo">
+                                            <i class="fas fa-download me-1"></i> Descargar
+                                        </a> *@
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-4 text-muted">
+                <i class="fas fa-folder-open fa-2x mb-2 d-block"></i>
+                <span>No hay documentos adjuntos registrados para esta solicitud de mantenimiento.</span>
+            </div>
+        }
+    </div>
+</div>
+</div>
+
+
+
+
+
+
+<!-- DETALLE DE CONCEPTOS Y SERVICIOS SOLICITADOS -->
+<div class="card border-0 shadow-sm rounded-3 mb-4 overflow-hidden">
+    <div class="card-header bg-light border-bottom d-flex justify-content-between align-items-center py-3 px-4">
+        <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-wrench-adjustable text-primary fs-5"></i>
+            <h6 class="fw-bold mb-0 text-dark">
+                Conceptos y servicios de mantenimiento
+            </h6>
+        </div>
+        <span class="badge bg-primary-subtle text-primary border border-primary-subtle fs-6 px-3 py-1 rounded-pill">
+            @Model.Detalles.Count concepto(s)
+        </span>
+    </div>
+
+    <div class="card-body p-0">
         @if (!Model.Detalles.Any())
         {
-            <div class="alert alert-info">
-
-                <i class="bi bi-info-circle me-2"></i>
-
-                No existen conceptos registrados.
-
+            <div class="text-center py-5 px-4">
+                <i class="bi bi-inbox text-muted display-6 d-block mb-3"></i>
+                <h6 class="fw-semibold text-secondary">No existen conceptos ni servicios registrados en esta solicitud.</h6>
+                <p class="small text-muted mb-0">Verifique el expediente o consulte con el administrador.</p>
             </div>
         }
         else
         {
             <div class="table-responsive">
-
-                <table class="table table-hover align-middle">
-
-                    <thead class="table-light">
-
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light border-bottom text-uppercase extra-small text-muted fw-bold">
                         <tr>
-
-                            <th>
-                                Servicio
-                            </th>
-
-                            <th class="text-center">
-                                Cantidad
-                            </th>
-
-                            <th class="text-end">
-                                Mano de Obra
-                            </th>
-
-                            <th class="text-end">
-                                Refacciones
-                            </th>
-
-                            <th class="text-end">
-                                Total
-                            </th>
-
-                            <th>
-                                Observaciones
-                            </th>
-
+                            <th class="ps-4 py-3" style="min-width: 250px;">Servicio / Concepto</th>
+                            <th class="text-center py-3" style="width: 100px;">Cant.</th>
+                            <th class="text-end py-3" style="width: 160px;">Mano de Obra</th>
+                            <th class="text-end py-3" style="width: 160px;">Refacciones</th>
+                            <th class="text-end py-3" style="width: 170px;">Total</th>
+                            <th class="pe-4 py-3" style="min-width: 200px;">Observaciones</th>
                         </tr>
-
                     </thead>
-
                     <tbody>
-
                         @foreach (var item in Model.Detalles)
                         {
                             <tr>
-
-                                <td class="fw-semibold">
+                                <td class="ps-4 py-3 fw-semibold text-dark">
                                     @item.ConceptoServicio
                                 </td>
-
-                                <td class="text-center">
-                                    @item.Cantidad
+                                <td class="text-center py-3">
+                                    <span class="badge bg-light text-dark border px-2 py-1 fs-6 fw-normal">
+                                        @item.Cantidad
+                                    </span>
                                 </td>
-
-                                <td class="text-end">
-
+                                <td class="text-end py-3 text-secondary">
                                     @item.CostoEstimadoManoObra.ToString("C")
-
                                 </td>
-
-                                <td class="text-end">
-
+                                <td class="text-end py-3 text-secondary">
                                     @item.CostoEstimadoRefacciones.ToString("C")
-
                                 </td>
-
-                                <td class="text-end fw-bold">
-
-                                    @item.Total.ToString("C")
-
+                                <td class="text-end py-3 fw-bold text-dark">
+                                    <span class="text-success">@item.Total.ToString("C")</span>
                                 </td>
-
-                                <td>
-                                    @item.Observaciones
+                                <td class="pe-4 py-3 text-muted small">
+                                    @(string.IsNullOrWhiteSpace(item.Observaciones) ? "-" : item.Observaciones)
                                 </td>
-
                             </tr>
                         }
-
                     </tbody>
-
-                    <tfoot class="table-light">
-
+                    <tfoot class="bg-light border-top fw-bold text-dark">
                         <tr>
-
-                            <th colspan="2"
-                                class="text-end">
-
-                                Totales:
-
-                            </th>
-
-                            <th class="text-end">
-
-                                @Model.TotalManoObra.ToString("C")
-
-                            </th>
-
-                            <th class="text-end">
-
-                                @Model.TotalRefacciones.ToString("C")
-
-                            </th>
-
-                            <th class="text-end fw-bold">
-
+                            <td colspan="4" class="text-end py-3 ps-4 text-uppercase extra-small text-muted">
+                                Total General Cotizado
+                            </td>
+                            <td class="text-end py-3 fs-6 text-success fw-bold">
                                 @Model.TotalCotizacion.ToString("C")
-
-                            </th>
-
-                            <th></th>
-
+                            </td>
+                            <td></td>
                         </tr>
-
                     </tfoot>
-
                 </table>
-
             </div>
         }
-
     </div>
-
 </div>
-@if (Model.Estatus?.ToUpper().Contains("FINALIZADA") == true)
-{
-    <div class="alert alert-success border-start border-5 border-success shadow-sm mb-4">
 
-        <div class="d-flex align-items-center">
-
-            <i class="bi bi-check-circle-fill fs-1 me-3"></i>
-
-            <div>
-
-                <h4 class="mb-1 fw-bold">
-                    Mantenimiento Finalizado
-                </h4>
-
-                <p class="mb-0">
-                    Esta solicitud ya concluyó su proceso de mantenimiento.
-                    No existen acciones pendientes y la información se muestra
-                    únicamente para consulta.
-                </p>
-
+<!-- RESUMEN FINANCIERO DESGLOSADO -->
+<div class="card border-0 shadow-sm rounded-3 mb-4 overflow-hidden">
+    <div class="card-header bg-light border-bottom py-3 px-4 d-flex align-items-center gap-2">
+        <i class="bi bi-pie-chart text-primary fs-6"></i>
+        <h6 class="fw-bold mb-0 text-dark">
+            Resumen financiero presupuestado
+        </h6>
+    </div>
+    <div class="card-body p-4">
+        <div class="row g-3 text-center">
+            <!-- MANO DE OBRA -->
+            <div class="col-md-6 border-end-md">
+                <div class="p-3 rounded-3 bg-light border">
+                    <div class="text-uppercase text-muted extra-small fw-bold mb-1">
+                        Total Mano de Obra
+                    </div>
+                    <h3 class="fw-bold text-primary mb-0">
+                        @Model.TotalManoObra.ToString("C")
+                    </h3>
+                </div>
             </div>
 
+            <!-- REFACCIONES -->
+            <div class="col-md-6">
+                <div class="p-3 rounded-3 bg-light border">
+                    <div class="text-uppercase text-muted extra-small fw-bold mb-1">
+                        Total Refacciones
+                    </div>
+                    <h3 class="fw-bold text-warning-emphasis mb-0">
+                        @Model.TotalRefacciones.ToString("C")
+                    </h3>
+                </div>
+            </div>
         </div>
+    </div>
+</div>
 
+<!-- BANNERS INFORMATIVOS SEGÚN EL ESTATUS GLOBAL DE LA SOLICITUD -->
+@if (estatusUpper.Contains("FINALIZAD") || estatusUpper.Contains("CONCLUID"))
+{
+    <div class="alert alert-success border-0 shadow-sm rounded-3 p-4 mb-4">
+        <div class="d-flex align-items-start gap-3">
+            <div class="p-2 bg-success bg-opacity-20 text-success rounded-3">
+                <i class="bi bi-cpu-fill fs-5 text-white"></i>
+            </div>
+            <div>
+                <h6 class="fw-bold mb-1 text-dark">
+                    Mantenimiento concluido y finalizado
+                </h6>
+                <p class="mb-0 text-muted small">
+                    Esta solicitud ha concluido formalmente su ciclo de atención en taller. No existen trámites ni acciones operativas pendientes. La información se mantiene congelada en expediente para auditoría e historial técnico.
+                </p>
+            </div>
+        </div>
+    </div>
+}
+else if (estatusUpper.Contains("RECHAZAD") || estatusUpper.Contains("CANCELAD"))
+{
+    <div class="alert alert-danger border-0 shadow-sm rounded-3 p-4 mb-4">
+        <div class="d-flex align-items-start gap-3">
+            <div class="p-2 bg-danger bg-opacity-20 text-danger rounded-3">
+                <i class="bi bi-cpu-fill fs-5 text-white"></i>
+            </div>
+            <div>
+                <h6 class="fw-bold mb-1 text-dark">
+                    Solicitud cancelada / Rechazada
+                </h6>
+                <p class="mb-0 text-muted small">
+                    Esta solicitud fue declinada durante el flujo de revisión técnica o presupuestal. Los fondos comprometidos fueron liberados automáticamente al presupuesto disponible.
+                </p>
+            </div>
+        </div>
+    </div>
+}
+else if (estatusUpper.Contains("MANTENIMIENTO") || estatusUpper.Contains("TALLER") || estatusUpper.Contains("PROCESO"))
+{
+    <div class="alert alert-info border-0 shadow-sm rounded-3 p-4 mb-4">
+        <div class="d-flex align-items-start gap-3">
+            <div class="p-2 bg-info bg-opacity-20 text-info rounded-3">
+                <i class="bi bi-gear-wide-connected fs-3"></i>
+            </div>
+            <div>
+                <h6 class="fw-bold mb-1 text-dark">
+                    Unidad Actualmente en Mantenimiento
+                </h6>
+                <p class="mb-0 text-muted small">
+                    La unidad se encuentra física y operativamente dentro de las instalaciones del taller asignado ejecutando los trabajos autorizados.
+                </p>
+            </div>
+        </div>
+    </div>
+}
+else if (estatusUpper.Contains("AUTORIZAD"))
+{
+    <div class="alert alert-primary border-0 shadow-sm rounded-3 p-4 mb-4">
+        <div class="d-flex align-items-start gap-3">
+            <div class="p-2 bg-primary bg-opacity-20 text-primary rounded-3">
+                <i class="bi bi-cpu-fill fs-5 text-white"></i>
+            </div>
+            <div>
+                <h6 class="fw-bold mb-1 text-dark">
+                    Revisión técnica autorizada
+                </h6>
+                <p class="mb-0 text-muted small">
+                    La solicitud cuenta con dictamen favorable y validación presupuestal. Se encuentra lista para el registro de ingreso de la unidad al taller.
+                </p>
+            </div>
+        </div>
+    </div>
+}
+else if (estatusUpper.Contains("PENDIENTE DSP"))
+{
+    <div class="alert alert-secondary border-0 shadow-sm rounded-3 p-4 mb-4">
+        <div class="d-flex align-items-start gap-3">
+            <div class="p-2 bg-secondary bg-opacity-20 text-secondary rounded-3">
+                <i class="bi bi-cpu-fill fs-5 text-white"></i>
+            </div>
+            <div>
+                <h6 class="fw-bold mb-1 text-dark">
+                    Validación presupuestal pendiente
+                </h6>
+                <p class="mb-0 text-muted small">
+                    La solicitud se encuentra a la espera de validación presupuestal.
+                </p>
+            </div>
+        </div>
+    </div>
+}
+
+else if (estatusUpper.Contains("REVISIÓN"))
+{
+    <div class="alert alert-dark border-0 shadow-sm rounded-3 p-4 mb-4">
+        <div class="d-flex align-items-start gap-3">
+            <div class="p-2 bg-secondary bg-opacity-20 text-secondary rounded-3">
+                <i class="bi bi-cpu-fill fs-5 text-white"></i>
+            </div>
+            <div>
+                <h6 class="fw-bold mb-1 text-dark">
+                    Pendiente de revisión técnica
+                </h6>
+                <p class="mb-0 text-muted small">
+                    La solicitud espera revisión histórica y validación técnica.
+                </p>
+            </div>
+        </div>
     </div>
 }

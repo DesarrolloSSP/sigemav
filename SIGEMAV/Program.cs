@@ -9,6 +9,7 @@ using SIGEMAV.Services.Implementations.SIA;
 using SIGEMAV.Services.Interfaces.Financieros;
 using SIGEMAV.Services.Interfaces.Maquinaria;
 using SIGEMAV.Services.Interfaces.SIA;
+using static SIGEMAV.Services.Interfaces.Maquinaria.IMaquinariaService;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -49,7 +50,6 @@ builder.Services.AddScoped<IProyectoAreaService, ProyectoAreaService>();
 builder.Services.AddScoped<IOdpService, OdpService>();
 builder.Services.AddScoped<IDspService, DspService>();
 builder.Services.AddScoped<IOrdenDePago, OrdenDePagoService>();
-
 builder.Services.AddHttpClient<ISiaService, SiaService>();
 
 #endregion

@@ -9,5 +9,6 @@
         public string NombreArchivo { get; set; }
 
         public DateTime FechaCarga { get; set; }
+        public string RutaArchivo { get; set; } = null!;
     }
 }

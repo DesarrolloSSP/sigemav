@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc.Rendering;
+using System.ComponentModel.DataAnnotations;
 
 namespace SIGEMAV.Models.ViewModels.Maquinaria
 {
@@ -14,7 +15,7 @@ namespace SIGEMAV.Models.ViewModels.Maquinaria
         public int TipoMantenimientoId { get; set; }
 
 
-        public DateTime FechaSalida { get; set; }
+        public DateTime? FechaSalida { get; set; }
 
         public string MotivoMantenimiento { get; set; }
 
@@ -28,24 +29,29 @@ namespace SIGEMAV.Models.ViewModels.Maquinaria
 
         public string UnidadVehicularTexto { get; set; } = string.Empty;
 
+        public string Marca { get; set; } = string.Empty;
+
+        public string Modelo { get; set; } = string.Empty;
+
+        public string NumeroEconomico { get; set; } = string.Empty;
+        public string NumeroSerie { get; set; } = string.Empty;
+        public string PlacaActual { get; set; } = string.Empty;
+
         public string TallerTexto { get; set; } = string.Empty;
 
         public string TipoMantenimientoTexto { get; set; } = string.Empty;
 
         public int KilometrajeEntrada { get; set; }
 
-        public int? KilometrajeSalida { get; set; }
-
         public DateTime FechaIngreso { get; set; }
 
-        public DateTime? FechaInicioTrabajo { get; set; }
-
-        public DateTime? FechaFinTrabajo { get; set; }
+        
 
         public string? Diagnostico { get; set; }
 
         public string? TrabajoRealizado { get; set; }
 
+        [Required(ErrorMessage = "Los comentarios finales / observaciones son obligatorios.")]
         public string? Observaciones { get; set; }
 
         public decimal? CostoRealTotal { get; set; }
@@ -65,6 +71,17 @@ namespace SIGEMAV.Models.ViewModels.Maquinaria
             get;
             set;
         } = new();
+
+
+        [Required (ErrorMessage = "La fecha de inicio de trabajo es obligatoria.")]
+        public DateTime? FechaInicioTrabajo { get; set; }
+
+        [Required(ErrorMessage = "La fecha de fin de trabajo es obligatoria.")]
+        public DateTime? FechaFinTrabajo { get; set; }
+
+        [Required(ErrorMessage = "El kilometraje de salida es obligatorio.")]
+        public int? KilometrajeSalida { get; set; }
+
 
 
     }

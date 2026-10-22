@@ -1,0 +1,550 @@
+﻿@* @using SIGEMAV.Models.ViewModels.Maquinaria
+@model FacturaMantenimientoViewModel
+
+<form asp-action="Create" method="post" enctype="multipart/form-data">
+
+	<input type="hidden" asp-for="MantenimientoId" />
+	<input type="hidden" asp-for="TallerId" />
+
+
+
+	<div class="card shadow-sm border-0">
+
+		<div class="card-header bg-white">
+
+			<div class="d-flex justify-content-between align-items-center">
+
+				<div>
+
+					<h4 class="fw-bold mb-0">
+						Nueva factura
+					</h4>
+
+					<small class="text-muted">
+						Gestión administrativa de facturas de mantenimientos de unidades
+					</small>
+
+				</div>
+
+				<div>
+
+					<a asp-action="Index"
+					   class="btn btn-outline-secondary">
+
+						<i class="bi bi-arrow-left me-1"></i>
+						Regresar
+
+					</a>
+
+				</div>
+
+			</div>
+
+		</div>
+	</div>
+
+
+	<div class="card">
+
+	
+<div class="card-body">
+
+			<div class="row">
+
+				<div class="col-md-4">
+					<label>UUID</label>
+					<input asp-for="UUID" class="form-control" required />
+				</div>
+
+				<div class="col-md-4">
+					<label>Serie</label>
+					<input asp-for="Serie" class="form-control" />
+				</div>
+
+				<div class="col-md-4">
+					<label>Folio</label>
+					<input asp-for="Folio" class="form-control" />
+				</div>
+
+			</div>
+
+			<div class="row mt-2">
+
+				<div class="col-md-4">
+					<label>Fecha Factura</label>
+					<input asp-for="FechaFactura" type="date" class="form-control" />
+				</div>
+
+				<div class="col-md-4">
+					<label>RFC Emisor</label>
+					<input name="RFCEmisor" class="form-control" />
+				</div>
+
+				<div class="col-md-4">
+					<label>RFC Receptor</label>
+					<input asp-for="RFCReceptor" class="form-control" />
+				</div>
+
+			</div>
+
+			<hr />
+
+			<div class="row">
+
+				<div class="col-md-3">
+					<label>Subtotal</label>
+					<input asp-for="Subtotal" class="form-control" readonly />
+				</div>
+
+				<div class="col-md-3">
+					<label>IVA</label>
+					<input asp-for="IVA" class="form-control" readonly />
+				</div>
+
+				<div class="col-md-3">
+					<label>Retención</label>
+					<input asp-for="Retencion" class="form-control" />
+				</div>
+
+				<div class="col-md-3">
+					<label>Total</label>
+					<input asp-for="Total" class="form-control fw-bold" readonly />
+				</div>
+
+			</div>
+
+			<hr />
+
+			<div class="row">
+
+				<div class="col-md-6">
+					<label>XML CFDI</label>
+					<input type="file" name="xml" class="form-control" accept=".xml" required />
+				</div>
+
+				<div class="col-md-6">
+					<label>PDF Factura</label>
+					<input type="file" name="pdf" class="form-control" accept=".pdf" required />
+				</div>
+
+			</div>
+
+		</div>
+
+		<div class="card-footer text-end">
+			<button class="btn btn-success">
+				Registrar Factura
+			</button>
+		</div>
+	</div>
+
+</form>
+
+
+ *@
+
+
+
+@using SIGEMAV.Models.ViewModels.Maquinaria
+@model FacturaMantenimientoViewModel
+
+<form asp-action="Create"
+	  method="post"
+	  enctype="multipart/form-data"
+	  id="formFactura">
+
+	<input type="hidden" asp-for="MantenimientoId" />
+	<input type="hidden" asp-for="TallerId" />
+
+	<div class="container-fluid">
+
+        
+		<!-- HEADER -->
+
+		<div class="card border-0 shadow-sm mb-4">
+
+			<div class="card-body">
+
+				<div class="d-flex justify-content-between align-items-center">
+
+					<div>
+
+						<div class="text-uppercase text-muted small">
+							Facturación de mantenimiento
+						</div>
+
+						<h2 class="fw-bold mb-1">
+
+							Registrar factura
+
+						</h2>
+
+						<div class="text-muted">
+
+							Validación CFDI + registro presupuestal devengado
+
+						</div>
+
+					</div>
+
+					<div>
+
+						<a asp-action="Index"
+						   class="btn btn-outline-dark">
+
+							<i class="bi bi-arrow-left me-2"></i>
+
+							Regresar
+
+						</a>
+
+					</div>
+
+				</div>
+
+			</div>
+
+		</div>
+
+
+		<div class="row">
+
+			<!-- PANEL IZQUIERDO -->
+
+			<div class="col-lg-8">
+
+				<!-- DOCUMENTOS -->
+
+				<div class="card shadow-sm border-0 mb-4">
+
+					<div class="card-header bg-dark text-white">
+
+						<h5 class="mb-0">
+
+							<i class="bi bi-file-earmark-arrow-up me-2"></i>
+
+							Carga documental
+
+						</h5>
+
+					</div>
+
+					<div class="card-body">
+
+						<div class="alert alert-light border">
+
+							El sistema obtendrá automáticamente:
+
+							<ul class="mb-0 mt-2">
+
+								<li>UUID</li>
+
+								<li>Serie / Folio</li>
+
+								<li>RFC Emisor / Receptor</li>
+
+								<li>Método y forma de pago</li>
+
+								<li>Totales CFDI</li>
+
+								<li>Validación contra mantenimiento</li>
+
+							</ul>
+
+						</div>
+
+						<div class="row">
+
+							<div class="col-md-6">
+
+								<label class="fw-semibold">
+
+									XML CFDI
+
+								</label>
+
+								<input type="file"
+									   name="xmlFactura"
+									   class="form-control"
+									   accept=".xml"
+									   required />
+
+								<small class="text-muted">
+
+									Archivo fiscal oficial
+
+								</small>
+
+							</div>
+
+							<div class="col-md-6">
+
+								<label class="fw-semibold">
+
+									PDF Factura
+
+								</label>
+
+								<input type="file"
+									   name="pdfFactura"
+									   class="form-control"
+									   accept=".pdf"
+									   required />
+
+								<small class="text-muted">
+
+									Evidencia documental
+
+								</small>
+
+							</div>
+
+						</div>
+
+					</div>
+
+				</div>
+
+
+				<!-- RECEPCIÓN -->
+
+				<div class="card shadow-sm border-0">
+
+					<div class="card-header">
+
+						<h5 class="mb-0">
+
+							<i class="bi bi-calendar-check me-2"></i>
+
+							Recepción administrativa
+
+						</h5>
+
+					</div>
+
+					<div class="card-body">
+
+						<div class="row">
+
+							<div class="col-md-6">
+
+								<label class="fw-semibold">
+
+									Fecha recepción
+
+								</label>
+
+								<input asp-for="FechaRecepcion"
+									   type="datetime-local"
+									   class="form-control" />
+
+							</div>
+
+							<div class="col-md-6">
+
+								<label class="fw-semibold">
+
+									Taller
+
+								</label>
+
+								<input value="@Model.RazonSocial"
+									   readonly
+									   class="form-control bg-light" />
+
+							</div>
+
+						</div>
+
+						<div class="mt-4">
+
+							<label class="fw-semibold">
+
+								Observaciones
+
+							</label>
+
+							<textarea asp-for="Observaciones"
+									  rows="4"
+									  class="form-control"
+									  placeholder="Comentarios administrativos, incidencias o validaciones adicionales">
+							 </textarea>
+
+						</div>
+
+					</div>
+
+				</div>
+
+			</div>
+
+
+			<!-- PANEL DERECHO -->
+
+			<div class="col-lg-4">
+
+				<div class="sticky-top"
+					 style="top:20px;">
+
+					<div class="card border shadow-sm">
+
+						<div class="card-header bg-success text-white">
+
+							<h5 class="mb-0">
+
+								<i class="bi bi-receipt me-2"></i>
+
+								Resumen esperado
+
+							</h5>
+
+						</div>
+
+						<div class="card-body">
+
+							<div class="mb-3">
+
+								<small class="text-muted">
+
+									Subtotal mantenimiento
+
+								</small>
+
+								<div class="fs-5 fw-bold">
+
+									@Model.Subtotal.ToString("C")
+
+								</div>
+
+							</div>
+
+							<div class="mb-3">
+
+								<small class="text-muted">
+
+									IVA esperado
+
+								</small>
+
+								<div class="fs-5">
+
+									@Model.IVA.ToString("C")
+
+								</div>
+
+							</div>
+
+							<hr />
+
+							<div>
+
+								<small class="text-muted">
+
+									Total estimado
+
+								</small>
+
+								<div class="display-6 fw-bold text-success">
+
+									@Model.Total.ToString("C")
+
+								</div>
+
+							</div>
+
+						</div>
+
+						<div class="card-footer">
+
+							<button type="submit"
+									class="btn btn-success w-100">
+
+								<i class="bi bi-check-circle me-2"></i>
+
+								Registrar factura
+
+							</button>
+
+						</div>
+
+					</div>
+
+				</div>
+
+			</div>
+
+		</div>
+
+        
+	</div>
+
+</form>
+
+
+
+@section Scripts{
+
+	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+	<script>
+
+		$("#formFactura").on("submit", function () {
+
+		Swal.fire({
+
+		title: 'Validando CFDI',
+
+		html:
+		'Se validará XML, presupuesto y coincidencia con mantenimiento.',
+
+		allowOutsideClick: false,
+
+		showConfirmButton: false,
+
+		didOpen: () => {
+
+		Swal.showLoading();
+
+		}
+
+		});
+
+		});
+
+	</script>
+
+
+
+
+
+	
+
+	@if (TempData["Success"] != null)
+	{
+		<script>
+
+			Swal.fire({
+
+			icon: 'success',
+
+			title: 'Operación realizada',
+
+			text: '@TempData["Success"]',
+
+			confirmButtonColor: '#800705'
+
+			});
+
+		</script>
+
+}
+
+
+
+}
+
+
+
+
+
+

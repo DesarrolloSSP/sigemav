@@ -9,11 +9,7 @@ public partial class Banco
 
     public string Nombre { get; set; } = null!;
 
-    public int FianzaId { get; set; }
-
     public bool Activo { get; set; }
-
-    public virtual Fianza Fianza { get; set; } = null!;
 
     public virtual ICollection<Taller> Tallers { get; set; } = new List<Taller>();
 }

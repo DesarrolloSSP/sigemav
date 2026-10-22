@@ -33,6 +33,8 @@ public partial class ConceptoServicioCosto
 
     public int CilindroId { get; set; }
 
+    public bool? Migrado { get; set; }
+
     public virtual Anio Anio { get; set; } = null!;
 
     public virtual Cilindro Cilindro { get; set; } = null!;

@@ -1,0 +1,449 @@
+﻿@model SIGEMAV.Models.ViewModels.Maquinaria.TallerControlPresupuestalCreateViewModel
+
+@* @{
+    ViewData["Title"] = "Nuevo control presupuestal";
+} *@
+
+<form asp-action="CrearControlPresupuestal"
+      method="post">
+
+    @Html.AntiForgeryToken()
+
+    <div class="card shadow-sm">
+
+        <!-- ===================================================== -->
+        <!-- HEADER -->
+        <!-- ===================================================== -->
+
+        <div class="card-header bg-light">
+
+            <div class="d-flex
+                        flex-column
+                        flex-md-row
+                        justify-content-between
+                        align-items-md-center
+                        gap-3">
+
+                <div>
+
+                    <div class="d-flex align-items-center gap-2">
+
+                        <div class="text-primary">
+
+                            <i class="bi bi-wallet2 fs-4"></i>
+
+                        </div>
+
+                        <div>
+
+                            <h4 class="mb-0">
+                                Nuevo control presupuestal
+                            </h4>
+
+                            <small class="text-muted">
+                                Registro del presupuesto anual de una configuración contractual
+                            </small>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ===================================================== -->
+        <!-- BODY -->
+        <!-- ===================================================== -->
+
+        <div class="card-body">
+
+            <!-- ================================================= -->
+            <!-- VALIDACIÓN -->
+            <!-- ================================================= -->
+
+            <div asp-validation-summary="ModelOnly"
+                 class="alert alert-danger"
+                 role="alert">
+            </div>
+
+
+            <!-- ================================================= -->
+            <!-- INFORMACIÓN -->
+            <!-- ================================================= -->
+
+            <div class="alert alert-info mb-4">
+
+                <div class="d-flex gap-2">
+
+                    <i class="bi bi-info-circle fs-5"></i>
+
+                    <div>
+
+                        <strong>
+                            Importante
+                        </strong>
+
+                        <div class="small mt-1">
+
+                            El control presupuestal corresponde a una
+                            configuración contractual y a un ejercicio específico.
+
+                            El presupuesto ejercido, comprometido y disponible
+                            serán administrados automáticamente por el sistema.
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- ================================================= -->
+            <!-- CONFIGURACIÓN PRESUPUESTAL -->
+            <!-- ================================================= -->
+
+            <div class="card border mb-4">
+
+                <div class="card-header bg-light">
+
+                    <strong>
+
+                        <i class="bi bi-diagram-3 me-1"></i>
+
+                        Configuración presupuestal
+
+                    </strong>
+
+                </div>
+
+
+                <div class="card-body">
+
+                    <div class="row g-3">
+
+                        <!-- ===================================== -->
+                        <!-- CONFIGURACIÓN -->
+                        <!-- ===================================== -->
+
+                        <div class="col-md-8">
+
+                            <label asp-for="TallerConfiguracionPresupuestalId"
+                                   class="form-label">
+
+                                Configuración presupuestal
+
+                            </label>
+
+                            <select asp-for="TallerConfiguracionPresupuestalId"
+                                    asp-items="Model.ConfiguracionesPresupuestales"
+                                    class="form-select">
+
+                                <option value="">
+                                    Seleccione una configuración
+                                </option>
+
+                            </select>
+
+                            <span asp-validation-for="TallerConfiguracionPresupuestalId"
+                                  class="text-danger">
+                            </span>
+
+                            <div class="form-text">
+
+                                Seleccione el contrato y recurso al que
+                                pertenecerá el control anual.
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- ===================================== -->
+                        <!-- EJERCICIO -->
+                        <!-- ===================================== -->
+
+                        <div class="col-md-4">
+
+                            <label asp-for="Ejercicio"
+                                   class="form-label">
+
+                                Ejercicio
+
+                            </label>
+
+                            <input asp-for="Ejercicio"
+                                   type="number"
+                                   class="form-control"
+                                   min="2000"
+                                   max="2100" />
+
+                            <span asp-validation-for="Ejercicio"
+                                  class="text-danger">
+                            </span>
+
+                            <div class="form-text">
+
+                                Debe coincidir con el año de las fechas de vigencia.
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- ================================================= -->
+            <!-- PRESUPUESTO -->
+            <!-- ================================================= -->
+
+            <div class="card border mb-4">
+
+                <div class="card-header bg-light">
+
+                    <strong>
+
+                        <i class="bi bi-cash-stack me-1"></i>
+
+                        Presupuesto anual
+
+                    </strong>
+
+                </div>
+
+
+                <div class="card-body">
+
+                    <div class="row g-3">
+
+                        <!-- ===================================== -->
+                        <!-- PRESUPUESTO ASIGNADO -->
+                        <!-- ===================================== -->
+
+                        <div class="col-md-6">
+
+                            <label asp-for="PresupuestoAsignado"
+                                   class="form-label">
+
+                                Presupuesto asignado
+
+                            </label>
+
+                            <div class="input-group">
+
+                                <span class="input-group-text">
+                                    $
+                                </span>
+
+                                <input asp-for="PresupuestoAsignado"
+                                       class="form-control"
+                                       type="number"
+                                       min="0.01"
+                                       step="0.01" />
+
+                            </div>
+
+                            <span asp-validation-for="PresupuestoAsignado"
+                                  class="text-danger">
+                            </span>
+
+                            <div class="form-text">
+
+                                El importe no puede superar el monto máximo
+                                contractual de la configuración.
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- ===================================== -->
+                        <!-- ESTADO -->
+                        <!-- ===================================== -->
+
+                        <div class="col-md-6">
+
+                            <label class="form-label">
+                                Estado inicial
+                            </label>
+
+                            <div class="form-control bg-light">
+
+                                <span class="badge bg-success">
+
+                                    <i class="bi bi-check-circle me-1"></i>
+
+                                    Activo
+
+                                </span>
+
+                            </div>
+
+                            <div class="form-text">
+
+                                Todo control presupuestal nuevo se crea activo.
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- ================================================= -->
+            <!-- VIGENCIA -->
+            <!-- ================================================= -->
+
+            <div class="card border">
+
+                <div class="card-header bg-light">
+
+                    <strong>
+
+                        <i class="bi bi-calendar-range me-1"></i>
+
+                        Vigencia presupuestal
+
+                    </strong>
+
+                </div>
+
+
+                <div class="card-body">
+
+                    <div class="row g-3">
+
+                        <!-- ===================================== -->
+                        <!-- FECHA INICIO -->
+                        <!-- ===================================== -->
+
+                        <div class="col-md-6">
+
+                            <label asp-for="FechaInicio"
+                                   class="form-label">
+
+                                Fecha de inicio
+
+                            </label>
+
+                            <input asp-for="FechaInicio"
+                                   type="date"
+                                   class="form-control" />
+
+                            <span asp-validation-for="FechaInicio"
+                                  class="text-danger">
+                            </span>
+
+                        </div>
+
+
+                        <!-- ===================================== -->
+                        <!-- FECHA FIN -->
+                        <!-- ===================================== -->
+
+                        <div class="col-md-6">
+
+                            <label asp-for="FechaFin"
+                                   class="form-label">
+
+                                Fecha de fin
+
+                            </label>
+
+                            <input asp-for="FechaFin"
+                                   type="date"
+                                   class="form-control" />
+
+                            <span asp-validation-for="FechaFin"
+                                  class="text-danger">
+                            </span>
+
+                        </div>
+
+
+                        <!-- ===================================== -->
+                        <!-- REGLA -->
+                        <!-- ===================================== -->
+
+                        <div class="col-12">
+
+                            <div class="alert alert-light border mb-0">
+
+                                <div class="d-flex gap-2">
+
+                                    <i class="bi bi-calendar-check text-primary"></i>
+
+                                    <div class="small">
+
+                                        La fecha de inicio y la fecha de fin
+                                        deben pertenecer al ejercicio presupuestal
+                                        seleccionado y la fecha de inicio no puede
+                                        ser posterior a la fecha de fin.
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ===================================================== -->
+        <!-- FOOTER -->
+        <!-- ===================================================== -->
+
+        <div class="card-footer d-flex
+                    justify-content-end
+                    gap-2">
+
+            <a asp-action="ControlPresupuestal"
+               class="btn btn-outline-secondary">
+
+                <i class="bi bi-x-circle me-1"></i>
+
+                Cancelar
+
+            </a>
+
+            <button type="submit"
+                    class="btn btn-primary">
+
+                <i class="bi bi-check-circle me-1"></i>
+
+                Crear control
+
+            </button>
+
+        </div>
+
+    </div>
+
+</form>
+
+
+@section Scripts
+{
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,36 +1,764 @@
 ﻿@model SIGEMAV.Models.ViewModels.Maquinaria.PaginacionViewModel<SIGEMAV.Models.ViewModels.Maquinaria.SolicitudMantenimientoViewModel >
 
-@* @{
-	ViewData["Title"] = "Solicitudes de Mantenimiento";
-}
- *@
-<div class="container-fluid px-2 px-md-3">
-	<div class="card shadow-sm border-0 w-100">
+@{
+	var filtroActivoFolio = !string.IsNullOrWhiteSpace(Model.Filtro?.Folio);
+	var filtroActivoOficio = !string.IsNullOrWhiteSpace(Model.Filtro?.NumeroOficio);
+	var filtroActivoUnidad = !string.IsNullOrWhiteSpace(Model.Filtro?.Unidad);
 
-		<div class="card-header bg-white d-flex justify-content-between align-items-center">
+	var filtroActivoArea = Model.Filtro?.AreaSolicitanteId.HasValue == true;
+	var filtroActivoEstatus = Model.Filtro?.EstatusSolicitudMantenimientoId.HasValue == true;
+	var filtroActivoTipo = Model.Filtro?.TipoMantenimientoId.HasValue == true;
+
+	var filtroActivoFechaInicio = Model.Filtro?.FechaInicio.HasValue == true;
+	var filtroActivoFechaFin = Model.Filtro?.FechaFin.HasValue == true;
+
+	var filtroActivoRegistros = Model.RegistrosPorPagina != 10;
+}
+
+
+
+
+<div class="container-fluid px-2 px-md-3">
+	<div class="card-header bg-white border-bottom">
+
+		<div class="d-flex justify-content-between align-items-center">
 
 			<div>
 
-				<h4 class="fw-bold mb-0">
-					Solicitudes de mantenimiento
+				<h4 class="fw-bold mb-1">
+
+					<i class="bi bi-clipboard-check me-2"></i>
+
+					Control de solicitudes de mantenimiento
+
 				</h4>
 
+
 				<small class="text-muted">
-					Gestión administrativa y seguimiento de solicitudes
+
+					Monitoreo operativo, autorización y seguimiento de mantenimiento vehicular.
+
 				</small>
 
 			</div>
 
+
+
 			<div>
 
 				<a asp-action="Create"
-				   class="btn text-light"
-				   style="background-color:#800705">
+				   class="btn text-white shadow-sm"
+				   style="background:#800705">
 
-					<i class="bi bi-plus-circle me-1"></i>
+
+					<i class="bi bi-plus-circle me-2"></i>
+
 					Nueva solicitud
 
+
 				</a>
+
+
+			</div>
+
+
+		</div>
+
+
+	</div>
+
+
+
+
+
+	<!-- ========================================================= -->
+	<!-- DASHBOARD OPERATIVO -->
+	<!-- ========================================================= -->
+
+
+	<div class="row g-3 mb-4">
+
+
+		<!-- TOTAL -->
+
+		<div class="col-xl-2 col-md-4">
+
+			<div class="card border-0 shadow-sm h-100">
+
+				<div class="card-body">
+
+
+					<div class="d-flex justify-content-between">
+
+
+						<div>
+
+							<span class="text-muted small text-uppercase">
+								Solicitudes
+							</span>
+
+
+							<h2 class="fw-bold mb-0">
+
+								@Model.Kpi.TotalSolicitudes
+
+							</h2>
+
+
+							<small class="text-muted">
+
+								Total registradas
+
+							</small>
+
+
+						</div>
+
+
+						<i class="bi bi-folder-check fs-2 text-secondary"></i>
+
+
+					</div>
+
+
+				</div>
+
+
+			</div>
+
+
+		</div>
+
+
+
+
+		<!-- DSP -->
+
+		<div class="col-xl-2 col-md-4">
+
+
+			<div class="card border-0 shadow-sm h-100">
+
+
+				<div class="card-body">
+
+
+					<div class="d-flex justify-content-between">
+
+
+						<div>
+
+
+							<span class="text-warning small text-uppercase fw-semibold">
+
+								Pendientes DSP
+
+							</span>
+
+
+							<h2 class="fw-bold text-warning mb-0">
+
+								@Model.Kpi.PendientesDSP
+
+							</h2>
+
+
+							<small class="text-muted">
+
+								Requieren atención
+
+							</small>
+
+
+						</div>
+
+
+
+						<i class="bi bi-currency-dollar fs-2 text-warning"></i>
+
+
+					</div>
+
+
+				</div>
+
+
+			</div>
+
+
+		</div>
+
+
+
+
+
+
+		<!-- REVISION -->
+
+
+		<div class="col-xl-2 col-md-4">
+
+
+			<div class="card border-0 shadow-sm h-100">
+
+
+				<div class="card-body">
+
+
+					<div class="d-flex justify-content-between">
+
+
+						<div>
+
+
+							<span class="text-primary small text-uppercase fw-semibold">
+
+								En revisión
+
+							</span>
+
+
+							<h2 class="fw-bold text-primary mb-0">
+
+								@Model.Kpi.EnRevision
+
+							</h2>
+
+
+							<small class="text-muted">
+
+								Pendientes dictamen
+
+							</small>
+
+
+						</div>
+
+
+
+						<i class="bi bi-search fs-2 text-primary"></i>
+
+
+					</div>
+
+
+				</div>
+
+
+			</div>
+
+
+		</div>
+
+
+
+
+
+
+
+		<!-- TALLER -->
+
+
+		<div class="col-xl-2 col-md-4">
+
+
+			<div class="card border-0 shadow-sm h-100">
+
+
+				<div class="card-body">
+
+
+					<div class="d-flex justify-content-between">
+
+
+						<div>
+
+
+							<span class="text-danger small text-uppercase fw-semibold">
+
+								En taller
+
+							</span>
+
+
+							<h2 class="fw-bold text-danger mb-0">
+
+								@Model.Kpi.EnMantenimiento
+
+							</h2>
+
+
+							<small class="text-muted">
+
+								Unidades detenidas
+
+							</small>
+
+
+						</div>
+
+
+
+						<i class="bi bi-tools fs-2 text-danger"></i>
+
+
+					</div>
+
+
+				</div>
+
+
+			</div>
+
+
+		</div>
+
+
+
+
+
+
+		<!-- FINALIZADAS -->
+
+
+		<div class="col-xl-2 col-md-4">
+
+
+			<div class="card border-0 shadow-sm h-100">
+
+
+				<div class="card-body">
+
+
+					<div class="d-flex justify-content-between">
+
+
+						<div>
+
+
+							<span class="text-secondary small text-uppercase fw-semibold">
+
+								Finalizadas
+
+							</span>
+
+
+							<h2 class="fw-bold mb-0">
+
+								@Model.Kpi.Finalizadas
+
+							</h2>
+
+
+							<small class="text-muted">
+
+								Histórico cerrado
+
+							</small>
+
+
+						</div>
+
+
+
+						<i class="bi bi-check-circle fs-2 text-secondary"></i>
+
+
+					</div>
+
+
+				</div>
+
+
+			</div>
+
+
+		</div>
+
+
+
+
+
+
+
+		<!-- IMPORTE -->
+
+
+		<div class="col-xl-2 col-md-4">
+
+
+			<div class="card border-0 shadow-sm h-100">
+
+
+				<div class="card-body">
+
+
+					<div class="d-flex justify-content-between">
+
+
+						<div>
+
+
+							<span class="text-success small text-uppercase fw-semibold">
+
+								Importe
+
+							</span>
+
+
+							<h5 class="fw-bold text-success mb-1">
+
+								@Model.Kpi.ImporteCotizado.ToString("C")
+
+							</h5>
+
+
+							<small class="text-muted">
+
+								Costo autorizado
+
+							</small>
+
+
+						</div>
+
+
+
+						<i class="bi bi-wallet2 fs-2 text-success"></i>
+
+
+					</div>
+
+
+				</div>
+
+
+			</div>
+
+
+		</div>
+
+
+
+	</div>
+
+
+		
+	<!-- ========================================================= -->
+	<!-- PANEL DE FILTROS -->
+	<!-- ========================================================= -->
+
+	<div class="card shadow-sm border-0 mb-4">
+
+		<div class="card-header bg-white border-bottom">
+
+			<div class="d-flex justify-content-between align-items-center">
+				<div>
+					<h5 class="fw-bold mb-1">
+						<i class="bi bi-funnel me-2"></i>
+						Búsqueda y segmentación
+					</h5>
+					<small class="text-muted">
+						Filtre solicitudes por unidad, área, estado o periodo.
+					</small>
+				</div>
+				<div class="d-flex gap-2">
+
+					<span class="badge bg-light text-dark border">
+						@Model.TotalRegistros solicitudes
+					</span>
+
+
+					@if (
+						filtroActivoFolio ||
+						filtroActivoOficio ||
+						filtroActivoUnidad ||
+						filtroActivoArea ||
+						filtroActivoEstatus ||
+						filtroActivoTipo ||
+						filtroActivoFechaInicio ||
+						filtroActivoFechaFin)
+					{
+						<span class="badge bg-success text-white">
+							<i class="bi bi-funnel-fill me-1"></i>
+							Filtros activos
+						</span>
+					}
+
+				</div>
+			</div>
+		</div>
+
+		<div class="card-body">
+
+			<form asp-action="Index" method="get">
+
+				<!-- ============================= -->
+				<!-- FILTROS PRINCIPALES -->
+				<!-- ============================= -->
+
+				<div class="row g-3">
+
+					<div class="col-xl-2">
+
+						<label class="form-label small fw-semibold">
+
+							Folio
+
+						</label>
+
+						<input name="Filtro.Folio"
+							   value="@Model.Filtro?.Folio"
+							   class="form-control @(filtroActivoFolio ? "border-success bg-success-subtle" : "")"
+							   placeholder="Ej. JUL-MR-0001" />
+
+					</div>
+
+					<div class="col-xl-2">
+
+						<label class="form-label small fw-semibold">
+
+							Oficio
+
+						</label>
+
+						<input name="Filtro.NumeroOficio"
+							   value="@Model.Filtro?.NumeroOficio"
+							   class="form-control @(filtroActivoOficio ? "border-success bg-success-subtle" : "")"
+							   placeholder="Número de oficio" />
+
+					</div>
+
+
+
+
+					<div class="col-xl-3">
+
+						<label class="form-label small fw-semibold">
+
+							Unidad vehicular
+
+						</label>
+
+						<div class="input-group">
+
+							<span class="input-group-text">
+
+								<i class="bi bi-search"></i>
+
+							</span>
+
+							@* <input name="Filtro.Unidad"
+								   value="@Model.Filtro.Unidad"
+								   class="form-control @(filtroActivoUnidad ? "border-success bg-success-subtle" : "")"
+								   placeholder="No. Económico, Serie, Placa, Marca o Modelo" /> *@
+
+							<input name="Filtro.Unidad"
+								   value="@Model.Filtro.Unidad"
+								   class="form-control @(filtroActivoUnidad ? "border-success bg-success-subtle" : "")"
+								   placeholder="No. Económico, Serie, Placa, Marca o Modelo" />
+						</div>
+
+					</div>
+
+					<div class="col-xl-3">
+
+						<label class="form-label small fw-semibold">
+
+							Área solicitante
+
+						</label>
+
+						<select class="form-select @(filtroActivoArea ? "border-success bg-success-subtle" : "")"
+								name="Filtro.AreaSolicitanteId"
+								asp-items="Model.Filtro.Areas">
+
+							<option value="">Todas</option>
+
+						</select>
+
+					</div>
+
+					<div class="col-xl-2">
+
+						<label class="form-label small fw-semibold">
+
+							Estatus
+
+						</label>
+
+						<select class="form-select @(filtroActivoEstatus ? "border-success bg-success-subtle" : "")"
+								name="Filtro.EstatusSolicitudMantenimientoId"
+								asp-items="Model.Filtro.Estatus">
+
+							<option value="">Todos</option>
+
+						</select>
+
+					</div>
+
+				</div>
+
+				<hr class="my-4" />
+
+				<!-- ============================= -->
+				<!-- FILTROS AVANZADOS -->
+				<!-- ============================= -->
+
+				<div class="row g-3 align-items-end">
+
+					<div class="col-xl-3">
+
+						<label class="form-label small fw-semibold">
+
+							Tipo de mantenimiento
+
+						</label>
+
+						<select class="form-select @(filtroActivoTipo ? "border-success bg-success-subtle" : "")"
+								name="Filtro.TipoMantenimientoId"
+								asp-items="Model.Filtro.TiposMantenimiento">
+
+							<option value="">Todos</option>
+
+						</select>
+
+					</div>
+
+					<div class="col-xl-3">
+
+						<label class="form-label small fw-semibold">
+							Desde
+						</label>
+
+						<input type="date"
+							   id="fechaInicio"
+							   class="form-control @(filtroActivoFechaInicio ? "border-success bg-success-subtle" : "")"
+							   name="Filtro.FechaInicio"
+							   max="@(Model.Filtro.FechaFin?.ToString("yyyy-MM-dd"))"
+							   value="@(Model.Filtro.FechaInicio?.ToString("yyyy-MM-dd"))" />
+
+					</div>
+
+					<div class="col-xl-3">
+
+						<label class="form-label small fw-semibold">
+							Hasta
+						</label>
+
+						<input type="date"
+							   id="fechaFin"
+							   class="form-control @(filtroActivoFechaFin ? "border-success bg-success-subtle" : "")"
+							   name="Filtro.FechaFin"
+							   min="@(Model.Filtro.FechaInicio?.ToString("yyyy-MM-dd"))"
+							   value="@(Model.Filtro.FechaFin?.ToString("yyyy-MM-dd"))" />
+
+					</div>
+
+					<div class="col-xl-3">
+
+						<label class="form-label small fw-semibold">
+
+							Registros
+
+						</label>
+
+						<select name="registrosPorPagina"
+								class="form-select @(filtroActivoRegistros ? "border-success bg-success-subtle" : "")">
+
+							<option value="10" selected="@(Model.RegistrosPorPagina == 10)">10</option>
+							<option value="20" selected="@(Model.RegistrosPorPagina == 20)">20</option>
+							<option value="50" selected="@(Model.RegistrosPorPagina == 50)">50</option>
+							<option value="100" selected="@(Model.RegistrosPorPagina == 100)">100</option>
+
+						</select>
+
+					</div>
+
+					@* <div class="col-xl-3">
+
+							<label class="form-label small fw-semibold">
+
+								Buscar en la tabla
+
+							</label>
+
+							<input id="buscarTabla"
+								   class="form-control"
+								   placeholder="Folio, oficio, vehículo..." />
+
+						</div> *@
+
+				</div>
+
+				<hr class="my-4" />
+
+				<!-- ============================= -->
+				<!-- BOTONES -->
+				<!-- ============================= -->
+
+				<div class="d-flex justify-content-end gap-2">
+
+					<a asp-action="Index"
+					   class="btn btn-outline-secondary">
+
+						<i class="bi bi-arrow-clockwise me-1"></i>
+
+						Restablecer
+
+					</a>
+
+					<button type="submit"
+							class="btn text-white"
+							style="background:#800705">
+
+						<i class="bi bi-search me-1"></i>
+
+						Aplicar filtros
+
+					</button>
+
+				</div>
+
+			</form>
+
+		</div>
+
+	</div>
+
+	<!-- ========================================================= -->
+	<!-- RESULTADOS -->
+	<!-- ========================================================= -->
+
+	<div class="card shadow-sm border-0">
+
+		<div class="card-header bg-white">
+
+			<div class="d-flex justify-content-between align-items-center">
+
+				<div>
+
+					<h5 class="mb-0 fw-bold">
+
+						<i class="bi bi-table me-2"></i>
+
+						Resultados
+
+					</h5>
+
+					<small class="text-muted">
+
+						Solicitudes encontradas con los criterios seleccionados.
+
+					</small>
+
+				</div>
+
+				<span class="badge bg-dark">
+
+					@Model.Registros.Count de @Model.TotalRegistros registros
+
+				</span>
 
 			</div>
 
@@ -38,58 +766,58 @@
 
 		<div class="card-body">
 
+
+
+
+
+			<!-- ========================================================= -->
+			<!-- TABLA -->
+			<!-- ========================================================= -->
 			@if (!Model.Registros.Any())
 			{
-				<div class="alert alert-info text-center mb-0">
+				<div class="alert alert-info text-center">
 
 					<i class="bi bi-info-circle me-2"></i>
+
 					No existen solicitudes registradas.
 
 				</div>
 			}
 			else
 			{
-				<div class="w-100">
 
-					<table class="table table-hover align-middle table-sm" style="width:100%; font-size:0.88rem;">
+				<div class="table-responsive">
 
+					<table id="tablaSolicitudes"
+						   class="table table-hover table-striped align-middle table-sm"
+						   style="font-size:.88rem;">
 
 						<thead class="table-light">
 
 							<tr>
 
-								<th>Folio</th>
+								<th style="width:150px;">Solicitud</th>
 
-								<th>Oficio</th>
+								<th style="width:140px;">Fecha</th>
 
-								<th>Fecha</th>
+								<th>Unidad Vehicular</th>
 
-								<th>Área</th>
-
-								<th>Unidad</th>
-
-								<th>Vehículo</th>
-
-								<th>Tipo</th>
+								<th>Área / Tipo</th>
 
 								<th>Taller</th>
 
-								<th>Cotización</th>
+								<th class="text-end" style="width:130px;">Importe</th>
 
-								<th>Servicios</th>
+								<th class="text-center" style="width:90px;">Servicios</th>
 
-								<th>Estatus</th>
+								<th class="text-center" style="width:170px;">Estatus</th>
 
-								<th class="text-center"
-									style="width:180px;">
-
-									Acciones
-
-								</th>
+								<th class="text-center" style="width:210px;">Acciones</th>
 
 							</tr>
 
 						</thead>
+
 
 						<tbody>
 
@@ -97,84 +825,128 @@
 							{
 								<tr>
 
-									<td class="fw-semibold">
-										@item.Folio
-									</td>
-
-									<td>
-										@item.NumeroOficio
-									</td>
-
-									<td>
-										@item.FechaSolicitud.ToString("dd/MM/yyyy")
-									</td>
-
-									<td>
-										@item.AreaSolicitante
-									</td>
-
 									<td>
 
-										<div class="fw-bold">
-											@item.NumeroSerie
+										<div class="fw-bold text-dark">
+
+											@item.Folio
+
 										</div>
 
 										<small class="text-muted">
-											@item.PlacaActual
+
+											Oficio:
+											@item.NumeroOficio
+
 										</small>
 
 									</td>
 
 									<td>
 
-										@item.MarcaNombre
-										@item.ModeloNombre
+										<div>
+
+											@item.FechaSolicitud.ToString("dd/MM/yyyy")
+
+										</div>
+
+										<small class="text-muted">
+
+											Hace
+											@((DateTime.Today - item.FechaSolicitud.Date).Days)
+											días
+
+										</small>
 
 									</td>
 
-									<td>
-										@item.TipoMantenimiento
-									</td>
+								
 
 									<td>
-										@item.TallerNombre
+
+										<div class="fw-semibold">
+
+											@item.NumeroEconomico
+
+										</div>
+
+										<div>
+
+											@item.MarcaNombre
+											@item.ModeloNombre
+
+										</div>
+
+										<small class="text-muted">
+
+											Serie:
+											@item.NumeroSerie
+
+											<br />
+
+											Placas:
+											@item.PlacaActual
+
+										</small>
+
 									</td>
 
+
 									<td>
+
+										<div>
+
+											@item.AreaSolicitante
+
+										</div>
+
+										<small class="badge bg-light text-dark border">
+
+											@item.TipoMantenimiento
+
+										</small>
+
+									</td>
+
+
+									<td>
+
+										@if (item.TallerNombre == "Pendiente")
+										{
+											<span class="badge bg-warning text-dark">
+
+												Sin asignar
+
+											</span>
+										}
+										else
+										{
+											<div>
+
+												@item.TallerNombre
+
+											</div>
+										}
+
+									</td>
+
+
+
+									<td class="text-end">
 
 										@if (item.ImporteCotizacion.HasValue)
 										{
-											<span class="fw-semibold">
+											<span class="fw-bold text-success fs-6">
+
 												@item.ImporteCotizacion.Value.ToString("C")
+
 											</span>
 										}
 										else
 										{
 											<span class="text-muted">
-												Pendiente
-											</span>
-										}
 
-									</td>
-
-
-
-
-
-
-									<td>
-
-										@if (item.TotalConceptos == 0)
-										{
-											<span class="badge bg-danger">
-												Sin servicios
-											</span>
-										}
-										else
-										{
-											<span class="badge bg-success">
-
-												@item.TotalConceptos servicios
+												—
 
 											</span>
 										}
@@ -185,12 +957,21 @@
 
 
 
+									<td class="text-center">
+
+										<span class="badge rounded-pill bg-primary">
+
+											@item.TotalConceptos
+
+										</span>
+
+									</td>
 
 
 
-									<td>
+									<td class="text-center">
 
-										<span class="badge bg-@item.ColorEstatus">
+										<span class="badge rounded-pill bg-@item.ColorEstatus px-3 py-2">
 
 											@item.Estatus
 
@@ -232,84 +1013,96 @@
                                     </div>
 
                                 </td> *@
-
-
-
-
-
-
 									<td class="text-center">
+										<div class="btn-group btn-group-sm shadow-sm" role="group">
+											
+											@if (item.EstatusSolicitudMantenimientoId == 5)
+											{
+												<!-- Dictamen PDF -->
+												<a asp-action="ImprimirDictamenSolicitud"
+												   asp-route-solicitudId="@item.SolicitudMantenimientoId"
+												   target="_blank"
+												   class="btn btn-outline-dark"
+												   data-bs-toggle="tooltip"
+												   title="Dictamen técnico PDF">
+													<i class="bi bi-file-earmark-pdf-fill text-danger"></i>
+												</a>
+											}
+											
 
-										<div class="btn-group" role="group">
 
-											<!-- Details -->
+
+
+
+											<!-- Detalle -->
 											<a asp-action="Detalle"
 											   asp-route-id="@item.SolicitudMantenimientoId"
-											   class="btn btn-outline-dark btn-sm"
-											   title="Detalle">
-
-												<i class="bi bi-list-check"></i>
-
+											   class="btn btn-outline-dark"
+											   data-bs-toggle="tooltip"
+											   title="Ver detalle">
+												<i class="bi bi-eye"></i>
 											</a>
 
-
-												<!-- DSP -->
+											<!-- DSP -->
 											<a asp-action="DSP"
 											   asp-route-id="@item.SolicitudMantenimientoId"
-											   class="btn btn-outline-success btn-sm"
-											   title="DSP">
+											   class="btn btn-outline-success"
+											   data-bs-toggle="tooltip"
+											   title="Dictamen de suficiencia presupuestal">
 
 												<i class="bi bi-cash-stack"></i>
 
 											</a>
 
-
-
-											<!-- Revisión -->
+											<!-- Revisión Técnica -->
 											<a asp-action="Revisar"
 											   asp-route-id="@item.SolicitudMantenimientoId"
-											   class="btn btn-outline-primary btn-sm"
-											   title="Revisión">
+											   class="btn btn-outline-primary"
+											   data-bs-toggle="tooltip"
+											   title="Revisión técnica">
 
 												<i class="bi bi-clipboard-check"></i>
 
 											</a>
 
-										
-
-
 											@if (item.EstatusSolicitudMantenimientoId == 5)
 											{
+
+
+											
+												<!-- Ingresar al Taller -->
 												<a asp-action="IngresarATaller"
 												   asp-route-id="@item.SolicitudMantenimientoId"
-												   class="btn btn-outline-dark btn-sm"
+												   class="btn btn-outline-warning"
+												   data-bs-toggle="tooltip"
 												   title="Ingresar al taller">
 
 													<i class="bi bi-car-front-fill"></i>
+
 												</a>
 											}
-
 
 											@if (item.EstatusSolicitudMantenimientoId == 7)
 											{
+												<!-- Administrar mantenimiento -->
 												<a asp-controller="Mantenimiento"
-												asp-action="Edit"
-												asp-route-solicitudId="@item.SolicitudMantenimientoId"
-												class="btn btn-outline-primary btn-sm"
-												title="Administrar mantenimiento">
+												   asp-action="Edit"
+												   asp-route-solicitudId="@item.SolicitudMantenimientoId"
+												   class="btn btn-outline-danger"
+												   data-bs-toggle="tooltip"
+												   title="Administrar mantenimiento">
 
-													<i class="bi bi-wrench-adjustable"></i>
+													<i class="bi bi-tools"></i>
 
 												</a>
 											}
-
-
 
 											<!-- Editar -->
 											<a asp-action="Edit"
 											   asp-route-id="@item.SolicitudMantenimientoId"
-											   class="btn btn-outline-secondary btn-sm"
-											   title="Editar">
+											   class="btn btn-outline-secondary"
+											   data-bs-toggle="tooltip"
+											   title="Editar solicitud">
 
 												<i class="bi bi-pencil-square"></i>
 
@@ -318,10 +1111,6 @@
 										</div>
 
 									</td>
-
-
-
-
 
 
 
@@ -334,103 +1123,440 @@
 
 				</div>
 
-				<div class="d-flex justify-content-between align-items-center mt-4">
+				<!-- ========================================================= -->
+				<!-- RESUMEN DE PAGINACIÓN -->
+				<!-- ========================================================= -->
 
-					<div class="text-muted small">
-						Mostrando
-						<strong>@Model.Registros.Count</strong>
-						de
-						<strong>@Model.TotalRegistros</strong>
-						registros
+				<div class="row g-3 mt-4 align-items-center">
+
+
+					<div class="col-lg-8">
+
+
+						<div class="d-flex flex-wrap gap-3">
+
+
+							<!-- Mostrados -->
+
+							<div class="card border-0 shadow-sm">
+
+								<div class="card-body py-2 px-3">
+
+
+									<div class="d-flex align-items-center">
+
+
+										<div class="rounded-circle bg-primary-subtle p-2 me-3">
+
+											<i class="bi bi-table text-primary"></i>
+
+										</div>
+
+
+										<div>
+
+											<small class="text-muted d-block">
+												Registros visibles
+											</small>
+
+
+											<span class="fw-bold fs-5">
+
+												@Model.Registros.Count
+
+											</span>
+
+										</div>
+
+
+									</div>
+
+
+								</div>
+
+							</div>
+
+
+
+
+
+							<!-- Total -->
+
+							<div class="card border-0 shadow-sm">
+
+
+								<div class="card-body py-2 px-3">
+
+
+									<div class="d-flex align-items-center">
+
+
+										<div class="rounded-circle bg-success-subtle p-2 me-3">
+
+											<i class="bi bi-database-check text-success"></i>
+
+										</div>
+
+
+										<div>
+
+
+											<small class="text-muted d-block">
+
+												Total encontrados
+
+											</small>
+
+
+											<span class="fw-bold fs-5">
+
+												@Model.TotalRegistros
+
+											</span>
+
+
+										</div>
+
+
+									</div>
+
+
+								</div>
+
+
+							</div>
+
+
+
+
+
+
+							<!-- Página -->
+
+
+							<div class="card border-0 shadow-sm">
+
+
+								<div class="card-body py-2 px-3">
+
+
+									<div class="d-flex align-items-center">
+
+
+										<div class="rounded-circle bg-warning-subtle p-2 me-3">
+
+											<i class="bi bi-files text-warning"></i>
+
+										</div>
+
+
+										<div>
+
+
+											<small class="text-muted d-block">
+
+												Página
+
+											</small>
+
+
+											<span class="fw-bold fs-5">
+
+												@Model.PaginaActual
+												<span class="text-muted">
+													/
+												</span>
+												@Model.TotalPaginas
+
+											</span>
+
+
+										</div>
+
+
+									</div>
+
+
+								</div>
+
+
+							</div>
+
+
+
+						</div>
+
+
 					</div>
 
-					<nav>
 
-						<ul class="pagination pagination-sm mb-0">
 
-							<!-- Primera -->
-							<li class="page-item @(Model.PaginaActual == 1 ? "disabled" : "")">
-								<a class="page-link"
-								   asp-route-pagina="1">
-									<i class="bi bi-chevron-double-left"></i>
-								</a>
-							</li>
 
-							<!-- Anterior -->
-							<li class="page-item @(!Model.TieneAnterior ? "disabled" : "")">
-								<a class="page-link"
-								   asp-route-pagina="@(Model.PaginaActual - 1)">
-									<i class="bi bi-chevron-left"></i>
-								</a>
-							</li>
+					<!-- Paginación -->
 
-							@{
-								int inicio = Math.Max(1, Model.PaginaActual - 2);
-								int fin = Math.Min(Model.TotalPaginas, Model.PaginaActual + 2);
-							}
+					<div class="col-lg-4">
 
-							@for (int i = inicio; i <= fin; i++)
-							{
-								<li class="page-item @(i == Model.PaginaActual ? "active" : "")">
+
+						<nav class="d-flex justify-content-lg-end justify-content-start">
+
+
+							<ul class="pagination pagination-sm mb-0 shadow-sm">
+
+
+								<li class="page-item @(Model.PaginaActual == 1 ? "disabled" : "")">
 
 									<a class="page-link"
-									   asp-route-pagina="@i">
-										@i
+									   asp-route-pagina="1">
+
+										<i class="bi bi-chevron-double-left"></i>
+
 									</a>
 
 								</li>
-							}
 
-							<!-- Siguiente -->
-							<li class="page-item @(!Model.TieneSiguiente ? "disabled" : "")">
-								<a class="page-link"
-								   asp-route-pagina="@(Model.PaginaActual + 1)">
-									<i class="bi bi-chevron-right"></i>
-								</a>
-							</li>
 
-							<!-- ultima -->
-							<li class="page-item @(Model.PaginaActual == Model.TotalPaginas ? "disabled" : "")">
-								<a class="page-link"
-								   asp-route-pagina="@Model.TotalPaginas">
-									<i class="bi bi-chevron-double-right"></i>
-								</a>
-							</li>
+								<li class="page-item @(!Model.TieneAnterior ? "disabled" : "")">
 
-						</ul>
+									<a class="page-link"
+									   asp-route-pagina="@(Model.PaginaActual - 1)">
 
-					</nav>
+										<i class="bi bi-chevron-left"></i>
+
+									</a>
+
+								</li>
+
+
+
+								@{
+									int inicio = Math.Max(1, Model.PaginaActual - 2);
+									int fin = Math.Min(Model.TotalPaginas, Model.PaginaActual + 2);
+								}
+
+
+								@for (int i = inicio; i <= fin; i++)
+								{
+
+									<li class="page-item @(i == Model.PaginaActual ? "active" : "")">
+
+
+										<a class="page-link"
+										   asp-route-pagina="@i"
+										   asp-route-Filtro.Folio="@Model.Filtro.Folio"
+										   asp-route-Filtro.NumeroOficio="@Model.Filtro.NumeroOficio"
+										   asp-route-Filtro.Unidad="@Model.Filtro.Unidad"
+										   asp-route-Filtro.AreaSolicitanteId="@Model.Filtro.AreaSolicitanteId"
+										   asp-route-Filtro.EstatusSolicitudMantenimientoId="@Model.Filtro.EstatusSolicitudMantenimientoId"
+										   asp-route-Filtro.TipoMantenimientoId="@Model.Filtro.TipoMantenimientoId"
+										   asp-route-Filtro.FechaInicio="@Model.Filtro.FechaInicio"
+										   asp-route-Filtro.FechaFin="@Model.Filtro.FechaFin">
+											@i
+										</a>
+
+
+									</li>
+
+								}
+
+
+
+								<li class="page-item @(!Model.TieneSiguiente ? "disabled" : "")">
+
+									<a class="page-link"
+									   asp-route-pagina="@(Model.PaginaActual + 1)">
+
+										<i class="bi bi-chevron-right"></i>
+
+									</a>
+
+								</li>
+
+
+								<li class="page-item @(Model.PaginaActual == Model.TotalPaginas ? "disabled" : "")">
+
+									<a class="page-link"
+									   asp-route-pagina="@Model.TotalPaginas">
+
+										<i class="bi bi-chevron-double-right"></i>
+
+									</a>
+
+								</li>
+
+
+							</ul>
+
+
+						</nav>
+
+
+					</div>
+
 
 				</div>
 			}
-
 		</div>
-
 	</div>
 </div>
+
+
 
 
 @section Scripts {
 
 	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-	@if (TempData["Success"] != null)
-	{
-		<script>
+@if (TempData["AbrirDictamen"] != null)
+{
+    var dictamenId = TempData["AbrirDictamen"].ToString();
+	var urlDictamen = Url.Action("ImprimirDictamenSolicitud", "SolicitudMantenimiento", new { solicitudId = dictamenId });
 
-			Swal.fire({
+    <script type="text/javascript">
+        document.addEventListener("DOMContentLoaded", function () {
+            var url = "@Html.Raw(urlDictamen)";
+            
+            // Intentar abrir la pestaña
+            var nuevaPestana = window.open(url, '_blank');
 
-			icon: 'success',
+            // Si el navegador bloqueó el pop-up, mostramos un botón de respaldo o notificación
+            if (!nuevaPestana || nuevaPestana.closed || typeof nuevaPestana.closed == 'undefined') {
+                if (typeof Swal !== 'undefined') {
+                    // Si usas SweetAlert2 en el proyecto SIGEMAV
+                    Swal.fire({
+                        title: 'Dictamen generado',
+                        text: 'La revisión fue autorizada. Haz clic en el botón para ver e imprimir el dictamen.',
+                        icon: 'success',
+                        showCancelButton: true,
+                        confirmButtonColor: '#800705',
+                        confirmButtonText: 'Abrir Dictamen',
+                        cancelButtonText: 'Cerrar'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            window.open(url, '_blank');
+                        }
+                    });
+                } else {
+                    // Respaldo con confirm/alert nativo de JavaScript
+                    if (confirm("La revisión técnica se autorizó correctamente. ¿Deseas abrir el Dictamen Técnico para imprimirlo ahora?")) {
+                        window.open(url, '_blank');
+                    }
+                }
+            }
+        });
+    </script>
+}
 
-			title: 'Operación realizada',
 
-			text: '@TempData["Success"]',
 
-			confirmButtonColor: '#800705'
+	
+@if (TempData["Success"] != null)
+{
+    <script>
+        Swal.fire({
+            icon: 'success',
+            title: 'Operación realizada',
+            text: @Html.Raw(
+                System.Text.Json.JsonSerializer.Serialize(
+                    System.Net.WebUtility.HtmlDecode(
+                        TempData["Success"]!.ToString()
+                    )
+                )
+            ),
+            confirmButtonColor: '#800705'
+        });
+    </script>
+}
 
-			});
 
-		</script>
-	}
+
+
+
+	<script>
+
+		document.querySelectorAll('[data-bs-toggle="tooltip"]')
+		.forEach(function (el) {
+
+		new bootstrap.Tooltip(el);
+
+		});
+
+	</script>
+
+
+
+
+
+	<script>
+		//control de fecha desde hasta
+		document.addEventListener("DOMContentLoaded", function () {
+
+
+		const fechaInicio = document.getElementById("fechaInicio");
+		const fechaFin = document.getElementById("fechaFin");
+
+
+		fechaInicio.addEventListener("change", function () {
+
+
+		if(fechaInicio.value)
+		{
+		fechaFin.min = fechaInicio.value;
+		}
+
+
+		if(fechaFin.value && fechaInicio.value > fechaFin.value)
+		{
+		Swal.fire({
+		icon: 'warning',
+		title: 'Periodo inválido',
+		text: 'La fecha inicial no puede ser mayor que la fecha final.',
+		confirmButtonColor:'#800705'
+		});
+
+
+		fechaInicio.value = "";
+
+		}
+
+
+		});
+
+
+		fechaFin.addEventListener("change", function () {
+
+
+		if(fechaFin.value)
+		{
+		fechaInicio.max = fechaFin.value;
+		}
+
+
+		if(fechaInicio.value && fechaInicio.value > fechaFin.value)
+		{
+
+		Swal.fire({
+		icon: 'warning',
+		title: 'Periodo inválido',
+		text: 'La fecha final no puede ser menor que la fecha inicial.',
+		confirmButtonColor:'#800705'
+		});
+
+
+		fechaFin.value = "";
+
+		}
+
+
+		});
+
+
+		});
+
+
+	</script>
+
+
+	
+	
 
 }

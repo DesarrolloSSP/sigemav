@@ -18,5 +18,17 @@
         public int IdObjetoGastoRefacciones { get; set; }
 
         public string? Observaciones { get; set; }
+
+        public decimal SubtotalManoObra { get; set; }
+
+        public decimal SubtotalRefacciones { get; set; }
+
+        public string? ObjetoGastoManoObraTexto { get; set; }
+
+        public string? ObjetoGastoRefaccionesTexto { get; set; }
+
+        public decimal TotalLinea { get; set; }
+
+     
     }
 }
