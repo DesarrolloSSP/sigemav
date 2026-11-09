@@ -16,7 +16,7 @@ namespace SIGEMAV.Areas.Account.Controllers
 
 
     [Area("Account")]
-    
+
     public class AccountController : Controller
     {
         private readonly ISiaService _sicaService;
@@ -101,16 +101,20 @@ namespace SIGEMAV.Areas.Account.Controllers
                 return View(model);
             }
 
-            var claims = new List<Claim>
-            {
-                new Claim(
-                    ClaimTypes.Name,
-                    usuario.UserName),
 
-                new Claim(
-                    "NombreCompleto",
-                    usuario.NombreCompleto)
-            };
+
+            var claims = new List<Claim>
+{
+    
+    new Claim(ClaimTypes.NameIdentifier, usuario.IdUsuario),
+    new Claim(ClaimTypes.Name, usuario.UserName),
+    new Claim("NombreCompleto", usuario.NombreCompleto)
+};
+
+            foreach (var rol in usuario.Roles)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, rol));
+            }
 
             //Descomentar
             TempData["Roles"] = string.Join(", ", usuario.Roles);
