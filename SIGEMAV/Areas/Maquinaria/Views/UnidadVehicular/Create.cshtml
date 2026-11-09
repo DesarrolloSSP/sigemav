@@ -1,9 +1,9 @@
 ﻿@model SIGEMAV.Models.ViewModels.Maquinaria.UnidadVehicularCreateViewModel
 
-@{
+@* @{
     ViewData["Title"] = "Registrar Vehículo";
 }
-
+ *@
 <div class="container-fluid">
 
     <div class="card shadow-sm border-0">
@@ -14,7 +14,7 @@
 
                 <div>
                     <h4 class="mb-0 fw-bold">
-                        Registro de Vehículo
+                        Registro de vehículo
                     </h4>
 
                     <small class="text-muted">
@@ -64,11 +64,9 @@
 
                     <!-- Placa -->
                     <div class="col-md-4">
-
                         <label asp-for="PlacaActual"
                                class="form-label fw-semibold"> Placa actual
                         </label>
-
                         <input asp-for="PlacaActual"
                                class="form-control"
                                maxlength="10"
@@ -77,7 +75,6 @@
                         <span asp-validation-for="PlacaActual"
                               class="text-danger small">
                         </span>
-
                     </div>
 
                     <!-- Número económico -->
@@ -90,11 +87,9 @@
                         <input asp-for="NumeroEconomico"
                                class="form-control"
                                maxlength="15"
-                               autocomplete="off" required />
+                               autocomplete="off"  />
 
-                        <span asp-validation-for="NumeroEconomico"
-                              class="text-danger small">
-                        </span>
+                     
 
                     </div>
 

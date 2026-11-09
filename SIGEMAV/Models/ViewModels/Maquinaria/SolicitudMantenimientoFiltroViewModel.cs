@@ -32,5 +32,7 @@ namespace SIGEMAV.Models.ViewModels.Maquinaria
 
 
         public string? UnidadSeleccionada { get; set; }
+
+        public bool? EsUsuarioDeAreaOperativa { get; set; }
     }
 }

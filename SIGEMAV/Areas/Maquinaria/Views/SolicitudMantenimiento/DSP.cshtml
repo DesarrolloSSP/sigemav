@@ -1986,14 +1986,41 @@
                         </div>
                     </div>
 
-                    <div class="col-12 col-md-6 col-xl-3">
-                        <div class="border rounded-3 p-3 h-100 bg-primary-subtle border-primary-subtle">
-                            <div class="text-primary small mb-1">Importe de la solicitud</div>
-                            <div class="fw-bold fs-5 text-primary text-end">
-                                @Model.ImporteSolicitud.ToString("C")
-                            </div>
-                        </div>
-                    </div>
+                 <div class="col-12 col-md-6 col-xl-3">
+    <div class="border rounded-3 p-3 h-100 bg-primary-subtle border-primary-subtle d-flex flex-column justify-content-between">
+        <div class="text-primary small fw-semibold mb-2 d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-cash-stack me-1"></i> Importe Total</span>
+            <span class="badge bg-primary bg-opacity-10 text-primary" style="font-size: 0.65rem;">Con IVA Incluido</span>
+        </div>
+
+        <div class="small">
+            @{
+                // Matemáticas inversas: el modelo trae el total con IVA incluido
+                var totalConIva = Model.ImporteSolicitud;
+                var baseCalculada = totalConIva / 1.16m;
+                var ivaCalculado = totalConIva - baseCalculada;
+            }
+
+            <!-- BASE (Sin IVA) -->
+            <div class="d-flex justify-content-between text-secondary mb-1">
+                <span class="fw-medium">Base:</span>
+                <span class="text-dark">@baseCalculada.ToString("C")</span>
+            </div>
+
+            <!-- IVA (16% desglosado) -->
+            <div class="d-flex justify-content-between text-secondary mb-1 pb-1 border-bottom border-primary-subtle">
+                <span class="fw-medium">IVA:</span>
+                <span class="text-dark">@ivaCalculado.ToString("C")</span>
+            </div>
+
+            <!-- TOTAL -->
+            <div class="d-flex justify-content-between align-items-center pt-1">
+                <span class="fw-bold text-primary">Total:</span>
+                <span class="fw-bold fs-6 text-primary">@totalConIva.ToString("C")</span>
+            </div>
+        </div>
+    </div>
+</div>
                 </div>
             </div>
 

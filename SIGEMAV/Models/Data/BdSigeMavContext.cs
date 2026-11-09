@@ -126,13 +126,17 @@ public partial class BdSigeMavContext : DbContext
 
     public virtual DbSet<UnidadVehicular> UnidadVehiculars { get; set; }
 
-    public virtual DbSet<OrdenDePagoResult> OrdenDePagoResults { get; set; }
-
     public virtual DbSet<VwControlFinancieroMantenimiento> VwControlFinancieroMantenimientos { get; set; }
 
+    public virtual DbSet<OrdenDePagoResult> OrdenDePagoResults { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Server=10.8.3.115;Database=DBSigemav;User Id=sassp;Password=s4$5pBr2025;TrustServerCertificate=True;");
+    {
+
+    }
+
+    //#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
+    //        => optionsBuilder.UseSqlServer("Server=10.8.3.115;Database=DBSigemav;User Id=sassp;Password=s4$5pBr2025;TrustServerCertificate=True;");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -845,7 +849,6 @@ public partial class BdSigeMavContext : DbContext
                 .HasMaxLength(40)
                 .IsUnicode(false)
                 .HasColumnName("tcmunicipioRegion");
-            entity.Property(e => e.UnidadVehicularId).ValueGeneratedOnAdd();
             entity.Property(e => e.Zona)
                 .HasMaxLength(50)
                 .HasColumnName("ZONA");

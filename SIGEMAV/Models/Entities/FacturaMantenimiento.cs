@@ -51,8 +51,6 @@ public partial class FacturaMantenimiento
 
     public DateTime FechaRegistro { get; set; }
 
-    public int UsuarioRegistroId { get; set; }
-
     public bool Activo { get; set; }
 
     public DateTime? FechaTimbrado { get; set; }
@@ -68,6 +66,8 @@ public partial class FacturaMantenimiento
     public DateTime? FechaValidacionSat { get; set; }
 
     public string? CodigoEstatusSat { get; set; }
+
+    public Guid? UsuarioRegistroId { get; set; }
 
     public virtual EstatusFacturaMantenimiento EstatusFacturaMantenimiento { get; set; } = null!;
 

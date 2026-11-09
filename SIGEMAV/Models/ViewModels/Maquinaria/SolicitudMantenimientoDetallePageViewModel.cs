@@ -24,5 +24,17 @@
         public List<SolicitudMantenimientoDocumentoViewModel> Documentos { get; set; } = new();
 
 
+        // =========================================================================
+        // PROPIEDADES FINANCIERAS SEGURAS CON IVA (Calculadas en el backend)
+        // =========================================================================
+        public decimal IvaCotizacion => TotalCotizacion * 0.16m;
+        public decimal TotalConIvaCotizacion => TotalCotizacion * 1.16m;
+
+        
+
+        
+
+
+
     }
 }

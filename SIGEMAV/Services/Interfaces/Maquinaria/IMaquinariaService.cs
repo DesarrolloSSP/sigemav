@@ -332,17 +332,6 @@ namespace SIGEMAV.Services.Interfaces.Maquinaria
         Task<TallerConfiguracionEditViewModel?> ObtenerTallerConfiguracionParaEditarAsync(int tallerId, int configuracionId);
 
 
-
-
-        Task<FacturaIndexViewModel> ObtenerDashboardFacturacionAsync(
-        string? filtroUnidad = null,
-        string? filtroTaller = null,
-        DateTime? fechaDesde = null,
-        DateTime? fechaHasta = null);
-
-
-
-
         //firmantes
         Task<List<FirmanteDto>> ObtenerTodosAsync(int? areaId = null);
         Task<FirmanteDto?> ObtenerPorIdAsync(int firmanteId);
@@ -351,6 +340,34 @@ namespace SIGEMAV.Services.Interfaces.Maquinaria
         Task<bool> EliminarAsync(int firmanteId);
 
         Task<bool> GuardarFirmanteAsync(FirmanteDto dto);
+
+
+
+
+
+        //reportes
+        Task<byte[]> GenerarOficioSolicitudPdfAsync(int solicitudMantenimientoId);
+        Task<byte[]> GenerarDictamenTecnicoPdfAsync(int solicitudId);
+
+
+
+
+        Task<int> ObtenerUltimoKilometrajeUnidadAsync(int unidadVehicularId);
+
+        Task<List<SelectListItem>> ObtenerConfiguracionesPorTaller(int tallerId);
+
+
+
+        Task<FacturaIndexViewModel> ObtenerDashboardFacturacionAsync(
+       string? filtroUnidad = null,
+       string? filtroTaller = null,
+       string? filtroArea = null,
+       DateTime? fechaDesde = null,
+       DateTime? fechaHasta = null,
+       bool esAdministrador = false,
+       bool esAreaOperativa = false,
+       string areaUsuario = "");
+
 
     }
 

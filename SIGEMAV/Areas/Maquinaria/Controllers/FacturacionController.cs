@@ -1,10 +1,12 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using SIGEMAV.Models.Data;
 using SIGEMAV.Models.Entities;
 using SIGEMAV.Models.ViewModels.Maquinaria;
 using SIGEMAV.Services.Interfaces.Maquinaria;
+using System.Diagnostics.Eventing.Reader;
 using System.Security.Claims;
 using static SIGEMAV.Areas.Maquinaria.DTOs.DTOs;
 
@@ -35,17 +37,31 @@ namespace SIGEMAV.Areas.Maquinaria.Controllers
 
 
         [HttpGet]
-        public async Task<IActionResult> Index(string? filtroUnidad,string? filtroTaller,DateTime? fechaDesde,DateTime? fechaHasta)
+        public async Task<IActionResult> Index(string? filtroUnidad, string? filtroTaller, string? filtroArea, DateTime? fechaDesde, DateTime? fechaHasta)
         {
             try
             {
-                var idUsuario = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var user = HttpContext.User;
+
+                // Extraer roles del usuario autenticado
+                bool esAdminMaquinaria = user.IsInRole("AdminMaquinaria");
+                bool esAreaOperativa = user.IsInRole("AreaOperativa");
+
+                // Área por defecto del usuario
+                string areaUsuario = "OFICIALÍA MAYOR";
 
                 var vm = await _maquinariaService.ObtenerDashboardFacturacionAsync(
                     filtroUnidad,
                     filtroTaller,
+                    filtroArea,
                     fechaDesde,
-                    fechaHasta);
+                    fechaHasta,
+                    esAdminMaquinaria,
+                    esAreaOperativa,
+                    areaUsuario);
+
+                // Enviamos el filtroArea actual para que el SelectList marque la opción seleccionada
+                ViewBag.Areas = await ObtenerAreas(filtroArea);
 
                 return View(vm);
             }
@@ -56,6 +72,64 @@ namespace SIGEMAV.Areas.Maquinaria.Controllers
                 return View(new FacturaIndexViewModel());
             }
         }
+
+
+
+
+        public async Task<List<SelectListItem>> ObtenerAreas(string? selectedValue = null)
+        {
+
+
+            //OBETENR EL CHIPOTE 
+
+
+            var user = HttpContext.User;
+
+            // Extraer roles del usuario autenticado
+            bool esAdminMaquinaria = user.IsInRole("AdminMaquinaria");
+            bool esAreaOperativa = user.IsInRole("AreaOperativa");
+
+            // Área por defecto del usuario
+            string areaUsuario = "OFICIALÍA MAYOR";
+
+
+            if (esAreaOperativa)
+            {
+                
+                    return await _context.Areas
+                        .AsNoTracking()
+                        .Where(x => x.Activo && x.AreaNombre == "OFICIALÍA MAYOR")
+                        .OrderBy(x => x.AreaNombre)
+                        .Select(x => new SelectListItem
+                        {
+                            Value = x.AreaId.ToString(),
+                            Text = x.AreaNombre,
+                            
+                            Selected = !string.IsNullOrEmpty(selectedValue) && x.AreaId.ToString() == selectedValue
+                        })
+                        .ToListAsync();
+                
+            }
+            else 
+            {
+                return await _context.Areas
+                       .AsNoTracking()
+                       .Where(x => x.Activo )
+                       .OrderBy(x => x.AreaNombre)
+                       .Select(x => new SelectListItem
+                       {
+                           Value = x.AreaId.ToString(),
+                           Text = x.AreaNombre,
+                           
+                           Selected = !string.IsNullOrEmpty(selectedValue) && x.AreaId.ToString() == selectedValue
+                       })
+                       .ToListAsync();
+
+            }
+
+           
+        }
+
 
 
 
@@ -164,25 +238,35 @@ namespace SIGEMAV.Areas.Maquinaria.Controllers
             catch (Exception ex)
             {
                 // -----------------------------------
-                // CONTROL Y FORMATO DE EXCEPCIONES
+                // CONTROL Y TRADUCCIÓN DE MENSAJES DE ERROR
                 // -----------------------------------
-                string mensaje = ex.Message ?? "Ocurrió un error inesperado al procesar la factura.";
+                string mensajeOriginal = ex.InnerException?.Message ?? ex.Message ?? string.Empty;
+                string mensajeLimpio;
 
-                if (mensaje.StartsWith("WARNING|"))
+                // 1. Identificar si es un error por índice único de UUID duplicado en SQL Server
+                if (mensajeOriginal.Contains("UX_Factura_UUID", StringComparison.OrdinalIgnoreCase) ||
+                    mensajeOriginal.Contains("Violation of UNIQUE KEY constraint", StringComparison.OrdinalIgnoreCase))
                 {
-                    TempData["Warning"] = mensaje.Replace("WARNING|", "");
+                    mensajeLimpio = "El comprobante fiscal (UUID) que intenta registrar ya se encuentra dado de alta en el sistema.";
+                    TempData["Warning"] = mensajeLimpio;
                 }
-                else if (mensaje.StartsWith("INFO|"))
+                // 2. Identificar si viene de una regla de negocio lanzada explícitamente con prefijo
+                else if (ex.Message.StartsWith("WARNING|"))
                 {
-                    TempData["Info"] = mensaje.Replace("INFO|", "");
+                    TempData["Warning"] = ex.Message.Replace("WARNING|", "");
                 }
-                else if (mensaje.StartsWith("SUCCESS|"))
+                else if (ex.Message.StartsWith("INFO|"))
                 {
-                    TempData["Success"] = mensaje.Replace("SUCCESS|", "");
+                    TempData["Info"] = ex.Message.Replace("INFO|", "");
+                }
+                else if (ex.Message.StartsWith("SUCCESS|"))
+                {
+                    TempData["Success"] = ex.Message.Replace("SUCCESS|", "");
                 }
                 else
                 {
-                    TempData["Error"] = mensaje.Replace("ERROR|", "");
+                    // 3. Fallback genérico amigable en español en lugar del mensaje de EF en inglés
+                    TempData["Error"] = "Ocurrió un error al procesar y guardar la factura. Verifique los datos e intente nuevamente.";
                 }
 
                 // -----------------------------------

@@ -249,143 +249,144 @@
                 </div>
 
                 <!-- ============================================== -->
-<!-- SERVICIOS AUTORIZADOS (TABLA DE PARTIDAS) -->
-<!-- ============================================== -->
-<div class="card border-0 shadow-sm rounded-3 mb-4 overflow-hidden">
-    <div class="card-header bg-light border-bottom d-flex justify-content-between align-items-center py-3 px-4">
-        <div class="d-flex align-items-center gap-2">
-            <i class="bi bi-wrench-adjustable text-primary fs-5"></i>
-            <h6 class="fw-bold mb-0 text-dark">
-                Servicios autorizados y partidas
-            </h6>
-        </div>
-        <span class="badge bg-primary-subtle text-primary border border-primary-subtle fs-6 px-3 py-1 rounded-pill">
-            @Model.Servicios.Count servicio(s)
-        </span>
-    </div>
+                <!-- SERVICIOS AUTORIZADOS Y PARTIDAS (CON IVA 16%) -->
+                <!-- ============================================== -->
+                <div class="card border-0 shadow-sm rounded-3 mb-4 overflow-hidden">
+                    <div class="card-header bg-light border-bottom d-flex justify-content-between align-items-center py-3 px-4">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-wrench-adjustable text-primary fs-5"></i>
+                            <h6 class="fw-bold mb-0 text-dark">
+                                Servicios autorizados y partidas (Con IVA 16% Desglosado)
+                            </h6>
+                        </div>
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle fs-6 px-3 py-1 rounded-pill">
+                            @Model.Servicios.Count servicio(s)
+                        </span>
+                    </div>
 
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <!-- Se agrega la clase align-middle y table-layout fija para controlar anchos de columna -->
-            <table class="table table-hover align-middle mb-0" id="tablaServicios" style="min-width: 900px;">
-                <thead class="bg-light border-bottom text-uppercase extra-small text-muted fw-bold">
-                    <tr>
-                        <th class="ps-4 py-3" style="width: 25%;">Servicio / Concepto</th>
-                        <th class="text-center py-3" style="width: 70px;">Cant.</th>
-                        <th class="text-end py-3" style="width: 110px;">Mano Obra</th>
-                        <th class="py-3" style="width: 18%;">Partida</th>
-                        <th class="text-end py-3" style="width: 110px;">Refacciones</th>
-                        <th class="py-3" style="width: 18%;">Partida</th>
-                        <th class="text-end pe-4 py-3" style="width: 130px;">Subtotal</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @for (var i = 0; i < Model.Servicios.Count; i++)
-                    {
-                        var partidaMO = string.IsNullOrWhiteSpace(Model.Servicios[i].ObjetoGastoManoObraTexto) ? "-" : Model.Servicios[i].ObjetoGastoManoObraTexto;
-                        var partidaRef = string.IsNullOrWhiteSpace(Model.Servicios[i].ObjetoGastoRefaccionesTexto) ? "-" : Model.Servicios[i].ObjetoGastoRefaccionesTexto;
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0" id="tablaServicios" style="min-width: 1000px;">
+                                <thead class="bg-light border-bottom text-uppercase extra-small text-muted fw-bold">
+                                    <tr>
+                                        <th class="ps-4 py-3" style="width: 22%;">Servicio / Concepto</th>
+                                        <th class="text-center py-3" style="width: 60px;">Cant.</th>
+                                        <th class="text-end py-3" style="width: 110px;">Mano Obra</th>
+                                        <th class="py-3" style="width: 15%;">Partida</th>
+                                        <th class="text-end py-3" style="width: 110px;">Refacciones</th>
+                                        <th class="py-3" style="width: 15%;">Partida</th>
+                                        <th class="text-end py-3" style="width: 100px;">IVA (16%)</th>
+                                        <th class="text-end pe-4 py-3" style="width: 120px;">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @for (var i = 0; i < Model.Servicios.Count; i++)
+                                    {
+                                        var servicio = Model.Servicios[i];
+                                        var partidaMO = string.IsNullOrWhiteSpace(servicio.ObjetoGastoManoObraTexto) ? "-" : servicio.ObjetoGastoManoObraTexto;
+                                        var partidaRef = string.IsNullOrWhiteSpace(servicio.ObjetoGastoRefaccionesTexto) ? "-" : servicio.ObjetoGastoRefaccionesTexto;
 
-                        <tr>
-                            <!-- SERVICIO Y OCULTOS -->
-                            <td class="ps-4 py-3">
-                                <input type="hidden"
-                                       name="Servicios[@i].MantenimientoDetalleId"
-                                       value="@Model.Servicios[i].MantenimientoDetalleId" />
+                                        // Cálculos base e IVA por renglón con los operadores correctos (*)
+                                        var subMoBase = servicio.CostoEstimadoManoObra * servicio.Cantidad;
+                                        var subRefBase = servicio.CostoEstimadoRefacciones * servicio.Cantidad;
+                                        var baseFila = subMoBase + subRefBase;
+                                        var ivaFila = baseFila * 0.16m;
+                                        var totalFilaConIva = baseFila + ivaFila;
 
-                                <input type="hidden"
-                                       name="Servicios[@i].ConceptoServicioId"
-                                       value="@Model.Servicios[i].ConceptoServicioId" />
+                                        <tr>
+                                            <!-- SERVICIO Y OCULTOS -->
+                                            <td class="ps-4 py-3">
+                                                <input type="hidden" name="Servicios[@i].MantenimientoDetalleId" value="@servicio.MantenimientoDetalleId" />
+                                                <input type="hidden" name="Servicios[@i].ConceptoServicioId" value="@servicio.ConceptoServicioId" />
 
-                                <div class="fw-semibold text-dark text-truncate" style="max-width: 250px;" title="@Model.Servicios[i].ConceptoServicio">
-                                    @Model.Servicios[i].ConceptoServicio
-                                </div>
-                            </td>
+                                                <div class="fw-semibold text-dark text-truncate" style="max-width: 220px;" title="@servicio.ConceptoServicio">
+                                                    @servicio.ConceptoServicio
+                                                </div>
+                                            </td>
 
-                            <!-- CANTIDAD -->
-                            <td class="text-center py-3">
-                                <input type="hidden"
-                                       name="Servicios[@i].Cantidad"
-                                       value="@Model.Servicios[i].Cantidad" />
+                                            <!-- CANTIDAD -->
+                                            <td class="text-center py-3">
+                                                <input type="hidden" name="Servicios[@i].Cantidad" value="@servicio.Cantidad" />
+                                                <input type="number"
+                                                       value="@servicio.Cantidad"
+                                                       class="form-control form-control-sm text-center bg-light border-0 fw-bold px-1"
+                                                       readonly
+                                                       tabindex="-1"
+                                                       style="max-width: 50px; margin: auto;" />
+                                            </td>
 
-                                <input type="number"
-                                       value="@Model.Servicios[i].Cantidad"
-                                       class="form-control form-control-sm text-center bg-light border-0 fw-bold px-1"
-                                       readonly
-                                       tabindex="-1"
-                                       style="max-width: 55px; margin: auto;" />
-                            </td>
+                                            <!-- MANO DE OBRA (Base) -> Atributos data para que JS los lea con seguridad -->
+                                            <td class="text-end py-3">
+                                                <input type="hidden" name="Servicios[@i].CostoUnitarioManoObra" value="@servicio.CostoUnitarioManoObra" />
+                                                <input type="hidden" class="costoManoObraBase" value="@servicio.CostoEstimadoManoObra" />
+                                                <span class="text-secondary small">@subMoBase.ToString("C")</span>
+                                            </td>
 
-                            <!-- MANO DE OBRA -->
-                            <td class="text-end py-3">
-                                <input type="number"
-                                       step="0.01"
-                                       name="Servicios[@i].CostoUnitarioManoObra"
-                                       value="@Model.Servicios[i].CostoUnitarioManoObra"
-                                       class="form-control form-control-sm manoObra text-end bg-light border-0 px-1"
-                                       readonly
-                                       tabindex="-1" />
-                            </td>
+                                            <!-- PARTIDA MANO DE OBRA -->
+                                            <td class="py-3">
+                                                <input type="hidden" name="Servicios[@i].IdObjetoGastoManoObra" value="@servicio.IdObjetoGastoManoObra" />
+                                                <div class="extra-small text-muted text-truncate" style="max-width: 150px;" title="@partidaMO">
+                                                    @partidaMO
+                                                </div>
+                                            </td>
 
-                            <!-- PARTIDA MANO DE OBRA (LIMITADA EN HORIZONTAL) -->
-                            <td class="py-3">
-                                <input type="hidden"
-                                       name="Servicios[@i].IdObjetoGastoManoObra"
-                                       value="@Model.Servicios[i].IdObjetoGastoManoObra" />
+                                            <!-- REFACCIONES (Base) -> Atributos data para que JS los lea con seguridad -->
+                                            <td class="text-end py-3">
+                                                <input type="hidden" name="Servicios[@i].CostoUnitarioRefacciones" value="@servicio.CostoUnitarioRefacciones" />
+                                                <input type="hidden" class="costoRefaccionesBase" value="@servicio.CostoEstimadoRefacciones" />
+                                                <span class="text-secondary small">@subRefBase.ToString("C")</span>
+                                            </td>
 
-                                <div class="extra-small text-muted text-truncate" style="max-width: 170px;" title="@partidaMO">
-                                    @partidaMO
-                                </div>
-                            </td>
+                                            <!-- PARTIDA REFACCIONES -->
+                                            <td class="py-3">
+                                                <input type="hidden" name="Servicios[@i].IdObjetoGastoRefacciones" value="@servicio.IdObjetoGastoRefacciones" />
+                                                <div class="extra-small text-muted text-truncate" style="max-width: 150px;" title="@partidaRef">
+                                                    @partidaRef
+                                                </div>
+                                            </td>
 
-                            <!-- REFACCIONES -->
-                            <td class="text-end py-3">
-                                <input type="number"
-                                       step="0.01"
-                                       name="Servicios[@i].CostoUnitarioRefacciones"
-                                       value="@Model.Servicios[i].CostoUnitarioRefacciones"
-                                       class="form-control form-control-sm refacciones text-end bg-light border-0 px-1"
-                                       readonly
-                                       tabindex="-1" />
-                            </td>
+                                            <!-- IVA (16%) -->
+                                            <td class="text-end py-3 text-muted small">
+                                                @ivaFila.ToString("C")
+                                            </td>
 
-                            <!-- PARTIDA REFACCIONES (LIMITADA EN HORIZONTAL) -->
-                            <td class="py-3">
-                                <input type="hidden"
-                                       name="Servicios[@i].IdObjetoGastoRefacciones"
-                                       value="@Model.Servicios[i].IdObjetoGastoRefacciones" />
-
-                                <div class="extra-small text-muted text-truncate" style="max-width: 170px;" title="@partidaRef">
-                                    @partidaRef
-                                </div>
-                            </td>
-
-                            <!-- SUBTOTAL LINEA -->
-                            <td class="text-end pe-4 py-3">
-                                <input type="text"
-                                       value="@Model.Servicios[i].TotalLinea.ToString("N2")"
-                                       class="form-control form-control-sm totalLinea text-end fw-bold bg-light border-0 text-dark px-1"
-                                       readonly
-                                       tabindex="-1" />
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-                <tfoot class="bg-light border-top fw-bold text-dark">
-                    <tr>
-                        <td colspan="6" class="text-end py-3 ps-4 text-uppercase extra-small text-muted">
-                            Total Autorizado
-                        </td>
-                        <td class="text-end pe-4 py-3">
-                            <span class="fw-bold fs-5 text-primary">
-                                @Model.Servicios.Sum(x => x.TotalLinea).ToString("C")
-                            </span>
-                        </td>
-                    </tr>
-                </tfoot>
-            </table>
-        </div>
-    </div>
-</div>
+                                            <!-- TOTAL LÍNEA (Con IVA incluido) -->
+                                            <td class="text-end pe-4 py-3">
+                                                <input type="text"
+                                                       value="@totalFilaConIva.ToString("N2")"
+                                                       class="form-control form-control-sm totalLinea text-end fw-bold bg-light border-0 text-success px-1"
+                                                       readonly
+                                                       tabindex="-1" />
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                                <tfoot class="bg-light border-top fw-bold text-dark">
+                                    @{
+                                        var sumaMoBaseGeneral = Model.Servicios.Sum(x => x.CostoEstimadoManoObra * x.Cantidad);
+                                        var sumaRefBaseGeneral = Model.Servicios.Sum(x => x.CostoEstimadoRefacciones * x.Cantidad);
+                                        var sumaBaseGeneral = sumaMoBaseGeneral + sumaRefBaseGeneral;
+                                        var sumaIvaGeneral = sumaBaseGeneral * 0.16m;
+                                        var sumaTotalGeneralConIva = sumaBaseGeneral + sumaIvaGeneral;
+                                    }
+                                    <tr>
+                                        <td colspan="6" class="text-end py-3 ps-4 text-uppercase extra-small text-muted">
+                                            Total Autorizado (IVA 16% Incluido)
+                                        </td>
+                                        <td class="text-end py-3 text-muted small">
+                                            @sumaIvaGeneral.ToString("C")
+                                        </td>
+                                        <td class="text-end pe-4 py-3">
+                                            <span class="fw-bold fs-5 text-success">
+                                                @sumaTotalGeneralConIva.ToString("C")
+                                            </span>
+                                        </td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
 
                 <!-- Campo oculto/auxiliar para recalcular el costo real total mediante JS -->
                 <input type="hidden" id="CostoRealTotal" name="CostoRealTotal" value="@Model.Servicios.Sum(x => x.TotalLinea)" />
@@ -453,6 +454,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <!-- TRADUCCIÓN Y MENSAJES EN ESPAÑOL PARA JQUERY VALIDATE -->
+    <!-- TRADUCCIÓN Y MENSAJES EN ESPAÑOL PARA JQUERY VALIDATE -->
     <script>
         if ($.validator) {
             $.extend($.validator.messages, {
@@ -480,266 +482,134 @@
     
     
     <script>
-    function formatoMoneda(valor) {
-        return valor.toLocaleString("es-MX", {
-            style: "currency",
-            currency: "MXN",
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        });
-    }
-
-    function recalcularTotales() {
-        let totalGeneral = 0;
-
-        $("#tablaServicios tbody tr").each(function () {
-            const cantidad = parseFloat($(this).find("input[name*='Cantidad']").val()) || 0;
-            const mo = parseFloat($(this).find(".manoObra").val()) || 0;
-            const ref = parseFloat($(this).find(".refacciones").val()) || 0;
-
-            const total = cantidad * (mo + ref);
-
-            $(this).find(".totalLinea").val(formatoMoneda(total));
-            totalGeneral += total;
-        });
-
-        $("#CostoRealTotal").val(formatoMoneda(totalGeneral));
-    }
-
-    document.addEventListener("DOMContentLoaded", function () {
-        recalcularTotales();
-
-        const fechaInicio = document.getElementById("FechaInicioTrabajo");
-        const fechaFin = document.getElementById("FechaFinTrabajo");
-
-        // Retorna la fecha y hora actual en formato ISO local YYYY-MM-DDTHH:mm
-        function obtenerAhoraISO() {
-            const ahora = new Date();
-            const año = ahora.getFullYear();
-            const mes = String(ahora.getMonth() + 1).padStart(2, '0');
-            const dia = String(ahora.getDate()).padStart(2, '0');
-            const horas = String(ahora.getHours()).padStart(2, '0');
-            const minutos = String(ahora.getMinutes()).padStart(2, '0');
-            return `${año}-${mes}-${dia}T${horas}:${minutos}`;
+        function formatoMoneda(valor) {
+            return valor.toLocaleString("es-MX", {
+                style: "currency",
+                currency: "MXN",
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
         }
 
-        function obtenerDateTimeLocalLimpio(val) {
-            if (!val) return "";
-            let limpia = val.replace(" ", "T");
-            return limpia.length > 16 ? limpia.substring(0, 16) : limpia;
+        function recalcularTotales() {
+            let totalGeneralConIva = 0;
+
+            $("#tablaServicios tbody tr").each(function () {
+                const cantidad = parseFloat($(this).find("input[name*='Cantidad']").val()) || 0;
+                const moBase = parseFloat($(this).find(".costoManoObraBase").val()) || 0;
+                const refBase = parseFloat($(this).find(".costoRefaccionesBase").val()) || 0;
+
+                // Cálculo base renglón + IVA 16%
+                const baseFila = cantidad * (moBase + refBase);
+                const ivaFila = baseFila * 0.16;
+                const totalFila = baseFila + ivaFila;
+
+                $(this).find(".totalLinea").val(totalFila.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+                totalGeneralConIva += totalFila;
+            });
+
+            // Si tienes un input general para el costo total real
+            const inputCostoReal = $("#CostoRealTotal");
+            if (inputCostoReal.length) {
+                inputCostoReal.val(formatoMoneda(totalGeneralConIva));
+            }
         }
 
-        if (fechaInicio && fechaFin) {
-            const ahoraMax = obtenerAhoraISO();
+        document.addEventListener("DOMContentLoaded", function () {
+            recalcularTotales();
 
-            // Respetar valores existentes y formatear a YYYY-MM-DDTHH:mm
-            if (fechaInicio.value) {
-                const inicioLimpio = obtenerDateTimeLocalLimpio(fechaInicio.value);
-                fechaInicio.value = inicioLimpio;
-                fechaFin.setAttribute("min", inicioLimpio);
+            const fechaInicio = document.getElementById("FechaInicioTrabajo");
+            const fechaFin = document.getElementById("FechaFinTrabajo");
+
+            function obtenerDateTimeLocalLimpio(val) {
+                if (!val) return "";
+                let limpia = val.replace(" ", "T");
+                return limpia.length > 16 ? limpia.substring(0, 16) : limpia;
             }
 
-            if (fechaFin.value) {
-                const finLimpio = obtenerDateTimeLocalLimpio(fechaFin.value);
-                fechaFin.value = finLimpio;
-                fechaInicio.setAttribute("max", finLimpio);
-            }
-
-            // Establecer el limite maximo de ambas fechas a la fecha/hora actual si no tenian limite previo
-            if (!fechaInicio.getAttribute("max")) {
-                fechaInicio.setAttribute("max", ahoraMax);
-            }
-            if (!fechaFin.getAttribute("max")) {
-                fechaFin.setAttribute("max", ahoraMax);
-            }
-
-            // Control dinámico al cambiar Fecha de Inicio
-            fechaInicio.addEventListener("change", function () {
-                const actualAhora = obtenerAhoraISO();
+            if (fechaInicio && fechaFin) {
+                fechaInicio.removeAttribute("max");
+                fechaFin.removeAttribute("max");
 
                 if (fechaInicio.value) {
-                    const valInicio = obtenerDateTimeLocalLimpio(fechaInicio.value);
-
-                    // Validar que inicio no sea fecha futura
-                    if (valInicio > actualAhora) {
-                        Swal.fire({
-                            icon: 'warning',
-                            title: 'Fecha no permitida',
-                            text: 'La fecha de inicio no puede ser posterior a la fecha y hora actual.',
-                            confirmButtonColor: '#800705'
-                        });
-                        fechaInicio.value = "";
-                        fechaFin.removeAttribute("min");
-                        return;
-                    }
-
-                    // Ajustar el minimo de fecha fin
-                    fechaFin.setAttribute("min", valInicio);
-
-                    // Si la fecha de fin actual es menor que la nueva fecha de inicio, la igualamos
-                    if (fechaFin.value && fechaFin.value < valInicio) {
-                        fechaFin.value = valInicio;
-                    }
-                } else {
-                    fechaFin.removeAttribute("min");
+                    fechaInicio.value = obtenerDateTimeLocalLimpio(fechaInicio.value);
+                    fechaFin.setAttribute("min", fechaInicio.value);
                 }
-
-                if (fechaFin.value && fechaInicio.value > fechaFin.value) {
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Periodo inválido',
-                        text: 'La fecha de inicio no puede ser mayor que la fecha de fin del trabajo.',
-                        confirmButtonColor: '#800705'
-                    });
-
-                    fechaInicio.value = "";
-                    fechaFin.removeAttribute("min");
-                }
-            });
-
-            // Control dinámico al cambiar Fecha de Fin
-            fechaFin.addEventListener("change", function () {
-                const actualAhora = obtenerAhoraISO();
 
                 if (fechaFin.value) {
-                    const valFin = obtenerDateTimeLocalLimpio(fechaFin.value);
+                    fechaFin.value = obtenerDateTimeLocalLimpio(fechaFin.value);
+                    fechaInicio.setAttribute("max", fechaFin.value);
+                }
 
-                    // Validar que la fecha de fin no sea futura
-                    if (valFin > actualAhora) {
-                        Swal.fire({
-                            icon: 'warning',
-                            title: 'Fecha no permitida',
-                            text: 'La fecha de fin de trabajo no puede ser posterior a la fecha y hora actual.',
-                            confirmButtonColor: '#800705'
-                        });
-                        fechaFin.value = "";
-                        return;
+                fechaInicio.addEventListener("change", function () {
+                    if (fechaInicio.value) {
+                        const valInicio = obtenerDateTimeLocalLimpio(fechaInicio.value);
+                        fechaFin.setAttribute("min", valInicio);
+
+                        if (fechaFin.value && fechaFin.value < valInicio) {
+                            fechaFin.value = valInicio;
+                        }
+                    } else {
+                        fechaFin.removeAttribute("min");
                     }
+                });
 
-                    // Sincronizar el max de fecha inicio con la fecha fin seleccionada
-                    fechaInicio.setAttribute("max", valFin);
-                } else {
-                    fechaInicio.setAttribute("max", actualAhora);
-                }
+                fechaFin.addEventListener("change", function () {
+                    if (fechaFin.value) {
+                        const valFin = obtenerDateTimeLocalLimpio(fechaFin.value);
+                        fechaInicio.setAttribute("max", valFin);
+                    } else {
+                        fechaInicio.removeAttribute("max");
+                    }
+                });
+            }
+        });
 
-                if (fechaInicio.value && fechaFin.value && fechaInicio.value > fechaFin.value) {
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Periodo inválido',
-                        text: 'La fecha de fin no puede ser menor que la fecha de inicio del trabajo.',
-                        confirmButtonColor: '#800705'
-                    });
+        // Validación al enviar el formulario
+        $("#formEditMantenimiento").on("submit", function (e) {
+            const fechaInicioVal = $("#FechaInicioTrabajo").val();
+            const fechaFinVal = $("#FechaFinTrabajo").val();
 
-                    fechaFin.value = "";
-                }
-            });
-        }
-    });
+            const kmEntrada = parseInt($("#KilometrajeEntrada").val() || $("input[name='KilometrajeEntrada']").val()) || 0;
+            const kmSalidaVal = $("#KilometrajeSalida").val();
+            const kmSalida = parseInt(kmSalidaVal) || 0;
+            const observacionesVal = $.trim($("#Observaciones").val());
 
-    // Validación integral al enviar el formulario
-    $("#formEditMantenimiento").on("submit", function (e) {
-        const fechaInicioVal = $("#FechaInicioTrabajo").val();
-        const fechaFinVal = $("#FechaFinTrabajo").val();
+            if (!fechaInicioVal) {
+                e.preventDefault();
+                Swal.fire({ icon: "warning", title: "Campo requerido", text: "Debe ingresar la fecha y hora de inicio del trabajo.", confirmButtonColor: '#800705' });
+                return;
+            }
 
-        const ahora = new Date();
-        const mes = String(ahora.getMonth() + 1).padStart(2, '0');
-        const dia = String(ahora.getDate()).padStart(2, '0');
-        const horas = String(ahora.getHours()).padStart(2, '0');
-        const minutos = String(ahora.getMinutes()).padStart(2, '0');
-        const ahoraISO = `${ahora.getFullYear()}-${mes}-${dia}T${horas}:${minutos}`;
+            if (!fechaFinVal) {
+                e.preventDefault();
+                Swal.fire({ icon: "warning", title: "Campo requerido", text: "Debe ingresar la fecha y hora de fin del trabajo.", confirmButtonColor: '#800705' });
+                return;
+            }
 
-        const kmEntrada = parseInt($("#KilometrajeEntrada").val() \vert{}\vert{} $("input[name='KilometrajeEntrada']").val()) || 0;
-        const kmSalidaVal = $("#KilometrajeSalida").val();
-        const kmSalida = parseInt(kmSalidaVal) || 0;
-        const observacionesVal = $.trim($("#Observaciones").val());
+            if (fechaFinVal < fechaInicioVal) {
+                e.preventDefault();
+                Swal.fire({ icon: "error", title: "Rango de fechas inválido", text: "La fecha y hora de fin del trabajo no puede ser anterior a la fecha de inicio.", confirmButtonColor: '#800705' });
+                return;
+            }
 
-        // 1. Validar presencia de Fecha de Inicio
-        if (!fechaInicioVal) {
-            e.preventDefault();
-            Swal.fire({
-                icon: "warning",
-                title: "Campo requerido",
-                text: "Debe ingresar la fecha y hora de inicio del trabajo."
-            });
-            return;
-        }
+            if (!kmSalidaVal || isNaN(kmSalida)) {
+                e.preventDefault();
+                Swal.fire({ icon: "warning", title: "Campo requerido", text: "Debe registrar el kilometraje de salida del vehículo.", confirmButtonColor: '#800705' });
+                return;
+            }
 
-        // 2. Validar que Fecha de Inicio no sea futura
-        if (fechaInicioVal > ahoraISO) {
-            e.preventDefault();
-            Swal.fire({
-                icon: "error",
-                title: "Fecha inválida",
-                text: "La fecha y hora de inicio no puede ser posterior al momento actual."
-            });
-            return;
-        }
+            if (kmSalida < kmEntrada) {
+                e.preventDefault();
+                Swal.fire({ icon: "error", title: "Kilometraje inválido", text: `El kilometraje de salida (${kmSalida.toLocaleString()} km) no puede ser menor al kilometraje de entrada (${kmEntrada.toLocaleString()} km).`, confirmButtonColor: '#800705' });
+                return;
+            }
 
-        // 3. Validar presencia de Fecha de Fin
-        if (!fechaFinVal) {
-            e.preventDefault();
-            Swal.fire({
-                icon: "warning",
-                title: "Campo requerido",
-                text: "Debe ingresar la fecha y hora de fin del trabajo."
-            });
-            return;
-        }
-
-        // 4. Validar que Fecha de Fin no sea futura
-        if (fechaFinVal > ahoraISO) {
-            e.preventDefault();
-            Swal.fire({
-                icon: "error",
-                title: "Fecha de fin no permitida",
-                text: "La fecha de fin no puede ser posterior al día/momento actual."
-            });
-            return;
-        }
-
-        // 5. Validar inconsistencia de rango de fechas
-        if (fechaFinVal < fechaInicioVal) {
-            e.preventDefault();
-            Swal.fire({
-                icon: "error",
-                title: "Rango de fechas inválido",
-                text: "La fecha y hora de fin del trabajo no puede ser anterior a la fecha de inicio."
-            });
-            return;
-        }
-
-        // 6. Validar Kilometraje de Salida
-        if (!kmSalidaVal || isNaN(kmSalida)) {
-            e.preventDefault();
-            Swal.fire({
-                icon: "warning",
-                title: "Campo requerido",
-                text: "Debe registrar el kilometraje de salida del vehículo."
-            });
-            return;
-        }
-
-        // 7. Validar secuencia de Kilometraje
-        if (kmSalida < kmEntrada) {
-            e.preventDefault();
-            Swal.fire({
-                icon: "error",
-                title: "Kilometraje inválido",
-                text: `El kilometraje de salida (${kmSalida.toLocaleString()} km) no puede ser menor al kilometraje de entrada (${kmEntrada.toLocaleString()} km).`
-            });
-            return;
-        }
-
-        // 8. Validar Observaciones
-        if (!observacionesVal) {
-            e.preventDefault();
-            Swal.fire({
-                icon: "warning",
-                title: "Campo requerido",
-                text: "Los comentarios finales u observaciones técnicas son obligatorios."
-            });
-            return;
-        }
-    });
-</script>
+            if (!observacionesVal) {
+                e.preventDefault();
+                Swal.fire({ icon: "warning", title: "Campo requerido", text: "Los comentarios finales u observaciones técnicas son obligatorios.", confirmButtonColor: '#800705' });
+                return;
+            }
+        });
+    </script>
 }

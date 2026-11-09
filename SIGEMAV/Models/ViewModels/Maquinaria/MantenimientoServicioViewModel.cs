@@ -29,6 +29,9 @@
 
         public decimal TotalLinea { get; set; }
 
-     
+        public decimal CostoManoObraConIva { get; set; }
+        public decimal CostoRefaccionesConIva { get; set; }
+
+
     }
 }

@@ -135,6 +135,8 @@ namespace SIGEMAV.Areas.Maquinaria.DTOs
 
         public class SolicitudMantenimientoCreateDto
         {
+
+            public int SolicitudMantenimientoId { get; set; }
             public string Folio { get; set; }
                 = string.Empty;
 
@@ -1515,6 +1517,7 @@ namespace SIGEMAV.Areas.Maquinaria.DTOs
 
         public class ResultadoCreacionSolicitudDto
         {
+            public int SolicitudMantenimientoId { get; set; }
             public bool Correcto { get; set; }
 
             public int SolicitudId { get; set; }

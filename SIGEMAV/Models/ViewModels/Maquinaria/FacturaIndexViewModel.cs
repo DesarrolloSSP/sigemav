@@ -30,6 +30,8 @@
         public int DiasTranscurridos { get; set; }
         public int CantidadConceptos { get; set; }
 
+        public string Area { get; set; }
+
     }
 
     public class FacturaListadoViewModel

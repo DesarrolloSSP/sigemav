@@ -9,7 +9,14 @@ using SIGEMAV.Models.Data;
 using SIGEMAV.Models.ViewModels.Maquinaria;
 using SIGEMAV.Services.Interfaces.Maquinaria;
 using System.ComponentModel.Design;
+using System.Security.Claims;
 using static SIGEMAV.Areas.Maquinaria.DTOs.DTOs;
+using System.Security;
+using SIGEMAV.Areas.Maquinaria.Controllers;
+using SIGEMAV.Areas.Maquinaria.DTOs;
+using SIGEMAV.Areas.Maquinaria.Funciones;
+using SIGEMAV.Models.Entities;
+
 
 namespace SIGEMAV.Areas.Maquinaria.Controllers
 {
@@ -20,17 +27,21 @@ namespace SIGEMAV.Areas.Maquinaria.Controllers
         private readonly IMaquinariaService _maquinariaService;
         private readonly BdSigeMavContext _context;
         private readonly ILogger<SolicitudMantenimientoController> _logger;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IConfiguration _configuration;
 
-        public SolicitudMantenimientoController(IMaquinariaService maquinariaService, BdSigeMavContext context, ILogger<SolicitudMantenimientoController> logger)
+        public SolicitudMantenimientoController(IMaquinariaService maquinariaService, BdSigeMavContext context, ILogger<SolicitudMantenimientoController> logger, IHttpContextAccessor httpContextAccessor, IConfiguration configuration)
         {
             _maquinariaService = maquinariaService;
             _context = context;
             _logger = logger;
+            _httpContextAccessor = httpContextAccessor;
+            _configuration = configuration;
         }
 
 
 
-
+        
 
 
         [HttpGet]
@@ -41,7 +52,26 @@ namespace SIGEMAV.Areas.Maquinaria.Controllers
             {
                 ModelState.AddModelError("", "La fecha inicial no puede ser mayor que la fecha final.");
             }
+
+
+            //////////////////////////////////////////////// ESTO ES PARA EL CHIPOTE
+            var usuarioGuid = Guid.TryParse(_httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var guid) ? guid : (Guid?)null;
+
+            if (usuarioGuid.ToString() == "0bf13a21-fe5a-45f9-a584-1f6d338e1995")
+            {
+                filtro.AreaSolicitanteId = 22;
+                filtro.EsUsuarioDeAreaOperativa = true;
+            }
+
+            //////////////////////////////////////////////// ESTO ES PARA EL CHIPOTE
+            ///
             var resultado = await _maquinariaService.ObtenerSolicitudesMantenimiento(filtro, pagina, registrosPorPagina);
+
+
+
+            
+
+
             filtro.Areas = await _maquinariaService.ObtenerAreasSelectList(filtro.AreaSolicitanteId);
             filtro.Estatus = await _maquinariaService.ObtenerEstatusSelectList(filtro.EstatusSolicitudMantenimientoId);
             filtro.TiposMantenimiento = await _maquinariaService.ObtenerTiposMantenimientoSelectList(filtro.TipoMantenimientoId);
@@ -145,12 +175,24 @@ namespace SIGEMAV.Areas.Maquinaria.Controllers
 
 
 
+
+
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         [RequestFormLimits(MultipartBodyLengthLimit = 10 * 1024 * 1024)]
         [RequestSizeLimit(15 * 1024 * 1024)]
         public async Task<IActionResult> Create(SolicitudMantenimientoCreateViewModel vm)
         {
+            // ============================================================
+            // VALIDAR SOPORTE DOCUMENTAL OBLIGATORIO
+            // ============================================================
+            bool tieneArchivosNuevos = vm.Archivos != null && vm.Archivos.Any(x => x != null && x.Length > 0);
+            if (!tieneArchivosNuevos)
+            {
+                ModelState.AddModelError(nameof(vm.Archivos), "Debe adjuntar al menos un documento de soporte (PDF, JPG, PNG).");
+            }
+
             // ============================================================
             // VALIDAR SERVICIOS
             // ============================================================
@@ -183,7 +225,7 @@ namespace SIGEMAV.Areas.Maquinaria.Controllers
             }
 
             // ============================================================
-            // VALIDAR RANGO DE KILOMETRAJE
+            // VALIDAR RANGO DE KILOMETRAJE Y CONTRA HISTÓRICO DE BD
             // ============================================================
             if (vm.KilometrajeActual.HasValue)
             {
@@ -199,6 +241,18 @@ namespace SIGEMAV.Areas.Maquinaria.Controllers
                     ModelState.AddModelError(
                         nameof(vm.KilometrajeActual),
                         "El kilometraje debe estar entre 0 y 999999.");
+                }
+
+                // Validación histórica si la unidad está seleccionada y el odómetro opera correctamente
+                if (vm.UnidadVehicularId.HasValue && vm.UnidadVehicularId.Value > 0 && vm.EstadoOdometroId == 1)
+                {
+                    var ultimoKmConocido = await _maquinariaService.ObtenerUltimoKilometrajeUnidadAsync(vm.UnidadVehicularId.Value);
+                    if (ultimoKmConocido > 0 && vm.KilometrajeActual.Value < ultimoKmConocido)
+                    {
+                        ModelState.AddModelError(
+                            nameof(vm.KilometrajeActual),
+                            $"El kilometraje capturado ({vm.KilometrajeActual.Value}) no puede ser menor al último registrado en el sistema para esta unidad ({ultimoKmConocido}).");
+                    }
                 }
             }
 
@@ -249,9 +303,12 @@ namespace SIGEMAV.Areas.Maquinaria.Controllers
                     Servicios = serviciosDto
                 };
 
-                await _maquinariaService.CrearSolicitudMantenimiento(dto, vm.Archivos);
+                var resultado = await _maquinariaService.CrearSolicitudMantenimiento(dto, vm.Archivos);
 
-                TempData["Success"] = "La solicitud fue registrada correctamente.";
+                TempData["Success"] = $"La solicitud con folio {resultado.Folio} fue registrada exitosamente y su oficio PDF fue generado.";
+                TempData["AbrirOficioPdf"] = resultado.SolicitudMantenimientoId;
+                TempData.Keep("AbrirOficioPdf");
+
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
@@ -273,17 +330,32 @@ namespace SIGEMAV.Areas.Maquinaria.Controllers
         [HttpGet]
         public async Task<IActionResult> ObtenerConfiguracionesPorTaller(int tallerId)
         {
-            var configuraciones = await _context.TallerConfiguracions
+            // 1. Consultar de forma segura desde la BD
+            var configuracionesRaw = await _context.TallerConfiguracions
                 .AsNoTracking()
                 .Where(tc => tc.TallerId == tallerId && tc.Activo && tc.TallerConfiguracionPresupuestal.Activo)
-                .Select(tc => new SelectListItem
+                .Select(tc => new
                 {
-                    Value = tc.TallerConfiguracionPresupuestalId.ToString(),
-                    Text = $"Contrato: {tc.TallerConfiguracionPresupuestal.Contrato} | Recurso: {tc.TallerConfiguracionPresupuestal.Recurso.Nombre} (Monto Máx: {tc.TallerConfiguracionPresupuestal.MontoMaximo:C})"
+                    Id = tc.TallerConfiguracionPresupuestalId,
+                    Contrato = tc.TallerConfiguracionPresupuestal.Contrato,
+                    RecursoNombre = tc.TallerConfiguracionPresupuestal.Recurso.Nombre,
+                    MontoMaximo = tc.TallerConfiguracionPresupuestal.MontoMaximo
                 })
                 .ToListAsync();
 
-            return Json(configuraciones);
+            // 2. Limpieza forzosa en memoria: Agrupar y filtrar estrictamente duplicados por ID (Value)
+            var configuracionesUnicas = configuracionesRaw
+                .GroupBy(x => x.Id)
+                .Select(g => g.First()) // Si hay duplicados en crudo, nos quedamos estrictamente con el primero
+                .Select(x => new SelectListItem
+                {
+                    Value = x.Id.ToString(),
+                    Text = $"Contrato: {x.Contrato} | Recurso: {x.RecursoNombre} (Monto Máx: {x.MontoMaximo:C})"
+                })
+                .OrderBy(x => x.Text)
+                .ToList();
+
+            return Json(configuracionesUnicas);
         }
 
 
@@ -292,30 +364,24 @@ namespace SIGEMAV.Areas.Maquinaria.Controllers
         {
             vm.ConceptosServicio = new List<SelectListItem>();
 
-            vm.Areas =
-                await _maquinariaService
-                    .ObtenerAreas();
-
-            vm.TiposMantenimiento =
-                await _maquinariaService
-                    .ObtenerTiposMantenimiento();
-
-            vm.Talleres =
-                await _maquinariaService
-                    .ObtenerTalleres();
-
-            vm.Estatuses =
-                await _maquinariaService
-                    .ObtenerEstatusSolicitudMantenimiento();
-
-            vm.ObjetosGasto =
-                await _maquinariaService
-                    .ObtenerObjetosGasto();
-
+            vm.Areas = await _maquinariaService.ObtenerAreas();
+            vm.TiposMantenimiento = await _maquinariaService.ObtenerTiposMantenimiento();
+            vm.Talleres = await _maquinariaService.ObtenerTalleres();
+            vm.Estatuses = await _maquinariaService.ObtenerEstatusSolicitudMantenimiento();
+            vm.ObjetosGasto = await _maquinariaService.ObtenerObjetosGasto();
             vm.EstadosOdometro = await _maquinariaService.ObtenerEstadosOdometro();
+
+            // REINICIALIZACIÓN FORZOSA: 
+            // Si quieres limpiar el taller y su configuración tras un error de validación para evitar duplicidad:
+            vm.TallerId = null;
+            vm.TallerConfiguracionPresupuestalId = null;
+            vm.ConfiguracionesTaller = new List<SelectListItem>();
         }
 
 
+
+        //replicar todas las validaciones del Create en el Edit. cambio de unidad, select de la configuracion presupuestal... 
+        //limpiar tabla de servicios al cambiar la unidad
 
 
 
@@ -1281,8 +1347,7 @@ namespace SIGEMAV.Areas.Maquinaria.Controllers
             {
                 // Recuperar datos de consulta desde la base de datos.
                 var modelo =
-                    await _maquinariaService.ObtenerRevisionSolicitud(
-                        vm.SolicitudMantenimientoId);
+                    await _maquinariaService.ObtenerRevisionSolicitud(vm.SolicitudMantenimientoId);
 
                 // Restaurar únicamente los valores capturados por el usuario.
                 modelo.Observaciones = vm.Observaciones ?? string.Empty;
@@ -1361,16 +1426,13 @@ namespace SIGEMAV.Areas.Maquinaria.Controllers
             try
             {
                 var vm = await _maquinariaService.ObtenerDSP(id);
-
                 return View(vm);
             }
             catch (Exception ex)
             {
-
                 if (ex.Message.StartsWith("WARNING|"))
                 {
                     TempData["Warning"] = ex.Message.Replace("WARNING|", "");
-
                     return RedirectToAction(nameof(Index));
                 }
                 else
@@ -1378,7 +1440,6 @@ namespace SIGEMAV.Areas.Maquinaria.Controllers
                     if (ex.Message.StartsWith("INFO|"))
                     {
                         TempData["Info"] = ex.Message.Replace("INFO|", "");
-
                         return RedirectToAction(nameof(Index));
                     }
                     else
@@ -1693,60 +1754,19 @@ namespace SIGEMAV.Areas.Maquinaria.Controllers
         {
             try
             {
-                // 1. Consultar la solicitud de mantenimiento con todas sus relaciones
-                var solicitud = await _context.SolicitudMantenimientos
-                    .Include(s => s.AreaSolicitante)
-                    .Include(s => s.EstadoOdometro)
-                    .Include(s => s.EstatusSolicitudMantenimiento)
-                    .Include(s => s.TipoMantenimiento)
-                    .Include(s => s.Taller)
-                    .Include(s => s.UnidadVehicular)
-                        .ThenInclude(u => u.Marca)
-                    .Include(s => s.UnidadVehicular)
-                        .ThenInclude(u => u.Modelo)
-                    .Include(s => s.UnidadVehicular)
-                        .ThenInclude(u => u.Anio)
-                    .Include(s => s.UnidadVehicular)
-                        .ThenInclude(u => u.Cilindro)
-                    .Include(s => s.SolicitudMantenimientoDetalles)
-                        .ThenInclude(d => d.ConceptoServicio)
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(s => s.SolicitudMantenimientoId == solicitudId && s.Activo == true);
+                // Llamamos directamente al servicio que construye el PDF con QuestPDF
+                byte[] pdfBytes = await _maquinariaService.GenerarDictamenTecnicoPdfAsync(solicitudId);
 
-                if (solicitud == null)
-                {
-                    _logger.LogWarning("No se encontró la solicitud activa con ID {SolicitudId} para generar el dictamen técnico.", solicitudId);
-                    return NotFound("No se encontró la solicitud de mantenimiento especificada.");
-                }
-
-                // 2. Obtener el AreaId de forma segura
-                int? areaId = solicitud.AreaSolicitanteId;
-
-                // 3. Consultar firmantes activos desde la base de datos (Específicos del Área + Globales)
-                var firmantesConsulta = await _context.Firmantes
-                    .Where(f => f.Activo && (f.AreaId == areaId || f.AreaId == null))
-                    .AsNoTracking()
-                    .ToListAsync();
-
-                // 4. Mapear al diccionario resolviendo la prioridad:
-                //    Si existe firmante específico del área (AreaId == areaId), se prefiere sobre el Global (AreaId == null).
-                var dictFirmantes = firmantesConsulta
-                    .GroupBy(f => f.ClavePuesto)
-                    .ToDictionary(
-                        g => g.Key,
-                        g => g.OrderByDescending(f => f.AreaId.HasValue && f.AreaId == areaId).First()
-                    );
-
-                // 5. Pasar el diccionario a la vista mediante ViewBag
-                ViewBag.Firmantes = dictFirmantes;
-
-                // Especificación directa de la ruta de la vista dentro del Área Maquinaria
-                return View("~/Areas/Maquinaria/Views/SolicitudMantenimiento/DictamenTecnicoSolicitudPDF.cshtml", solicitud);
+                // Omitimos el tercer parámetro (nombre de archivo) para que el navegador 
+                // abra el visor embebido de PDF en una nueva pestaña en lugar de forzar la descarga.
+                return File(pdfBytes, "application/pdf");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al generar el dictamen técnico para la solicitud {SolicitudId}", solicitudId);
-                return NotFound($"No se pudo generar el dictamen técnico: {ex.Message}");
+                _logger.LogError(ex, "Error al generar el dictamen técnico en PDF para la solicitud {SolicitudId}", solicitudId);
+
+                TempData["Error"] = $"No se pudo obtener el PDF del dictamen técnico: {ex.Message}";
+                return RedirectToAction(nameof(Index));
             }
         }
 
@@ -1778,6 +1798,10 @@ namespace SIGEMAV.Areas.Maquinaria.Controllers
             // Sirve el archivo para previsualización inline en el navegador
             return PhysicalFile(rutaFisica, contentType);
         }
+
+
+
+
 
         /// <summary>
         /// Forza la descarga directa del documento adjunto a la computadora del usuario
@@ -1815,6 +1839,160 @@ namespace SIGEMAV.Areas.Maquinaria.Controllers
         }
         #endregion
 
+
+
+
+
+
+        [HttpGet]
+        public async Task<IActionResult> GenerarYGuardarDictamen(int solicitudId)
+        {
+            try
+            {
+                // 1. Consultar la solicitud de mantenimiento con todas sus relaciones requeridas
+                var solicitud = await _context.SolicitudMantenimientos
+                    .Include(s => s.AreaSolicitante)
+                    .Include(s => s.EstadoOdometro)
+                    .Include(s => s.EstatusSolicitudMantenimiento)
+                    .Include(s => s.TipoMantenimiento)
+                    .Include(s => s.Taller)
+                    .Include(s => s.UnidadVehicular)
+                        .ThenInclude(u => u.Marca)
+                    .Include(s => s.UnidadVehicular)
+                        .ThenInclude(u => u.Modelo)
+                    .Include(s => s.UnidadVehicular)
+                        .ThenInclude(u => u.Anio)
+                    .Include(s => s.UnidadVehicular)
+                        .ThenInclude(u => u.Cilindro)
+                    .Include(s => s.SolicitudMantenimientoDetalles)
+                        .ThenInclude(d => d.ConceptoServicio)
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(s => s.SolicitudMantenimientoId == solicitudId && s.Activo == true);
+
+                if (solicitud == null)
+                {
+                    _logger.LogWarning("No se encontró la solicitud activa con ID {SolicitudId} para generar el dictamen técnico.", solicitudId);
+                    TempData["Error"] = "No se encontró la solicitud de mantenimiento especificada.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                // 2. Generar el PDF del dictamen técnico a través de tu servicio de reportes (QuestPDF)
+                byte[] pdfBytes = await _maquinariaService.GenerarDictamenTecnicoPdfAsync(solicitudId);
+
+                if (pdfBytes == null || pdfBytes.Length == 0)
+                {
+                    throw new Exception("El flujo de bytes generado para el dictamen técnico está vacío.");
+                }
+
+                // 3. Configurar la ruta física de almacenamiento desde appsettings.json
+                var rutaBase = _configuration["Storage:DocumentosRuta"];
+                if (string.IsNullOrWhiteSpace(rutaBase))
+                {
+                    throw new Exception("No se configuró la ruta de almacenamiento de documentos en el sistema.");
+                }
+
+                // Limpiar el formato del folio para evitar problemas con las barras diagonales en las rutas de Windows (ej. SM_001_2026)
+                var carpetaFolioSegura = solicitud.Folio.Replace('/', '_');
+                var carpetaSolicitud = Path.Combine(rutaBase, carpetaFolioSegura);
+
+                if (!Directory.Exists(carpetaSolicitud))
+                {
+                    Directory.CreateDirectory(carpetaSolicitud);
+                }
+
+                string nombreArchivoFisico = $"DICTAMEN_{solicitudId}_{DateTime.Now:yyyyMMddHHmmss}.pdf";
+                string rutaCompleta = Path.Combine(carpetaSolicitud, nombreArchivoFisico);
+
+                // 4. Guardar el archivo físicamente en el disco
+                await System.IO.File.WriteAllBytesAsync(rutaCompleta, pdfBytes);
+
+                // 5. Calcular el Hash SHA256 del documento para control de integridad
+                string hashArchivo;
+                using (var sha256 = System.Security.Cryptography.SHA256.Create())
+                {
+                    hashArchivo = Convert.ToHexString(sha256.ComputeHash(pdfBytes));
+                }
+
+                // 6. Registrar el documento en la tabla SolicitudMantenimientoDocumento
+                var documentoEntidad = new SolicitudMantenimientoDocumento
+                {
+                    SolicitudMantenimientoId = solicitudId,
+                    TipoDocumento = "DICTAMEN_TECNICO",
+                    NombreArchivo = $"Dictamen_Tecnico_{solicitud.NumeroOficio.Replace('/', '_')}.pdf",
+                    RutaArchivo = rutaCompleta,
+                    FechaCarga = DateTime.Now,
+                    UsuarioCargaId = 1, // Puedes adaptarlo para capturar el ID del usuario actual de la sesión si aplica
+                    Activo = true,
+                    HashArchivo = hashArchivo
+                };
+
+                _context.SolicitudMantenimientoDocumentos.Add(documentoEntidad);
+                await _context.SaveChangesAsync();
+
+                TempData["Success"] = "El dictamen técnico se generó, guardó y registró exitosamente en los documentos de la solicitud.";
+
+                // 7. Retornar el archivo PDF para descarga/visualización inmediata en el navegador
+                return File(pdfBytes, "application/pdf", $"Dictamen_{solicitud.Folio.Replace('/', '_')}.pdf");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al generar, guardar y registrar el dictamen técnico para la solicitud ID {SolicitudId}", solicitudId);
+                TempData["Error"] = $"No se pudo generar o guardar el dictamen técnico: {ex.Message}";
+                return RedirectToAction(nameof(Index));
+            }
+        }
+
+
+
+
+
+
+
+
+        [HttpGet]
+        public async Task<IActionResult> DescargarOficioSolicitud(int solicitudId)
+        {
+            try
+            {
+                byte[] pdfBytes = await _maquinariaService.GenerarOficioSolicitudPdfAsync(solicitudId);
+
+                var solicitud = await _context.SolicitudMantenimientos
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(x => x.SolicitudMantenimientoId == solicitudId);
+
+                var nombreArchivo = solicitud != null ? $"Oficio_{solicitud.Folio.Replace('/', '_')}.pdf" : "Oficio_Solicitud.pdf";
+
+
+                // descomenta esta linea si quieres que el archivo se descargue en automatico
+                //return File(pdfBytes, "application/pdf", nombreArchivo);
+
+
+                //esta linea hace que el archivo se muestra en una pestaña nueva del navegador.
+                return File(pdfBytes, "application/pdf");
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"No se pudo obtener el PDF del oficio: {ex.Message}";
+                return RedirectToAction(nameof(Index));
+            }
+        }
+
+
+
+
+        [HttpGet]
+        public async Task<IActionResult> ObtenerUltimoKilometraje(int unidadVehicularId)
+        {
+            try
+            {
+                var ultimoKm = await _maquinariaService.ObtenerUltimoKilometrajeUnidadAsync(unidadVehicularId);
+                return Json(new { ultimoKilometraje = ultimoKm });
+            }
+            catch
+            {
+                return Json(new { ultimoKilometraje = 0 });
+            }
+        }
 
 
 

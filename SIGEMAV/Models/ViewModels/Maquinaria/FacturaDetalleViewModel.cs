@@ -5,6 +5,8 @@
         public int ConceptoServicioId { get; set; }
         public int FacturaMantenimientoId { get; set; }
 
+        public string ConceptoServicioNombre { get; set; }
+
         public string UUID { get; set; }
 
         public string Serie { get; set; }

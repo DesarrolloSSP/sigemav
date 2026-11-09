@@ -7,6 +7,7 @@ using SIGEMAV.Models.Entities;
 using SIGEMAV.Models.ViewModels.Maquinaria;
 using SIGEMAV.Services.Implementations.Maquinaria;
 using System.Drawing;
+using System.Security.Claims;
 using static SIGEMAV.Areas.Maquinaria.DTOs.DTOs;
 
 namespace SIGEMAV.Areas.Maquinaria.Controllers
@@ -19,11 +20,13 @@ namespace SIGEMAV.Areas.Maquinaria.Controllers
 
         private readonly MaquinariaService _maquinariaService;
         private readonly BdSigeMavContext _context;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public UnidadVehicularController(MaquinariaService maquinariaService, BdSigeMavContext context)
+        public UnidadVehicularController(MaquinariaService maquinariaService, BdSigeMavContext context, IHttpContextAccessor httpContextAccessor)
         {
             _maquinariaService = maquinariaService;
             _context = context;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         //public async Task<IActionResult> Index(int pagina = 1)
@@ -39,15 +42,7 @@ namespace SIGEMAV.Areas.Maquinaria.Controllers
 
 
 
-        public async Task<IActionResult> Index(
-    string? busqueda,
-    int? marcaId,
-    int? modeloId,
-    int? anioDesde,
-    int? anioHasta,
-    int? areaId,
-    int? municipioId,
-    int pagina = 1)
+        public async Task<IActionResult> Index(string? busqueda,int? marcaId,int? modeloId,int? anioDesde,int? anioHasta,int? areaId,int? municipioId,int pagina = 1)
         {
             //=====================================================
             // VALIDACIÓN DEL RANGO DE AÑOS
@@ -63,6 +58,28 @@ namespace SIGEMAV.Areas.Maquinaria.Controllers
                 // intercambiamos los valores para no romper la búsqueda
                 (anioDesde, anioHasta) = (anioHasta, anioDesde);
             }
+
+
+
+
+
+            //////////////////////////////////////////////// ESTO ES PARA EL CHIPOTE
+            var usuarioGuid = Guid.TryParse(_httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var guid) ? guid : (Guid?)null;
+
+            if (usuarioGuid.ToString() == "0bf13a21-fe5a-45f9-a584-1f6d338e1995")
+            {
+                areaId = 22;
+            }
+
+            //////////////////////////////////////////////// ESTO ES PARA EL CHIPOTE
+
+
+
+
+
+
+
+
 
             var modelo = await _maquinariaService.ObtenerVehiculos(
                 pagina: pagina,

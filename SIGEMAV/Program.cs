@@ -1,7 +1,8 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
-
+using QuestPDF.Drawing;
+using QuestPDF.Infrastructure;
 using SIGEMAV.Models.Data;
 using SIGEMAV.Services.Implementations.Financieros;
 using SIGEMAV.Services.Implementations.Maquinaria;
@@ -10,10 +11,28 @@ using SIGEMAV.Services.Interfaces.Financieros;
 using SIGEMAV.Services.Interfaces.Maquinaria;
 using SIGEMAV.Services.Interfaces.SIA;
 using static SIGEMAV.Services.Interfaces.Maquinaria.IMaquinariaService;
+using System.IO;
+
+
+
+// Configurar licencia
+QuestPDF.Settings.License = LicenseType.Community;
+
 
 var builder = WebApplication.CreateBuilder(args);
-
+QuestPDF.Settings.License = LicenseType.Community;
 #region Base de Datos
+
+
+
+// Registrar la fuente Gotham desde la carpeta wwwroot/Fonts en tu proyecto
+FontManager.RegisterFont(new MemoryStream(File.ReadAllBytes(Path.Combine(builder.Environment.ContentRootPath, "wwwroot", "Fonts", "Gotham-Book.ttf"))));
+FontManager.RegisterFont(new MemoryStream(File.ReadAllBytes(Path.Combine(builder.Environment.ContentRootPath, "wwwroot", "Fonts", "Gotham-Bold.ttf"))));
+FontManager.RegisterFont(new MemoryStream(File.ReadAllBytes(Path.Combine(builder.Environment.ContentRootPath, "wwwroot", "Fonts", "Gotham-Ultra.otf"))));
+FontManager.RegisterFont(new MemoryStream(File.ReadAllBytes(Path.Combine(builder.Environment.ContentRootPath, "wwwroot", "Fonts", "Gotham-UltraItalic.ttf"))));
+
+
+
 
 builder.Services.AddDbContext<BdSigeMavContext>(options =>
     options.UseSqlServer(
@@ -51,6 +70,7 @@ builder.Services.AddScoped<IOdpService, OdpService>();
 builder.Services.AddScoped<IDspService, DspService>();
 builder.Services.AddScoped<IOrdenDePago, OrdenDePagoService>();
 builder.Services.AddHttpClient<ISiaService, SiaService>();
+
 
 #endregion
 

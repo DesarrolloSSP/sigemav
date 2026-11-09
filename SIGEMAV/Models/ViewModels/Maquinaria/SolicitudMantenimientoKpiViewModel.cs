@@ -23,9 +23,15 @@
         public int EnMantenimiento { get; set; }
 
         /// <summary>
+        /// Solicitudes autorizadas.
+        /// </summary>
+        public int Autorizadas { get; set; }
+
+        /// <summary>
         /// Solicitudes finalizadas.
         /// </summary>
         public int Finalizadas { get; set; }
+
 
         /// <summary>
         /// Total cotizado.

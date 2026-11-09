@@ -28,6 +28,11 @@
 
         public decimal? ImporteCotizacion { get; set; }
 
+        //Propiedad calculada para mostrar el total con el 16% de IVA
+        public decimal? ImporteCotizacionConIva => ImporteCotizacion.HasValue
+            ? Math.Round(ImporteCotizacion.Value * 1.16m, 2)
+            : null;
+
         public string Estatus { get; set; } = string.Empty;
 
         public string ColorEstatus { get; set; } = string.Empty;

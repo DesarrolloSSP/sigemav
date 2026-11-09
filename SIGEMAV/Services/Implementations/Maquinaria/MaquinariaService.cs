@@ -1,11 +1,16 @@
 ﻿using AspNetCoreGeneratedDocument;
 using DocumentFormat.OpenXml.Bibliography;
+using DocumentFormat.OpenXml.Office2010.Excel;
+using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
 using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
+using QuestPDF.Fluent;
+using QuestPDF.Helpers;
+using QuestPDF.Infrastructure;
 using SIGEMAV.Areas.Maquinaria.Controllers;
 using SIGEMAV.Areas.Maquinaria.DTOs;
 using SIGEMAV.Areas.Maquinaria.Funciones;
@@ -30,7 +35,11 @@ using static SIGEMAV.Areas.Maquinaria.DTOs.DTOs;
 using static SIGEMAV.Services.Implementations.Maquinaria.MaquinariaService;
 using static SIGEMAV.Services.Interfaces.Maquinaria.IMaquinariaService;
 using static System.Net.WebRequestMethods;
+using Colors = QuestPDF.Helpers.Colors;
 using File = System.IO.File;
+using QPdf = QuestPDF.Fluent.Document;
+
+
 
 
 
@@ -42,11 +51,12 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
         private readonly IConfiguration _configuration;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly HttpClient _http;
-
         private readonly ILogger<TallerConfiguracionController> _logger;
+        private readonly IWebHostEnvironment _env;
 
         public MaquinariaService(BdSigeMavContext context, IConfiguration configuration, IHttpContextAccessor httpContextAccessor, HttpClient http,
-            ILogger<TallerConfiguracionController> logger
+            ILogger<TallerConfiguracionController> logger,
+            IWebHostEnvironment env 
             )
         {
             _context = context;
@@ -54,6 +64,7 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
             _httpContextAccessor = httpContextAccessor;
             _http = http;
             _logger = logger;
+            _env = env;
         }
 
         public async Task<PaginacionViewModel<UnidadVehicularViewModel>> ObtenerVehiculos(
@@ -388,10 +399,9 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                 // Cualquier placa real debe ser única.
                 // =========================================================
 
-                if (dto.PlacaActual != "ALTA")
+                if (dto.PlacaActual != "SIN PLACA")
                 {
-                    var existePlaca =
-                        await _context.UnidadVehiculars
+                    var existePlaca = await _context.UnidadVehiculars
                             .AnyAsync(x =>
                                 x.PlacaActual == dto.PlacaActual);
 
@@ -779,57 +789,99 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
         }
 
 
+        //public async Task<List<SelectListItem>> ObtenerTalleres()
+        //{
+        //    return await _context.Tallers
+        //        .AsNoTracking()
+        //        .Where(x => x.Activo)
+        //        .OrderBy(x => x.RazonSocial)
+        //        .Select(x => new SelectListItem
+        //        {
+        //            Value =
+        //                x.TallerId.ToString(),
+
+        //            Text =
+        //                x.RazonSocial
+        //                + " -- "
+        //                + x.Ubicacion.Trim()
+
+        //            // Si posteriormente se requiere mostrar
+        //            // el recurso presupuestal:
+        //            //
+        //            // Text =
+        //            //     x.RazonSocial
+        //            //     + " -- "
+        //            //     + (
+        //            //         x.TallerConfiguracions
+        //            //             .Where(tc =>
+        //            //                 tc.Activo &&
+        //            //                 tc.TallerConfiguracionPresupuestal.Activo)
+        //            //             .Select(tc =>
+        //            //                 tc.TallerConfiguracionPresupuestal
+        //            //                     .Recurso
+        //            //                     .Nombre)
+        //            //             .FirstOrDefault()
+        //            //         ?? "SIN RECURSO"
+        //            //       ).Trim()
+        //        })
+        //        .ToListAsync();
+        //}
+
+        //AHUEVO QUE QUIEREN QUE SE MUESTRE SIN LA UBICACION - PARA QUE DEJEN DE MAMAR , EL MÉTODO DE ARRIBA PERMITE MOSTRAR UBICACIONES
         public async Task<List<SelectListItem>> ObtenerTalleres()
         {
             return await _context.Tallers
                 .AsNoTracking()
                 .Where(x => x.Activo)
-                .OrderBy(x => x.RazonSocial)
-                .Select(x => new SelectListItem
+                .GroupBy(x => x.RazonSocial)
+                .Select(g => new SelectListItem
                 {
-                    Value =
-                        x.TallerId.ToString(),
-
-                    Text =
-                        x.RazonSocial
-                        + " -- "
-                        + x.Ubicacion.Trim()
-
-                    // Si posteriormente se requiere mostrar
-                    // el recurso presupuestal:
-                    //
-                    // Text =
-                    //     x.RazonSocial
-                    //     + " -- "
-                    //     + (
-                    //         x.TallerConfiguracions
-                    //             .Where(tc =>
-                    //                 tc.Activo &&
-                    //                 tc.TallerConfiguracionPresupuestal.Activo)
-                    //             .Select(tc =>
-                    //                 tc.TallerConfiguracionPresupuestal
-                    //                     .Recurso
-                    //                     .Nombre)
-                    //             .FirstOrDefault()
-                    //         ?? "SIN RECURSO"
-                    //       ).Trim()
+                    // Tomamos el ID del primer registro que coincida con esa Razón Social
+                    Value = g.OrderBy(x => x.TallerId).Select(x => x.TallerId).First().ToString(),
+                    Text = g.Key // g.Key representa la Razón Social agrupada, evitando duplicados
                 })
+                .OrderBy(x => x.Text)
                 .ToListAsync();
         }
 
 
+
         public async Task<List<SelectListItem>> ObtenerAreas()
         {
-            return await _context.Areas
-                .AsNoTracking()
-                .Where(x => x.Activo)
-                .OrderBy(x => x.AreaNombre)
-                .Select(x => new SelectListItem
-                {
-                    Value = x.AreaId.ToString(),
-                    Text = x.AreaNombre
-                })
-                .ToListAsync();
+
+            //////////////////////////////////////////////// ESTO ES PARA EL CHIPOTE
+            var usuarioGuid = Guid.TryParse(_httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var guid) ? guid : (Guid?)null;
+
+            if (usuarioGuid.ToString() == "0bf13a21-fe5a-45f9-a584-1f6d338e1995")
+            {
+                return await _context.Areas
+              .AsNoTracking()
+              .Where(x => x.Activo && x.AreaId == 22) 
+              .OrderBy(x => x.AreaNombre)
+              .Select(x => new SelectListItem
+              {
+                  Value = x.AreaId.ToString(),
+                  Text = x.AreaNombre
+              })
+              .ToListAsync();
+            }
+
+            //////////////////////////////////////////////// ESTO ES PARA EL CHIPOTE el siguiente CODIGO DEBE ESTAR SOLO EN ESTE MÉTODO
+            else
+            {
+                return await _context.Areas
+             .AsNoTracking()
+             .Where(x => x.Activo)
+             .OrderBy(x => x.AreaNombre)
+             .Select(x => new SelectListItem
+             {
+                 Value = x.AreaId.ToString(),
+                 Text = x.AreaNombre
+             })
+             .ToListAsync();
+            }
+
+         
         }
 
 
@@ -877,7 +929,6 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                     ||
 
                     x.UnidadVehicular.Modelo.ModeloNombre.Contains(unidad)
-
                 );
             }
 
@@ -939,15 +990,19 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                 EnRevision = await query.CountAsync(x =>
                     x.EstatusSolicitudMantenimientoId == 4),
 
+                Autorizadas = await query.CountAsync(x =>
+                    x.EstatusSolicitudMantenimientoId == 5),
+
                 EnMantenimiento = await query.CountAsync(x =>
                     x.EstatusSolicitudMantenimientoId == 7),
 
                 Finalizadas = await query.CountAsync(x =>
                     x.EstatusSolicitudMantenimientoId == 8),
 
-                ImporteCotizado = await query
-                .Where(x => x.ImporteCotizacion.HasValue)
-                .SumAsync(x => x.ImporteCotizacion) ?? 0m
+                // Se proyecta el cálculo del IVA sobre la suma total directamente en la base de datos
+                ImporteCotizado = (await query
+                 .Where(x => x.ImporteCotizacion.HasValue)
+                 .SumAsync(x => x.ImporteCotizacion) ?? 0m) * 1.16m
             };
 
 
@@ -1063,7 +1118,32 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
 
         public async Task<List<SelectListItem>> ObtenerAreasSelectList(int? seleccionado)
         {
-            return await _context.Areas
+
+            var usuarioGuid = Guid.TryParse(_httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var guid) ? guid : (Guid?)null;
+
+            // ES CHIPOTE ??   SI SE LOGUE ASIGNARLE EL ÁREA OM 
+            if (usuarioGuid.HasValue && usuarioGuid.ToString() == "0bf13a21-fe5a-45f9-a584-1f6d338e1995")
+            {
+                return await _context.Areas
+                .Where(x => x.Activo && x.AreaId == 22)
+                .OrderBy(x => x.AreaNombre)
+                .Select(x => new SelectListItem
+                {
+                    Value = x.AreaId.ToString(),
+                    Text = x.AreaNombre,
+                    Selected = seleccionado.HasValue && x.AreaId == seleccionado.Value
+                })
+                .ToListAsync();
+            }
+            else
+            {
+
+
+
+
+
+                //////////////////////////////////ESTA SECCION DEBE ESTAR FUERA DEL IF UNICAMENTE.
+                return await _context.Areas
                 .Where(x => x.Activo)
                 .OrderBy(x => x.AreaNombre)
                 .Select(x => new SelectListItem
@@ -1074,6 +1154,8 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                                x.AreaId == seleccionado.Value
                 })
                 .ToListAsync();
+            }
+
         }
 
 
@@ -1099,6 +1181,7 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
         {
             return await _context.TipoMantenimientos
                 .OrderBy(x => x.Nombre)
+                .Where(x => x.Activo == true)
                 .Select(x => new SelectListItem
                 {
                     Value = x.TipoMantenimientoId.ToString(),
@@ -1228,6 +1311,43 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                     throw new Exception("Debe seleccionar una configuración/contrato presupuestal del taller.");
                 }
 
+
+
+
+                // =========================================
+                // VALIDAR KILOMETRAJE
+                // =========================================
+                if (dto.KilometrajeActual < 0)
+                {
+                    throw new Exception("El kilometraje no puede ser negativo.");
+                }
+
+                if (dto.KilometrajeActual > 999999)
+                {
+                    throw new Exception("El kilometraje debe estar entre 0 y 999999.");
+                }
+
+                if (dto.EstadoOdometroId == 1 && dto.KilometrajeActual <= 0)
+                {
+                    throw new Exception("Cuando el odómetro opera correctamente, el kilometraje debe ser mayor a cero.");
+                }
+
+                if (dto.EstadoOdometroId != 1 && dto.KilometrajeActual > 0)
+                {
+                    throw new Exception("Si el odómetro no opera correctamente, el kilometraje debe ser cero.");
+                }
+
+
+                // Validación cruzada con el último kilometraje histórico registrado en BD
+                if (dto.EstadoOdometroId == 1)
+                {
+                    var ultimoKmHistorico = await ObtenerUltimoKilometrajeUnidadAsync(dto.UnidadVehicularId);
+                    if (ultimoKmHistorico > 0 && dto.KilometrajeActual < ultimoKmHistorico)
+                    {
+                        throw new Exception($"El kilometraje capturado ({dto.KilometrajeActual}) no puede ser menor al último registrado en el sistema para esta unidad ({ultimoKmHistorico}).");
+                    }
+                }
+
                 // =====================================================
                 // PROTECCIÓN EN SERVIDOR: VALIDAR CONFIGURACIÓN Y TALLER
                 // =====================================================
@@ -1251,6 +1371,7 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                 {
                     throw new Exception("Debe seleccionar un área solicitante.");
                 }
+
 
                 if (dto.Servicios == null || !dto.Servicios.Any())
                 {
@@ -1283,28 +1404,7 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                     }
                 }
 
-                // =========================================
-                // VALIDAR KILOMETRAJE
-                // =========================================
-                if (dto.KilometrajeActual < 0)
-                {
-                    throw new Exception("El kilometraje no puede ser negativo.");
-                }
-
-                if (dto.KilometrajeActual > 999999)
-                {
-                    throw new Exception("El kilometraje debe estar entre 0 y 999999.");
-                }
-
-                if (dto.EstadoOdometroId == 1 && dto.KilometrajeActual <= 0)
-                {
-                    throw new Exception("Cuando el odómetro opera correctamente, el kilometraje debe ser mayor a cero.");
-                }
-
-                if (dto.EstadoOdometroId != 1 && dto.KilometrajeActual > 0)
-                {
-                    throw new Exception("Si el odómetro no opera correctamente, el kilometraje debe ser cero.");
-                }
+               
 
 
 
@@ -1457,6 +1557,16 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                     }
                 }
 
+                // REFORZAMIENTO OBLIGATORIO: Validar que exista al menos un archivo válido adjunto
+                if (!archivosValidados.Any())
+                {
+                    throw new Exception("Debe adjuntar al menos un documento de soporte válido para registrar la solicitud de mantenimiento.");
+                }
+
+
+
+
+
                 // VALIDACIÓN HISTÓRICA CENTRAL
                 ResultadoValidacionHistoricaDto resultadoHistorico = new();
 
@@ -1565,24 +1675,26 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                 await _context.SaveChangesAsync();
 
                 // =====================================================
-                // GUARDAR DOCUMENTOS
+                // GUARDAR DOCUMENTOS DE SOPORTE (ARCHIVOS ADJUNTOS)
                 // =====================================================
+                var rutaBase = _configuration["Storage:DocumentosRuta"];
+
+                if (string.IsNullOrWhiteSpace(rutaBase))
+                {
+                    throw new Exception("No se configuró la ruta de almacenamiento.");
+                }
+
+                // Limpiar formato del folio para nombre de carpeta seguro en disco (ej. SM_001_2026)
+                var carpetaFolioSegura = folio.Replace('/', '_');
+                var carpetaSolicitud = Path.Combine(rutaBase, carpetaFolioSegura);
+
+                if (!Directory.Exists(carpetaSolicitud))
+                {
+                    Directory.CreateDirectory(carpetaSolicitud);
+                }
+
                 if (archivosValidados.Any())
                 {
-                    var rutaBase = _configuration["Storage:DocumentosRuta"];
-
-                    if (string.IsNullOrWhiteSpace(rutaBase))
-                    {
-                        throw new Exception("No se configuró la ruta de almacenamiento.");
-                    }
-
-                    var carpetaSolicitud = Path.Combine(rutaBase, folio);
-
-                    if (!Directory.Exists(carpetaSolicitud))
-                    {
-                        Directory.CreateDirectory(carpetaSolicitud);
-                    }
-
                     foreach (var archivo in archivosValidados)
                     {
                         var rutaCompleta = Path.Combine(carpetaSolicitud, archivo.NombreFisico);
@@ -1608,12 +1720,49 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                     await _context.SaveChangesAsync();
                 }
 
+                // =====================================================
+                // GENERACIÓN Y GUARDADO AUTOMÁTICO DEL OFICIO SOLICITUD DE MANTENIMIENTO PDF (QUESTPDF)
+                // =====================================================
+                // NOTA: Si deseas que un fallo en el PDF detenga la transacción, 
+                // remueve el try-catch interno o lanza la excepción.
+                byte[] pdfBytes = await GenerarOficioSolicitudPdfAsync(entidad.SolicitudMantenimientoId);
+
+                if (pdfBytes != null && pdfBytes.Length > 0)
+                {
+                    string nombreOficioFisico = $"OFICIO_{entidad.SolicitudMantenimientoId}_{DateTime.Now:yyyyMMddHHmmss}.pdf";
+                    string rutaOficioCompleta = Path.Combine(carpetaSolicitud, nombreOficioFisico);
+
+                    await File.WriteAllBytesAsync(rutaOficioCompleta, pdfBytes);
+                    archivosGuardados.Add(rutaOficioCompleta);
+
+                    string hashOficio;
+                    using (var sha256 = SHA256.Create())
+                    {
+                        hashOficio = Convert.ToHexString(sha256.ComputeHash(pdfBytes));
+                    }
+
+                    var docOficio = new SolicitudMantenimientoDocumento
+                    {
+                        SolicitudMantenimientoId = entidad.SolicitudMantenimientoId,
+                        TipoDocumento = "OFICIO_SOLICITUD",
+                        NombreArchivo = $"Oficio_Solicitud_{entidad.NumeroOficio.Replace('/', '_')}.pdf",
+                        RutaArchivo = rutaOficioCompleta,
+                        FechaCarga = DateTime.Now,
+                        UsuarioCargaId = 1,
+                        Activo = true,
+                        HashArchivo = hashOficio
+                    };
+
+                    _context.SolicitudMantenimientoDocumentos.Add(docOficio);
+                    await _context.SaveChangesAsync();
+                }
+
                 await transaction.CommitAsync();
 
                 return new ResultadoCreacionSolicitudDto
                 {
                     Correcto = true,
-                    SolicitudId = entidad.SolicitudMantenimientoId,
+                    SolicitudMantenimientoId = entidad.SolicitudMantenimientoId,
                     Folio = folio,
                     ValidacionHistorica = resultadoHistorico
                 };
@@ -1913,143 +2062,82 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
 
         public async Task<SolicitudMantenimientoDetallePageViewModel> ObtenerDetalleSolicitud(int solicitudId)
         {
-            var solicitud =
-                await _context.SolicitudMantenimientos
-                    .AsNoTracking()
-                    .Where(x =>
-                        x.SolicitudMantenimientoId ==
-                            solicitudId)
-                    .Select(x =>
-                        new SolicitudMantenimientoDetallePageViewModel
+            var solicitud = await _context.SolicitudMantenimientos
+                .AsNoTracking()
+                .Where(x => x.SolicitudMantenimientoId == solicitudId)
+                .Select(x => new SolicitudMantenimientoDetallePageViewModel
+                {
+                    // =====================================================
+                    // SOLICITUD
+                    // =====================================================
+                    SolicitudMantenimientoId = x.SolicitudMantenimientoId,
+                    Folio = x.Folio,
+
+                    // =====================================================
+                    // VEHÍCULO
+                    // =====================================================
+                    Vehiculo = x.UnidadVehicular.Marca.MarcaNombre + " " +
+                               x.UnidadVehicular.Modelo.ModeloNombre + " - " +
+                               x.UnidadVehicular.PlacaActual + " - " +
+                               x.UnidadVehicular.NumeroSerie + " - " +
+                               x.UnidadVehicular.NumeroEconomico,
+
+                    // =====================================================
+                    // TALLER
+                    // =====================================================
+                    Taller = x.Taller != null
+                        ? x.Taller.RazonSocial + " - " + (x.Taller.TallerConfiguracions
+                            .Where(tc => tc.Activo && tc.TallerConfiguracionPresupuestal.Activo)
+                            .Select(tc => tc.TallerConfiguracionPresupuestal.Recurso.Nombre)
+                            .FirstOrDefault() ?? "SIN RECURSO")
+                        : "SIN TALLER",
+
+                    // =====================================================
+                    // ESTATUS Y TOTALES
+                    // =====================================================
+                    Estatus = x.EstatusSolicitudMantenimiento.Nombre,
+                    TotalConceptos = x.SolicitudMantenimientoDetalles.Count(),
+
+                    // =====================================================
+                    // DETALLES (PROYECTANDO BASE E IVA 16%)
+                    // =====================================================
+                    Detalles = x.SolicitudMantenimientoDetalles
+                        .Select(d => new SolicitudMantenimientoDetalleViewModel
                         {
-                            // =====================================================
-                            // SOLICITUD
-                            // =====================================================
+                            SolicitudMantenimientoDetalleId = d.SolicitudMantenimientoDetalleId,
+                            ConceptoServicioId = d.ConceptoServicioId,
+                            ConceptoServicio = d.ConceptoServicio.ConceptoServicioNombre,
+                            Cantidad = d.Cantidad,
 
-                            SolicitudMantenimientoId =
-                                x.SolicitudMantenimientoId,
+                            // Precios base originales
+                            CostoEstimadoManoObra = d.CostoEstimadoManoObra,
+                            CostoEstimadoRefacciones = d.CostoEstimadoRefacciones,
 
-                            Folio =
-                                x.Folio,
+                            // Precios con IVA (16%) orientados a la tabla de detalles
+                            CostoManoObraConIva = d.CostoEstimadoManoObra * 1.16m,
+                            CostoRefaccionesConIva = d.CostoEstimadoRefacciones * 1.16m,
 
-
-                            // =====================================================
-                            // VEHÍCULO
-                            // =====================================================
-
-                            Vehiculo =
-                                x.UnidadVehicular.Marca.MarcaNombre
-                                + " "
-                                + x.UnidadVehicular.Modelo.ModeloNombre
-                                + " - "
-                                + x.UnidadVehicular.PlacaActual
-                                + " - "
-                                + x.UnidadVehicular.NumeroSerie
-                                + " - "
-                                + x.UnidadVehicular.NumeroEconomico,
-
-
-                            // =====================================================
-                            // TALLER
-                            // =====================================================
-                            //
-                            // Taller ya no tiene Recurso directamente.
-                            //
-                            // Relación:
-                            //
-                            // Taller
-                            //   -> TallerConfiguracion
-                            //   -> TallerConfiguracionPresupuestal
-                            //   -> Recurso
-                            //
-                            // =====================================================
-
-                            Taller =
-                                x.Taller != null
-                                    ? x.Taller.RazonSocial
-                                      + " - "
-                                      + (
-                                          x.Taller.TallerConfiguracions
-                                              .Where(tc =>
-                                                  tc.Activo &&
-                                                  tc.TallerConfiguracionPresupuestal.Activo)
-                                              .Select(tc =>
-                                                  tc.TallerConfiguracionPresupuestal
-                                                      .Recurso
-                                                      .Nombre)
-                                              .FirstOrDefault()
-                                          ?? "SIN RECURSO"
-                                        )
-                                    : "SIN TALLER",
-
-
-                            // =====================================================
-                            // ESTATUS
-                            // =====================================================
-
-                            Estatus =
-                                x.EstatusSolicitudMantenimiento.Nombre,
-
-
-                            // =====================================================
-                            // TOTAL DE CONCEPTOS
-                            // =====================================================
-
-                            TotalConceptos =
-                                x.SolicitudMantenimientoDetalles.Count(),
-
-
-                            // =====================================================
-                            // DETALLES
-                            // =====================================================
-
-                            Detalles =
-                                x.SolicitudMantenimientoDetalles
-                                    .Select(d =>
-                                        new SolicitudMantenimientoDetalleViewModel
-                                        {
-                                            SolicitudMantenimientoDetalleId =
-                                                d.SolicitudMantenimientoDetalleId,
-
-                                            ConceptoServicioId =
-                                                d.ConceptoServicioId,
-
-                                            ConceptoServicio =
-                                                d.ConceptoServicio
-                                                    .ConceptoServicioNombre,
-
-                                            Cantidad =
-                                                d.Cantidad,
-
-                                            CostoEstimadoManoObra =
-                                                d.CostoEstimadoManoObra,
-
-                                            CostoEstimadoRefacciones =
-                                                d.CostoEstimadoRefacciones,
-
-                                            Observaciones =
-                                                d.Observaciones
-                                        })
-                                    .ToList(),
-
-                                    // =====================================================
-                                    // DOCUMENTOS ADJUNTOS
-                                    // =====================================================
-                                    Documentos = x.SolicitudMantenimientoDocumentos
-                                        .Where(d => d.Activo)
-                                        .OrderByDescending(d => d.FechaCarga)
-                                        .Select(d => new SolicitudMantenimientoDocumentoViewModel
-                                        {
-                                            SolicitudMantenimientoDocumentoId = d.SolicitudMantenimientoDocumentoId,
-                                            TipoDocumento = d.TipoDocumento,
-                                            NombreArchivo = d.NombreArchivo,
-                                            RutaArchivo = d.RutaArchivo,
-                                            FechaCarga = d.FechaCarga
-                                        })
-                                        .ToList()
-
+                            Observaciones = d.Observaciones
                         })
-                    .FirstOrDefaultAsync();
+                        .ToList(),
+
+                    // =====================================================
+                    // DOCUMENTOS ADJUNTOS
+                    // =====================================================
+                    Documentos = x.SolicitudMantenimientoDocumentos
+                        .Where(d => d.Activo)
+                        .OrderByDescending(d => d.FechaCarga)
+                        .Select(d => new SolicitudMantenimientoDocumentoViewModel
+                        {
+                            SolicitudMantenimientoDocumentoId = d.SolicitudMantenimientoDocumentoId,
+                            TipoDocumento = d.TipoDocumento,
+                            NombreArchivo = d.NombreArchivo,
+                            RutaArchivo = d.RutaArchivo,
+                            FechaCarga = d.FechaCarga
+                        })
+                        .ToList()
+                })
+                .FirstOrDefaultAsync();
 
             return solicitud!;
         }
@@ -2507,7 +2595,6 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                  var fecha = x.Mantenimiento.FechaEjecucion ?? x.Mantenimiento.FechaCreacion;
                  var veces = historialPorConcepto[x.ConceptoServicioId].Count();
 
-                 // Se resta la fecha pura (Date) para comparar días de calendario reales
                  var diasDesdeUltimo = (now.Date - fecha.Date).Days;
                  return new HistorialTecnicoUnidadViewModel
                  {
@@ -2517,7 +2604,7 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                      Concepto = x.ConceptoServicio.ConceptoServicioNombre,
                      Kilometraje = x.Mantenimiento.KilometrajeSalida ?? 0,
                      Costo = (decimal)(x.TotalLinea ?? (x.SubtotalManoObra + x.SubtotalRefacciones)),
-                     DiasDesdeUltimo = diasDesdeUltimo < 0 ? 0 : diasDesdeUltimo, // Protección contra fechas futuras por horas
+                     DiasDesdeUltimo = diasDesdeUltimo < 0 ? 0 : diasDesdeUltimo,
                      EsRecurrencia = veces > 1,
                      EsConceptoSolicitado = conceptosSolicitadosSet.Contains(x.ConceptoServicioId),
                      NumeroEjecuciones = veces
@@ -2537,6 +2624,7 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                 CostoHistoricoConceptosSolicitados = costoHistoricoSolicitado
             };
 
+            // Proyección de conceptos con soporte de IVA (16%)
             var conceptos = await _context.SolicitudMantenimientoDetalles
                 .AsNoTracking()
                 .Where(x => x.SolicitudMantenimientoId == solicitudId)
@@ -2548,6 +2636,8 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                     Cantidad = x.Cantidad,
                     CostoEstimadoManoObra = x.CostoEstimadoManoObra,
                     CostoEstimadoRefacciones = x.CostoEstimadoRefacciones,
+                    CostoManoObraConIva = x.CostoEstimadoManoObra * 1.16m,
+                    CostoRefaccionesConIva = x.CostoEstimadoRefacciones * 1.16m,
                     Observaciones = x.Observaciones
                 })
                 .ToListAsync();
@@ -2620,7 +2710,6 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
             }
 
             var fechaActual = DateTime.Now;
-            var fechaActualDateOnly = DateOnly.FromDateTime(fechaActual);
 
             await using var transaction = await _context.Database.BeginTransactionAsync(
                 System.Data.IsolationLevel.Serializable);
@@ -2631,6 +2720,7 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                 // 2. OBTENER SOLICITUD Y VALIDAR EXISTENCIA
                 // =====================================================
                 var solicitud = await _context.SolicitudMantenimientos
+                    .Include(x => x.SolicitudMantenimientoDetalles)
                     .FirstOrDefaultAsync(x => x.SolicitudMantenimientoId == dto.SolicitudMantenimientoId);
 
                 if (solicitud == null)
@@ -2642,12 +2732,6 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
 
                 // =====================================================
                 // 3. VALIDAR ESTADO PERMITIDO
-                // =====================================================
-                // 4 = DSP validada, pendiente de revisión técnica.
-                // 5 = Revisión técnica aprobada / Dictaminada.
-                // 6 = Rechazada, susceptible de reaprobación.
-                // 8 = Finalizada.
-                // 9 = Cancelada.
                 // =====================================================
                 if (estatusActual == 8)
                 {
@@ -2672,10 +2756,7 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                 // =====================================================
                 // 4. VALIDAR CONCEPTOS
                 // =====================================================
-                var tieneConceptos = await _context.SolicitudMantenimientoDetalles
-                    .AnyAsync(x => x.SolicitudMantenimientoId == solicitud.SolicitudMantenimientoId);
-
-                if (!tieneConceptos)
+                if (solicitud.SolicitudMantenimientoDetalles == null || !solicitud.SolicitudMantenimientoDetalles.Any())
                 {
                     throw new InvalidOperationException("WARNING|La solicitud no tiene conceptos registrados.");
                 }
@@ -2711,14 +2792,10 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                 {
                     if (estatusActual == 4)
                     {
-                        // Aprobación inicial desde estatus 4 (los compromisos ya existen)
                         solicitud.EstatusSolicitudMantenimientoId = 5;
                     }
                     else if (estatusActual == 6)
                     {
-                        // =============================================
-                        // 7.2.1 VALIDAR COMPROMISOS DSP LIBERADOS
-                        // =============================================
                         var compromisosPorDSP = movimientosDSP
                             .Where(x => x.TipoMovimiento == "COMPROMETIDO" || x.TipoMovimiento == "DESCOMPROMETIDO")
                             .GroupBy(x => x.IdDispPresupuestal)
@@ -2755,19 +2832,11 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                             }
                         }
 
-                        // =============================================
-                        // 7.2.2 OBTENER DSP AFECTADAS
-                        // =============================================
                         var idsDSP = compromisosPorDSP
                             .Where(x => x.Descomprometido > 0m)
                             .Select(x => x.IdDispPresupuestal!.Value)
                             .Distinct()
                             .ToList();
-
-                        if (!idsDSP.Any())
-                        {
-                            throw new InvalidOperationException("WARNING|No existen importes DSP previamente liberados para recomprometer.");
-                        }
 
                         var dsps = await _context.DispPresupuestals
                             .Where(x => idsDSP.Contains(x.IdDispPresupuestal))
@@ -2779,10 +2848,6 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                         }
 
                         var dspPorId = dsps.ToDictionary(x => x.IdDispPresupuestal);
-
-                        // =============================================
-                        // 7.2.3 VALIDAR DISPONIBILIDAD ACTUAL EN ÁREA
-                        // =============================================
                         var movimientosDeTodasLasDSP = await _context.MovimientoPresupuestals
                             .Where(x => idsDSP.Contains((int)x.IdDispPresupuestal) && x.Activo == true)
                             .ToListAsync();
@@ -2810,24 +2875,8 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                             var descomprometido = movimientosDeLaDSP.Where(x => x.TipoMovimiento == "DESCOMPROMETIDO").Sum(x => x.Importe ?? 0m);
                             var devengado = movimientosDeLaDSP.Where(x => x.TipoMovimiento == "DEVENGADO").Sum(x => x.Importe ?? 0m);
 
-                            if (comprometido < 0m || descomprometido < 0m || devengado < 0m)
-                            {
-                                throw new InvalidOperationException($"WARNING|La DSP {dsp.IdObjetoGasto} contiene movimientos con importes negativos.");
-                            }
-
                             var comprometidoNeto = comprometido - descomprometido;
-
-                            if (comprometidoNeto < 0m)
-                            {
-                                throw new InvalidOperationException($"WARNING|La DSP {dsp.IdObjetoGasto} tiene descompromisos superiores a sus compromisos.");
-                            }
-
                             var disponible = dsp.Importe - comprometidoNeto - devengado;
-
-                            if (disponible < 0m)
-                            {
-                                throw new InvalidOperationException($"WARNING|La DSP {dsp.IdObjetoGasto} presenta una inconsistencia presupuestal.");
-                            }
 
                             if (item.Descomprometido > disponible)
                             {
@@ -2842,7 +2891,6 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                                 throw new InvalidOperationException($"WARNING|La reaprobación dejaría la DSP {dsp.IdObjetoGasto} en o por debajo del umbral del 20 %. Disponible proyectado: {disponiblePosterior:C}.");
                             }
 
-                            // REGISTRAR RECOMPROMISO EN ÁREA
                             _context.MovimientoPresupuestals.Add(new MovimientoPresupuestal
                             {
                                 SolicitudMantenimientoId = solicitud.SolicitudMantenimientoId,
@@ -2857,9 +2905,6 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                             });
                         }
 
-                        // =============================================
-                        // 7.2.4 VALIDAR Y RESTAURAR PRESUPUESTO EN TALLER
-                        // =============================================
                         var movimientosTallerPorControl = movimientosTaller
                             .Where(x => x.TipoMovimiento == "COMPROMETIDO" || x.TipoMovimiento == "DESCOMPROMETIDO")
                             .GroupBy(x => x.IdControlTaller)
@@ -2871,80 +2916,32 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                             })
                             .ToList();
 
-                        if (!movimientosTallerPorControl.Any())
-                        {
-                            throw new InvalidOperationException("WARNING|No existen movimientos presupuestales del taller asociados a la solicitud rechazada.");
-                        }
-
                         var idsControlTaller = movimientosTallerPorControl.Select(x => x.IdControlTaller).Distinct().ToList();
-
                         var controlesTaller = await _context.TallerControlPresupuestals
                             .Where(x => idsControlTaller.Contains(x.IdControlTaller))
                             .ToListAsync();
 
-                        if (controlesTaller.Count != idsControlTaller.Count)
-                        {
-                            throw new InvalidOperationException("WARNING|No se encontraron todos los controles presupuestales del taller utilizados por la solicitud.");
-                        }
-
                         var controlesPorId = controlesTaller.ToDictionary(x => x.IdControlTaller);
-
                         foreach (var item in movimientosTallerPorControl)
                         {
-                            if (item.Comprometido < 0m || item.Descomprometido < 0m || item.Descomprometido > item.Comprometido)
-                            {
-                                throw new InvalidOperationException("WARNING|Los movimientos históricos del taller presentan una inconsistencia.");
-                            }
-
                             var compromisoVigente = item.Comprometido - item.Descomprometido;
-
-                            if (compromisoVigente != 0m)
-                            {
-                                throw new InvalidOperationException("WARNING|La solicitud rechazada conserva un compromiso vigente del taller.");
-                            }
-
-                            if (item.Descomprometido <= 0m)
+                            if (compromisoVigente != 0m || item.Descomprometido <= 0m)
                             {
                                 continue;
                             }
 
                             var control = controlesPorId[item.IdControlTaller];
-
-                            if (!control.Activo)
-                            {
-                                throw new InvalidOperationException("WARNING|El control presupuestal del taller está inactivo y no puede utilizarse para la reaprobación.");
-                            }
-
-                            if (control.FechaInicio > control.FechaFin ||
-                                fechaActualDateOnly < control.FechaInicio ||
-                                fechaActualDateOnly > control.FechaFin)
-                            {
-                                throw new InvalidOperationException("WARNING|El control presupuestal del taller no está vigente para la reaprobación.");
-                            }
-
-                            if (control.PresupuestoAsignado <= 0m || control.PresupuestoComprometido < 0m || control.PresupuestoEjercido < 0m)
-                            {
-                                throw new InvalidOperationException("WARNING|El control presupuestal del taller contiene importes inválidos.");
-                            }
-
                             var disponible = control.PresupuestoAsignado - control.PresupuestoComprometido - control.PresupuestoEjercido;
-
-                            if (disponible < 0m)
-                            {
-                                throw new InvalidOperationException("WARNING|El control presupuestal del taller presenta una inconsistencia.");
-                            }
 
                             if (item.Descomprometido > disponible)
                             {
                                 throw new InvalidOperationException($"WARNING|El taller ya no tiene disponibilidad suficiente para la reaprobación. Disponible: {disponible:C}; requerido: {item.Descomprometido:C}.");
                             }
 
-                            // Actualizar control del taller
                             control.PresupuestoComprometido += item.Descomprometido;
                             control.PresupuestoDisponible = control.PresupuestoAsignado - control.PresupuestoComprometido - control.PresupuestoEjercido;
                             control.FechaActualizacion = fechaActual;
 
-                            // Registrar movimiento recomprometido en taller
                             _context.TallerMovimientoPresupuestos.Add(new TallerMovimientoPresupuesto
                             {
                                 TallerId = solicitud.TallerId ?? throw new InvalidOperationException("WARNING|La solicitud no tiene un taller asignado."),
@@ -2961,9 +2958,6 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                         solicitud.EstatusSolicitudMantenimientoId = 5;
                     }
                 }
-                // =====================================================
-                // 8. RECHAZAR Y LIBERAR PRESUPUESTO (ÁREA Y TALLER)
-                // =====================================================
                 else
                 {
                     if (estatusActual != 4)
@@ -2971,9 +2965,6 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                         throw new InvalidOperationException("WARNING|Solo puede rechazarse una solicitud con DSP validada y pendiente de revisión técnica.");
                     }
 
-                    // =============================================
-                    // 8.1 CALCULAR Y LIBERAR COMPROMISO EN ÁREA (DSP)
-                    // =============================================
                     var compromisosVigentesDSP = movimientosDSP
                         .Where(x => x.TipoMovimiento == "COMPROMETIDO" || x.TipoMovimiento == "DESCOMPROMETIDO")
                         .GroupBy(x => x.IdDispPresupuestal)
@@ -2985,24 +2976,10 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                         })
                         .ToList();
 
-                    if (!compromisosVigentesDSP.Any())
-                    {
-                        throw new InvalidOperationException("WARNING|No existen compromisos DSP que puedan liberarse.");
-                    }
-
                     foreach (var item in compromisosVigentesDSP)
                     {
-                        if (!item.IdDispPresupuestal.HasValue || item.Comprometido < 0m || item.Descomprometido < 0m || item.Descomprometido > item.Comprometido)
-                        {
-                            throw new InvalidOperationException("WARNING|Los movimientos DSP presentan una inconsistencia que impide liberar el presupuesto.");
-                        }
-
                         var importeVigente = item.Comprometido - item.Descomprometido;
-
-                        if (importeVigente <= 0m)
-                        {
-                            continue;
-                        }
+                        if (importeVigente <= 0m) continue;
 
                         _context.MovimientoPresupuestals.Add(new MovimientoPresupuestal
                         {
@@ -3018,9 +2995,6 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                         });
                     }
 
-                    // =============================================
-                    // 8.2 LIBERAR COMPROMISOS EN TALLER
-                    // =============================================
                     var compromisosTaller = movimientosTaller
                         .Where(x => x.TipoMovimiento == "COMPROMETIDO" || x.TipoMovimiento == "DESCOMPROMETIDO")
                         .GroupBy(x => x.IdControlTaller)
@@ -3032,55 +3006,21 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                         })
                         .ToList();
 
-                    if (!compromisosTaller.Any())
-                    {
-                        throw new InvalidOperationException("WARNING|No existen movimientos de compromiso del taller asociados a la solicitud.");
-                    }
-
                     var idsControl = compromisosTaller.Select(x => x.IdControlTaller).Distinct().ToList();
-
                     var controles = await _context.TallerControlPresupuestals
                         .Where(x => idsControl.Contains(x.IdControlTaller))
                         .ToListAsync();
-
-                    if (controles.Count != idsControl.Count)
-                    {
-                        throw new InvalidOperationException("WARNING|No se encontraron todos los controles presupuestales del taller necesarios para liberar el presupuesto.");
-                    }
 
                     var controlesPorId = controles.ToDictionary(x => x.IdControlTaller);
 
                     foreach (var item in compromisosTaller)
                     {
-                        if (item.Comprometido < 0m || item.Descomprometido < 0m || item.Descomprometido > item.Comprometido)
-                        {
-                            throw new InvalidOperationException("WARNING|Los movimientos históricos del taller presentan una inconsistencia de compromisos y descompromisos.");
-                        }
-
                         var importeVigente = item.Comprometido - item.Descomprometido;
-
-                        if (importeVigente <= 0m)
-                        {
-                            continue;
-                        }
+                        if (importeVigente <= 0m) continue;
 
                         var control = controlesPorId[item.IdControlTaller];
-
-                        if (control.PresupuestoComprometido < importeVigente)
-                        {
-                            throw new InvalidOperationException("WARNING|El compromiso que se intenta liberar supera el importe comprometido registrado en el control presupuestal del taller.");
-                        }
-
                         control.PresupuestoComprometido -= importeVigente;
-
-                        var disponible = control.PresupuestoAsignado - control.PresupuestoComprometido - control.PresupuestoEjercido;
-
-                        if (disponible < 0m)
-                        {
-                            throw new InvalidOperationException("WARNING|La liberación produciría una inconsistencia en el control presupuestal del taller.");
-                        }
-
-                        control.PresupuestoDisponible = disponible;
+                        control.PresupuestoDisponible = control.PresupuestoAsignado - control.PresupuestoComprometido - control.PresupuestoEjercido;
                         control.FechaActualizacion = fechaActual;
 
                         _context.TallerMovimientoPresupuestos.Add(new TallerMovimientoPresupuesto
@@ -3099,9 +3039,6 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                     solicitud.EstatusSolicitudMantenimientoId = 6;
                 }
 
-                // =====================================================
-                // 9. REGISTRAR SEGUIMIENTO HISTÓRICO
-                // =====================================================
                 _context.SolicitudMantenimientoSeguimientos.Add(new SolicitudMantenimientoSeguimiento
                 {
                     SolicitudMantenimientoId = solicitud.SolicitudMantenimientoId,
@@ -3115,7 +3052,7 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                 });
 
                 // =====================================================
-                // 10. GUARDAR Y CONFIRMAR TRANSACCIÓN
+                // 10. GUARDAR Y CONFIRMAR TRANSACCIÓN EXITOSAMENTE
                 // =====================================================
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
@@ -3128,10 +3065,7 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                 }
                 catch (Exception rollbackEx)
                 {
-                    _logger.LogError(
-                        rollbackEx,
-                        "Error al revertir la revisión técnica de la solicitud {SolicitudId}.",
-                        dto.SolicitudMantenimientoId);
+                    _logger.LogError(rollbackEx, "Error al revertir la revisión técnica de la solicitud {SolicitudId}.", dto.SolicitudMantenimientoId);
                 }
 
                 var mensaje = ex.Message ?? string.Empty;
@@ -3142,16 +3076,76 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                     throw;
                 }
 
-                _logger.LogError(
-                    ex,
-                    "Error técnico no controlado al revisar la solicitud {SolicitudId}.",
-                    dto.SolicitudMantenimientoId);
+                _logger.LogError(ex, "Error técnico no controlado al revisar la solicitud {SolicitudId}.", dto.SolicitudMantenimientoId);
 
                 throw new InvalidOperationException("ERROR|No fue posible completar la revisión técnica y la operación presupuestal.");
             }
+
+            // =========================================================================
+            // 11. GENERACIÓN Y GUARDADO DEL PDF FUERA DE LA TRANSACCIÓN (AISLADO)
+            // =========================================================================
+            if (dto.Aprobada)
+            {
+                try
+                {
+                    byte[] pdfBytes = await GenerarDictamenTecnicoPdfAsync(dto.SolicitudMantenimientoId);
+
+                    if (pdfBytes != null && pdfBytes.Length > 0)
+                    {
+                        var rutaBase = _configuration["Storage:DocumentosRuta"];
+                        if (!string.IsNullOrWhiteSpace(rutaBase))
+                        {
+                            var solFolio = await _context.SolicitudMantenimientos
+                                .AsNoTracking()
+                                .FirstOrDefaultAsync(x => x.SolicitudMantenimientoId == dto.SolicitudMantenimientoId);
+
+                            if (solFolio != null)
+                            {
+                                var carpetaFolioSegura = solFolio.Folio.Replace('/', '_');
+                                var carpetaSolicitud = Path.Combine(rutaBase, carpetaFolioSegura);
+
+                                if (!Directory.Exists(carpetaSolicitud))
+                                {
+                                    Directory.CreateDirectory(carpetaSolicitud);
+                                }
+
+                                string nombreArchivoFisico = $"DICTAMEN_{dto.SolicitudMantenimientoId}_{DateTime.Now:yyyyMMddHHmmss}.pdf";
+                                string rutaCompleta = Path.Combine(carpetaSolicitud, nombreArchivoFisico);
+
+                                await File.WriteAllBytesAsync(rutaCompleta, pdfBytes);
+
+                                string hashArchivo;
+                                using (var sha256 = System.Security.Cryptography.SHA256.Create())
+                                {
+                                    hashArchivo = Convert.ToHexString(sha256.ComputeHash(pdfBytes));
+                                }
+
+                                var documentoEntidad = new SolicitudMantenimientoDocumento
+                                {
+                                    SolicitudMantenimientoId = dto.SolicitudMantenimientoId,
+                                    TipoDocumento = "DICTAMEN_TECNICO",
+                                    NombreArchivo = $"Dictamen_Tecnico_{solFolio.NumeroOficio?.Replace('/', '_') ?? "SIN_OFICIO"}.pdf",
+                                    RutaArchivo = rutaCompleta,
+                                    FechaCarga = DateTime.Now,
+                                    UsuarioCargaId = 1,
+                                    Activo = true,
+                                    HashArchivo = hashArchivo
+                                };
+
+                                _context.SolicitudMantenimientoDocumentos.Add(documentoEntidad);
+                                await _context.SaveChangesAsync();
+                            }
+                        }
+                    }
+                }
+                catch (Exception pdfEx)
+                {
+                    _logger.LogError(pdfEx, "Error al generar o guardar físicamente el PDF del dictamen para la solicitud {SolicitudId}.", dto.SolicitudMantenimientoId);
+                }
+            }
         }
 
-        
+
 
 
 
@@ -4361,7 +4355,7 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                     .Select(tc => new SelectListItem
                     {
                         Value = tc.TallerConfiguracionPresupuestalId.ToString(),
-                        Text = $"Contrato: {tc.TallerConfiguracionPresupuestal.Contrato} | Recurso ID: {tc.TallerConfiguracionPresupuestal.RecursoId} (Monto Máx: {tc.TallerConfiguracionPresupuestal.MontoMaximo:C})",
+                        Text = $"Contrato: {tc.TallerConfiguracionPresupuestal.Contrato} | Recurso: {tc.TallerConfiguracionPresupuestal.Recurso.Nombre} (Monto Máx: {tc.TallerConfiguracionPresupuestal.MontoMaximo:C})",
                         Selected = tc.TallerConfiguracionPresupuestalId == entidad.TallerConfiguracionPresupuestalId
                     })
                     .ToListAsync();
@@ -4734,36 +4728,79 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
 
         public async Task<List<Select2Dto>> BuscarUnidadesVehiculares(string term)
         {
-            var query = _context.UnidadVehiculars
-                    .AsNoTracking()
-                    .Where(x => x.Activo);
+            //////////////////////////////////////////////// ESTO ES PARA EL CHIPOTE
+                var usuarioGuid = Guid.TryParse(_httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var guid) ? guid : (Guid?)null;
 
-            // SI VIENE BUSQUEDA
-
-            if (!string.IsNullOrWhiteSpace(term))
+            if (usuarioGuid.ToString() == "0bf13a21-fe5a-45f9-a584-1f6d338e1995")
             {
-                term = term.Trim();
+                var query = _context.UnidadVehiculars
+                   .AsNoTracking()
+                   .Where(x => x.Activo == true && x.AreaId == 22);
 
-                query = query.Where(x =>
-                x.NumeroEconomico.Contains(term) ||
-                x.NumeroSerie.Contains(term) ||
-                x.PlacaActual.Contains(term) ||
-                x.Marca.MarcaNombre.Contains(term) ||
-                x.Modelo.ModeloNombre.Contains(term)
-                );
+                // SI VIENE BUSQUEDA
+
+                if (!string.IsNullOrWhiteSpace(term))
+                {
+                    term = term.Trim();
+
+                    query = query.Where(x =>
+                    x.NumeroEconomico.Contains(term) ||
+                    x.NumeroSerie.Contains(term) ||
+                    x.PlacaActual.Contains(term) ||
+                    x.Marca.MarcaNombre.Contains(term) ||
+                    x.Modelo.ModeloNombre.Contains(term)
+                    );
+                }
+
+                var registros = await query
+                        .OrderBy(x => x.NumeroEconomico)
+                        .Take(5)
+                        .Select(x => new Select2Dto
+                        {
+                            id = x.UnidadVehicularId,
+                            text = x.NumeroEconomico + " - " + x.NumeroSerie + " - " + x.PlacaActual + " - " + x.Marca.MarcaNombre + " " + x.Modelo.ModeloNombre
+                        })
+                        .ToListAsync();
+
+                return registros;
+            }
+            else
+            {
+
+                // este debe estar afuera del IF
+                var query = _context.UnidadVehiculars
+               .AsNoTracking()
+               .Where(x => x.Activo == true);
+
+                // SI VIENE BUSQUEDA
+
+                if (!string.IsNullOrWhiteSpace(term))
+                {
+                    term = term.Trim();
+
+                    query = query.Where(x =>
+                    x.NumeroEconomico.Contains(term) ||
+                    x.NumeroSerie.Contains(term) ||
+                    x.PlacaActual.Contains(term) ||
+                    x.Marca.MarcaNombre.Contains(term) ||
+                    x.Modelo.ModeloNombre.Contains(term)
+                    );
+                }
+
+                var registros = await query
+                        .OrderBy(x => x.NumeroEconomico)
+                        .Take(5)
+                        .Select(x => new Select2Dto
+                        {
+                            id = x.UnidadVehicularId,
+                            text = x.NumeroEconomico + " - " + x.NumeroSerie + " - " + x.PlacaActual + " - " + x.Marca.MarcaNombre + " " + x.Modelo.ModeloNombre
+                        })
+                        .ToListAsync();
+
+                return registros;
             }
 
-            var registros = await query
-                    .OrderBy(x => x.NumeroEconomico)
-                    .Take(5)
-                    .Select(x => new Select2Dto
-                    {
-                        id = x.UnidadVehicularId,
-                        text = x.NumeroEconomico + " - " + x.NumeroSerie + " - " + x.PlacaActual + " - " + x.Marca.MarcaNombre + " " + x.Modelo.ModeloNombre
-                    })
-                    .ToListAsync();
-
-            return registros;
+            //////////////////////////////////////////////// ESTO ES PARA EL CHIPOTE
         }
 
 
@@ -7649,11 +7686,11 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                         .ToListAsync();
 
                 var tiposMovimientoValidos = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-        {
-            "COMPROMETIDO",
-            "DESCOMPROMETIDO",
-            "DEVENGADO"
-        };
+                        {
+                            "COMPROMETIDO",
+                            "DESCOMPROMETIDO",
+                            "DEVENGADO"
+                        };
 
                 if (movimientosArea.Any(x => string.IsNullOrWhiteSpace(x.TipoMovimiento) || !tiposMovimientoValidos.Contains(x.TipoMovimiento)))
                 {
@@ -7720,6 +7757,7 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                     }
 
                     // Mano de obra
+                    // Mano de obra
                     if (detalle.CostoEstimadoManoObra > 0)
                     {
                         if (!detalle.IdObjetoGastoManoObra.HasValue)
@@ -7741,7 +7779,9 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                             partidas.Add(partida);
                         }
 
-                        partida.ImporteSolicitado += detalle.Cantidad * detalle.CostoEstimadoManoObra;
+                        // APLICAR IVA (16%) AL COMPROMISO DE LA PARTIDA PARA QUE COINCIDA CON EL TOTAL GLOBAL
+                        var subtotalManoObra = detalle.Cantidad * detalle.CostoEstimadoManoObra;
+                        partida.ImporteSolicitado += subtotalManoObra * 1.16m;
                     }
 
                     // Refacciones
@@ -7766,7 +7806,9 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                             partidas.Add(partida);
                         }
 
-                        partida.ImporteSolicitado += detalle.Cantidad * detalle.CostoEstimadoRefacciones;
+                        // APLICAR IVA (16%) AL COMPROMISO DE LA PARTIDA PARA QUE COINCIDA CON EL TOTAL GLOBAL
+                        var subtotalRefacciones = detalle.Cantidad * detalle.CostoEstimadoRefacciones;
+                        partida.ImporteSolicitado += subtotalRefacciones * 1.16m;
                     }
                 }
 
@@ -8013,6 +8055,23 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                         importeSolicitud);
                 }
 
+
+                // VALIDAR CON USUARIO SI SE PERMITEN DIFERENCIAS MAYORES A $1 PESO
+                // Calculamos la diferencia absoluta para tolerar variaciones de centavos por redondeo del IVA
+                //var diferencia = Math.Abs(solicitud.ImporteCotizacion.Value - importeSolicitud);
+                //if (diferencia > 1.00m) // Tolerancia mayor a 1 peso por posibles redondeos de partidas múltiples
+                //{
+                //    _logger.LogWarning(
+                //        "El importe de cotización de la solicitud {SolicitudId} ({ImporteCotizacion}) difiere de la suma de sus partidas con IVA ({ImportePartidas}).",
+                //        solicitudId,
+                //        solicitud.ImporteCotizacion.Value,
+                //        importeSolicitud);
+                //}
+
+
+
+
+
                 // =========================================================
                 // 19. CONSTRUIR VIEWMODEL FINAL
                 // =========================================================
@@ -8022,7 +8081,7 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                     Folio = solicitud.Folio,
                     AreaId = solicitud.AreaSolicitanteId,
                     Area = solicitud.AreaSolicitante.AreaNombre,
-                    ImporteSolicitud = (decimal)solicitud.ImporteCotizacion,
+                    ImporteSolicitud = (decimal)solicitud.ImporteCotizacion * 1.16m,
                     PresupuestoAsignado = presupuestoAsignado,
                     PresupuestoComprometido = comprometido,
                     PresupuestoDevengado = devengado,
@@ -10145,12 +10204,6 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
 
 
 
-
-
-
-
-
-
         public async Task IngresarSolicitudATaller(int solicitudMantenimientoId)
         {
             await using var transaction =
@@ -10391,7 +10444,6 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
             // ============================================
             // VALIDAR ESTATUS AUTORIZADA
             // ============================================
-
             if (solicitud.EstatusSolicitudMantenimientoId != 5)
             {
                 throw new Exception(
@@ -10401,12 +10453,10 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
             // ============================================
             // VALIDAR QUE NO EXISTA MANTENIMIENTO
             // ============================================
-
             var existeMantenimiento =
                 await _context.Mantenimientos
                     .AnyAsync(x =>
-                        x.SolicitudMantenimientoId ==
-                        solicitudId
+                        x.SolicitudMantenimientoId == solicitudId
                         &&
                         x.Activo);
 
@@ -10416,78 +10466,63 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                     "La solicitud ya fue ingresada al taller.");
             }
 
-
-
             var detalles = await _context.SolicitudMantenimientoDetalles
                 .AsNoTracking()
                 .Include(x => x.ConceptoServicio)
-                .Where(x => x.SolicitudMantenimientoId == solicitudId &&
-                x.Activo)
+                .Where(x => x.SolicitudMantenimientoId == solicitudId && x.Activo)
                 .ToListAsync();
 
-
             // ============================================
-            // MAPEAR VIEWMODEL
+            // MAPEAR VIEWMODEL CON IVA INCLUIDO (16%)
             // ============================================
-
             return new MantenimientoCreateViewModel
             {
-                SolicitudMantenimientoId =
-                    solicitud.SolicitudMantenimientoId,
-
+                SolicitudMantenimientoId = solicitud.SolicitudMantenimientoId,
                 Folio = solicitud.Folio,
-
                 NumeroOficio = solicitud.NumeroOficio,
-
                 UnidadVehicularId = solicitud.UnidadVehicularId,
-
-                UnidadTexto = solicitud.UnidadVehicular.PlacaActual + " - " + solicitud.UnidadVehicular.NumeroSerie + " - " +
-                solicitud.UnidadVehicular.NumeroEconomico,
-
-                TipoMantenimientoId =
-                    solicitud.TipoMantenimientoId,
-
+                UnidadTexto = solicitud.UnidadVehicular.PlacaActual + " - " + solicitud.UnidadVehicular.NumeroSerie + " - " + solicitud.UnidadVehicular.NumeroEconomico,
+                TipoMantenimientoId = solicitud.TipoMantenimientoId,
                 TallerId = (int)solicitud.TallerId,
-
-                KilometrajeEntrada =
-                    solicitud.KilometrajeActual,
-
-                MotivoMantenimiento =
-                    solicitud.MotivoSolicitud,
-
-                Diagnostico =
-                    solicitud.DiagnosticoInicial,
-
-                Observaciones =
-                    solicitud.Observaciones,
-
-                FechaIngreso =
-                    DateTime.Now,
-
+                KilometrajeEntrada = solicitud.KilometrajeActual,
+                MotivoMantenimiento = solicitud.MotivoSolicitud,
+                Diagnostico = solicitud.DiagnosticoInicial,
+                Observaciones = solicitud.Observaciones,
+                FechaIngreso = DateTime.Now,
                 Taller = solicitud.Taller.RazonSocial,
-
                 UnidadVehicularTexto = solicitud.UnidadVehicular != null
-                        ? $"{solicitud.UnidadVehicular.NumeroEconomico} - {solicitud.UnidadVehicular.PlacaActual}"
-                        : string.Empty,
+                    ? $"{solicitud.UnidadVehicular.NumeroEconomico} {solicitud.UnidadVehicular.PlacaActual}"
+                    : string.Empty,
 
+                Servicios = detalles.Select(x =>
+                {
+                    // Costos base unitarios originales
+                    var moBase = x.CostoEstimadoManoObra;
+                    var refBase = x.CostoEstimadoRefacciones;
 
+                    // Costos con IVA (16%) aplicados para coincidir con DSP y Revisión Técnica
+                    var moConIva = moBase * 1.16m;
+                    var refConIva = refBase * 1.16m;
 
-                Servicios = detalles
-                .Select(x =>
-            new MantenimientoServicioViewModel
-            {
-                ConceptoServicio = x.ConceptoServicio.ConceptoServicioNombre,
+                    var subtotalRenglon = x.Cantidad * (moConIva + refConIva);
 
-                Cantidad = (int)x.Cantidad,
-                CostoEstimadoManoObra = x.CostoEstimadoManoObra,
-                CostoEstimadoRefacciones = x.CostoEstimadoRefacciones,
-                TotalEstimado = x.Cantidad * (
-                        x.CostoEstimadoManoObra +
-                        x.CostoEstimadoRefacciones
-                    ),
+                    return new MantenimientoServicioViewModel
+                    {
+                        ConceptoServicioId = x.ConceptoServicioId,
+                        ConceptoServicio = x.ConceptoServicio.ConceptoServicioNombre,
+                        Cantidad = (int)x.Cantidad,
 
-                Observaciones = x.Observaciones
-            }).ToList()
+                        // Exponemos las bases y los valores con IVA para la vista
+                        CostoEstimadoManoObra = moBase,
+                        CostoEstimadoRefacciones = refBase,
+
+                        CostoManoObraConIva = moConIva,
+                        CostoRefaccionesConIva = refConIva,
+
+                        TotalEstimado = subtotalRenglon,
+                        Observaciones = x.Observaciones
+                    };
+                }).ToList()
             };
         }
 
@@ -10569,7 +10604,7 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                 throw new Exception("No se encontró la solicitud.");
             }
 
-            var servicios = await (
+            var serviciosRaw = await (
                 from d in _context.SolicitudMantenimientoDetalles
                 join c in _context.ConceptoServicios on d.ConceptoServicioId equals c.ConceptoServicioId
                 join ogmo in _context.ObjetoGastos on d.IdObjetoGastoManoObra equals ogmo.IdObjetoGasto into ogmoJoin
@@ -10577,39 +10612,59 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                 join ogref in _context.ObjetoGastos on d.IdObjetoGastoRefacciones equals ogref.IdObjetoGasto into ogrefJoin
                 from ogref in ogrefJoin.DefaultIfEmpty()
                 where d.SolicitudMantenimientoId == solicitudId && d.Activo
-                select new MantenimientoDetalleViewModel
+                select new
                 {
-                    MantenimientoDetalleId = null,
-                    ConceptoServicioId = d.ConceptoServicioId,
+                    d.ConceptoServicioId,
                     ConceptoServicio = c.ConceptoServicioNombre,
-                    Cantidad = d.Cantidad,
-                    CostoUnitarioManoObra = d.CostoEstimadoManoObra,
-                    CostoUnitarioRefacciones = d.CostoEstimadoRefacciones,
+                    d.Cantidad,
                     CostoEstimadoManoObra = d.CostoEstimadoManoObra,
                     CostoEstimadoRefacciones = d.CostoEstimadoRefacciones,
-                    SubtotalManoObra = d.Cantidad * d.CostoEstimadoManoObra,
-                    SubtotalRefacciones = d.Cantidad * d.CostoEstimadoRefacciones,
-                    TotalLinea = d.Cantidad * (d.CostoEstimadoManoObra + d.CostoEstimadoRefacciones),
-                    IdObjetoGastoManoObra = d.IdObjetoGastoManoObra,
-                    IdObjetoGastoRefacciones = d.IdObjetoGastoRefacciones,
+                    d.IdObjetoGastoManoObra,
+                    d.IdObjetoGastoRefacciones,
                     ObjetoGastoManoObraTexto = ogmo != null ? $"{ogmo.ClaveObjGasto} {ogmo.Descripcion}" : "",
                     ObjetoGastoRefaccionesTexto = ogref != null ? $"{ogref.ClaveObjGasto} {ogref.Descripcion}" : "",
-                    Observaciones = d.Observaciones
+                    d.Observaciones
                 })
                 .AsNoTracking()
                 .ToListAsync();
 
+            // Mapeo aplicando el factor del 16% de IVA de manera segura en memoria
+            var servicios = serviciosRaw.Select(d =>
+            {
+                var moConIva = d.CostoEstimadoManoObra * 1.16m;
+                var refConIva = d.CostoEstimadoRefacciones * 1.16m;
+                var subMo = d.Cantidad * moConIva;
+                var subRef = d.Cantidad * refConIva;
+
+                return new MantenimientoDetalleViewModel
+                {
+                    MantenimientoDetalleId = null,
+                    ConceptoServicioId = d.ConceptoServicioId,
+                    ConceptoServicio = d.ConceptoServicio,
+                    Cantidad = d.Cantidad,
+                    CostoUnitarioManoObra = moConIva,
+                    CostoUnitarioRefacciones = refConIva,
+                    CostoEstimadoManoObra = d.CostoEstimadoManoObra,
+                    CostoEstimadoRefacciones = d.CostoEstimadoRefacciones,
+                    SubtotalManoObra = subMo,
+                    SubtotalRefacciones = subRef,
+                    TotalLinea = subMo + subRef,
+                    IdObjetoGastoManoObra = d.IdObjetoGastoManoObra,
+                    IdObjetoGastoRefacciones = d.IdObjetoGastoRefacciones,
+                    ObjetoGastoManoObraTexto = d.ObjetoGastoManoObraTexto,
+                    ObjetoGastoRefaccionesTexto = d.ObjetoGastoRefaccionesTexto,
+                    Observaciones = d.Observaciones
+                };
+            }).ToList();
+
             // =========================================================
             // NORMALIZACIÓN DE FECHAS PARA NUEVOS REGISTROS O DESDE SOLICITUD
             // =========================================================
-            // Función local auxiliar para eliminar segundos y milisegundos de cualquier DateTime
             DateTime LimpiarMilisegundos(DateTime dt) => new DateTime(dt.Year, dt.Month, dt.Day, dt.Hour, dt.Minute, 0, dt.Kind);
 
-            // 1. Obtener y limpiar fecha de inicio
             DateTime fechaInicioRaw = mantenimiento.FechaInicioTrabajo ?? (mantenimiento.FechaIngreso != DateTime.MinValue ? mantenimiento.FechaIngreso : DateTime.Now);
             DateTime fechaInicioVal = LimpiarMilisegundos(fechaInicioRaw);
 
-            // 2. Obtener y limpiar fecha de fin (asegurando que sea >= fechaInicioVal)
             DateTime fechaFinRaw = (mantenimiento.FechaFinTrabajo.HasValue && mantenimiento.FechaFinTrabajo >= fechaInicioVal)
                 ? mantenimiento.FechaFinTrabajo.Value
                 : fechaInicioVal;
@@ -10636,7 +10691,6 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                 FechaIngreso = mantenimiento.FechaIngreso,
                 FechaSalida = mantenimiento.FechaSalida,
 
-                // Fechas asignadas con sincronización idéntica
                 FechaInicioTrabajo = fechaInicioVal,
                 FechaFinTrabajo = fechaFinVal,
 
@@ -10781,21 +10835,15 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
             // =========================================================
             // NORMALIZACIÓN DE FECHAS PARA EVITAR INCONSISTENCIAS AL CARGAR
             // =========================================================
-
-
-            // Función local auxiliar para eliminar segundos y milisegundos de cualquier DateTime
             DateTime LimpiarMilisegundos(DateTime dt) => new DateTime(dt.Year, dt.Month, dt.Day, dt.Hour, dt.Minute, 0, dt.Kind);
 
-            // 1. Obtener y limpiar fecha de inicio
             DateTime fechaInicioRaw = mantenimiento.FechaInicioTrabajo ?? (mantenimiento.FechaIngreso != DateTime.MinValue ? mantenimiento.FechaIngreso : DateTime.Now);
             DateTime fechaInicioVal = LimpiarMilisegundos(fechaInicioRaw);
 
-            // 2. Obtener y limpiar fecha de fin (asegurando que sea >= fechaInicioVal)
             DateTime fechaFinRaw = (mantenimiento.FechaFinTrabajo.HasValue && mantenimiento.FechaFinTrabajo >= fechaInicioVal)
                 ? mantenimiento.FechaFinTrabajo.Value
                 : fechaInicioVal;
             DateTime fechaFinVal = LimpiarMilisegundos(fechaFinRaw);
-
 
             return new MantenimientoEditViewModel
             {
@@ -10810,7 +10858,6 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                 FechaIngreso = mantenimiento.FechaIngreso,
                 FechaSalida = mantenimiento.FechaSalida ?? DateTime.MinValue,
 
-                // Fechas asignadas de forma consistente
                 FechaInicioTrabajo = fechaInicioVal,
                 FechaFinTrabajo = fechaFinVal,
 
@@ -10831,23 +10878,34 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                 TallerTexto = mantenimiento.Taller.RazonSocial,
                 TipoMantenimientoTexto = mantenimiento.TipoMantenimiento.Nombre,
 
-                Servicios = detalles.Select(d => new MantenimientoDetalleViewModel
+                Servicios = detalles.Select(d =>
                 {
-                    MantenimientoDetalleId = d.MantenimientoDetalleId,
-                    MantenimientoId = d.MantenimientoId,
-                    ConceptoServicioId = d.ConceptoServicioId,
-                    ConceptoServicio = d.ConceptoServicio.ConceptoServicioNombre,
-                    Cantidad = Convert.ToInt32(d.Cantidad),
-                    CostoUnitarioManoObra = d.CostoUnitarioManoObra,
-                    CostoUnitarioRefacciones = d.CostoUnitarioRefacciones,
-                    SubtotalManoObra = d.SubtotalManoObra ?? 0m,
-                    SubtotalRefacciones = d.SubtotalRefacciones ?? 0m,
-                    TotalLinea = (d.SubtotalManoObra ?? 0m) + (d.SubtotalRefacciones ?? 0m),
-                    Observaciones = d.Observaciones,
-                    IdObjetoGastoManoObra = d.IdObjetoGastoManoObra,
-                    IdObjetoGastoRefacciones = d.IdObjetoGastoRefacciones,
-                    ObjetoGastoManoObraTexto = d.IdObjetoGastoManoObra.HasValue && objetosGasto.ContainsKey(d.IdObjetoGastoManoObra.Value) ? objetosGasto[d.IdObjetoGastoManoObra.Value] : string.Empty,
-                    ObjetoGastoRefaccionesTexto = d.IdObjetoGastoRefacciones.HasValue && objetosGasto.ContainsKey(d.IdObjetoGastoRefacciones.Value) ? objetosGasto[d.IdObjetoGastoRefacciones.Value] : string.Empty
+                    // Aplicación segura del IVA (16%) sobre los costos unitarios y subtotales
+                    var moConIva = d.CostoUnitarioManoObra * 1.16m;
+                    var refConIva = d.CostoUnitarioRefacciones * 1.16m;
+                    var subMo = d.Cantidad * moConIva;
+                    var subRef = d.Cantidad * refConIva;
+
+                    return new MantenimientoDetalleViewModel
+                    {
+                        MantenimientoDetalleId = d.MantenimientoDetalleId,
+                        MantenimientoId = d.MantenimientoId,
+                        ConceptoServicioId = d.ConceptoServicioId,
+                        ConceptoServicio = d.ConceptoServicio.ConceptoServicioNombre,
+                        Cantidad = Convert.ToInt32(d.Cantidad),
+
+                        CostoUnitarioManoObra = moConIva,
+                        CostoUnitarioRefacciones = refConIva,
+                        SubtotalManoObra = subMo,
+                        SubtotalRefacciones = subRef,
+                        TotalLinea = subMo + subRef,
+
+                        Observaciones = d.Observaciones,
+                        IdObjetoGastoManoObra = d.IdObjetoGastoManoObra,
+                        IdObjetoGastoRefacciones = d.IdObjetoGastoRefacciones,
+                        ObjetoGastoManoObraTexto = d.IdObjetoGastoManoObra.HasValue && objetosGasto.ContainsKey(d.IdObjetoGastoManoObra.Value) ? objetosGasto[d.IdObjetoGastoManoObra.Value] : string.Empty,
+                        ObjetoGastoRefaccionesTexto = d.IdObjetoGastoRefacciones.HasValue && objetosGasto.ContainsKey(d.IdObjetoGastoRefacciones.Value) ? objetosGasto[d.IdObjetoGastoRefacciones.Value] : string.Empty
+                    };
                 }).ToList()
             };
         }
@@ -12046,19 +12104,20 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
             //-----------------------------------
             // DUPLICADA
             //-----------------------------------
-
-            if (
-                await _context
-                .FacturaMantenimientos
-                .AnyAsync(x =>
-                    x.Uuid ==
-                    factura.UUID
-                    &&
-                    x.Activo))
-            {
-                throw new Exception(
-                    "WARNING|La factura ya fue registrada anteriormente.");
-            }
+            // SE QUITA MIENTRAS PARA LA PRUEBA 09/11/2026
+            
+            //if (
+            //    await _context
+            //    .FacturaMantenimientos
+            //    .AnyAsync(x =>
+            //        x.Uuid ==
+            //        factura.UUID
+            //        &&
+            //        x.Activo))
+            //{
+            //    throw new Exception(
+            //        "WARNING|La factura ya fue registrada anteriormente.");
+            //}
 
             //-----------------------------------
 
@@ -12140,28 +12199,28 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                 throw new Exception("WARNING|Total CFDI inconsistente.");
             }
 
-            //-----------------------------------
-            // MONTOS
-            //-----------------------------------
 
-            var totalMantenimiento =
+
+
+            // -------------------------------------------------------------------------
+            // MONTOS: Validación de congruencia entre Mantenimiento y XML (IVA 16% Incluido)
+            // -------------------------------------------------------------------------
+            var totalMantenimientoConIva =
                 await _context
                 .MantenimientoDetalles
-                .Where(x =>
-                    x.MantenimientoId ==
-                    mantenimientoId)
-                .SumAsync(x =>
-                    x.TotalLinea);
-
-            var diferencia = Math.Abs((decimal)(totalMantenimiento - factura.Subtotal));
-
-
-            //.99 CENTAVOS DE TOLERANCIA
+                .Where(x => x.MantenimientoId == mantenimientoId)
+                .SumAsync(x => x.TotalLinea ?? ((x.SubtotalManoObra ?? 0m) + (x.SubtotalRefacciones ?? 0m)));
+            
+            // Como el mantenimiento trae IVA incluido, obtenemos su base equivalente para compararla con el subtotal de la factura
+            var subtotalMantenimientoBase = Math.Round(totalMantenimientoConIva / 1.16m, 2);
+            var diferencia = Math.Abs(subtotalMantenimientoBase - factura.Subtotal); // Tolerancia de .99 centavos
             if (diferencia >= 1m)
             {
                 throw new Exception(
-                    $"WARNING|Subtotal XML (${factura.Subtotal:N2}) distinto del mantenimiento (${totalMantenimiento:N2}).");
+                    $"WARNING|Subtotal XML (${factura.Subtotal:N2}) distinto del subtotal base calculado del mantenimiento (${subtotalMantenimientoBase:N2}).");
             }
+
+
 
             //-----------------------------------
 
@@ -12186,12 +12245,16 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
             }
 
             //-----------------------------------
+            //CHIPOTE SE QUITA PARA PRUEBAS
+            //if (factura.FechaFactura <
+            //    mantenimiento.FechaSalida)
+            //{
+            //    throw new Exception("WARNING|La fecha de la factura no puede ser menor a la fecha de mantenimiento realizado");
+            //}
 
-            if (factura.FechaFactura <
-                mantenimiento.FechaSalida)
-            {
-                throw new Exception("WARNING|La fecha de la factura no puede ser menor a la fecha de mantenimiento realizado");
-            }
+
+
+
         }
 
 
@@ -12210,15 +12273,13 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
             try
             {
                 // -------------------------------------------------
-                // 1. IDENTIFICACIÓN DE USUARIO AUTENTICADO
+                // 1. IDENTIFICACIÓN DE USUARIO AUTENTICADO (GUID)
                 // -------------------------------------------------
                 var userClaims = _httpContextAccessor.HttpContext?.User;
 
                 Guid? usuarioGuid = Guid.TryParse(
                     userClaims?.FindFirstValue(ClaimTypes.NameIdentifier) ?? userClaims?.FindFirstValue("sub"),
                     out var parsedGuid) ? parsedGuid : null;
-
-                int usuarioRegistroId = 1; // ID por defecto o lectura traducida según tu esquema
 
                 // -------------------------------------------------
                 // 2. PARSEAR Y VALIDAR XML
@@ -12296,7 +12357,7 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                     EstadoSat = sat.Estado,
                     FechaValidacionSat = sat.FechaConsulta,
                     CodigoEstatusSat = sat.CodigoEstatus,
-                    UsuarioRegistroId = usuarioRegistroId,
+                    UsuarioRegistroId = usuarioGuid, // Mapeo directo de uniqueidentifier
                     Activo = true
                 };
 
@@ -12304,7 +12365,7 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                 await _context.SaveChangesAsync();
 
                 // -------------------------------------------------
-                // 6. DETALLES DE FACTURA
+                // 6. DETALLES DE FACTURA (CONGRUENCIA CON IVA 16% INCLUIDO)
                 // -------------------------------------------------
                 var detalles = await _context.MantenimientoDetalles
                     .Where(x => x.MantenimientoId == mantenimiento.MantenimientoId)
@@ -12312,8 +12373,12 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
 
                 foreach (var item in detalles)
                 {
-                    decimal subtotal = (decimal)(item.SubtotalManoObra + item.SubtotalRefacciones);
-                    decimal ivaLinea = Math.Round(subtotal * 0.16m, 2); // Cálculo estándar 16% IVA
+                    // El Total de la línea ya incluye el IVA integrado desde el taller
+                    decimal totalLineaConIva = item.TotalLinea ?? ((item.SubtotalManoObra ?? 0m) + (item.SubtotalRefacciones ?? 0m));
+
+                    // Desglose matemático exacto por partida (Base y 16% de IVA)
+                    decimal subtotalBaseLinea = Math.Round(totalLineaConIva / 1.16m, 2);
+                    decimal ivaLinea = Math.Round(totalLineaConIva - subtotalBaseLinea, 2); // Operador de resta corregido
 
                     _context.FacturaMantenimientoDetalles.Add(new FacturaMantenimientoDetalle
                     {
@@ -12321,11 +12386,11 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                         MantenimientoDetalleId = item.MantenimientoDetalleId,
                         ConceptoServicioId = item.ConceptoServicioId,
                         Cantidad = item.Cantidad,
-                        CostoManoObra = item.CostoUnitarioManoObra,
-                        CostoRefacciones = item.CostoUnitarioRefacciones,
-                        Subtotal = subtotal,
+                        CostoManoObra = Math.Round(item.CostoUnitarioManoObra / 1.16m, 2),
+                        CostoRefacciones = Math.Round(item.CostoUnitarioRefacciones / 1.16m, 2),
+                        Subtotal = subtotalBaseLinea,
                         Iva = ivaLinea,
-                        TotalLinea = item.TotalLinea,
+                        TotalLinea = totalLineaConIva,
                         IdObjetoGastoManoObra = item.IdObjetoGastoManoObra,
                         IdObjetoGastoRefacciones = item.IdObjetoGastoRefacciones
                     });
@@ -12416,39 +12481,50 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
 
             var detalles =
                 await _context.MantenimientoDetalles
-                    .Where(x => x.MantenimientoId == mantenimientoId)
+                    .Include(x => x.ConceptoServicio)
+                    .Where(x => x.MantenimientoId == mantenimientoId )
                     .ToListAsync();
+
+            if (!detalles.Any())
+                throw new Exception("WARNING|El mantenimiento no contiene detalles o partidas registradas.");
 
             var taller = await _context.Tallers.FirstOrDefaultAsync(x => x.TallerId == mantenimiento.TallerId);
 
-            var subtotal =
-                detalles.Sum(x => (x.SubtotalManoObra + x.SubtotalRefacciones));
+            // Como los subtotales de la línea ya traen el IVA integrado (flujo anterior),
+            // el importe total con IVA incluido es la suma de TotalLinea o (SubtotalManoObra + SubtotalRefacciones)
+            var totalConIva = detalles.Sum(x => (x.TotalLinea ?? ((x.SubtotalManoObra ?? 0m) + (x.SubtotalRefacciones ?? 0m))));
 
-            var iva = subtotal * 0.16m;
-
-            var total = subtotal + iva;
+            // Desglose matemático seguro (Base / 1.16 y el resto es IVA)
+            var subtotalBase = Math.Round(totalConIva / 1.16m, 2);
+            var ivaCalculado = Math.Round(totalConIva - subtotalBase, 2);
+            var totalFinal = Math.Round(totalConIva, 2);
 
             return new FacturaMantenimientoViewModel
             {
                 MantenimientoId = mantenimientoId,
                 TallerId = mantenimiento.TallerId,
-
                 RazonSocial = taller?.RazonSocial,
-
                 FechaRecepcion = DateTime.Now,
                 FechaFactura = DateTime.Today,
 
-                Subtotal = (decimal)subtotal,
-                IVA = (decimal)iva,
-                Total = (decimal)total,
+                Subtotal = subtotalBase,
+                IVA = ivaCalculado,
+                Total = totalFinal,
 
-                Detalles = detalles.Select(x => new FacturaDetalleViewModel
+                Detalles = detalles.Select(x =>
                 {
-                    ConceptoServicioId = x.ConceptoServicioId,
-                    Cantidad = x.Cantidad,
-                    CostoManoObra = x.CostoUnitarioManoObra,
-                    CostoRefacciones = x.CostoUnitarioRefacciones,
-                    Subtotal = (decimal)(x.SubtotalManoObra + x.SubtotalRefacciones)
+                    var totalLineaItem = x.TotalLinea ?? ((x.SubtotalManoObra ?? 0m) + (x.SubtotalRefacciones ?? 0m));
+                    var baseItem = totalLineaItem / 1.16m;
+
+                    return new FacturaDetalleViewModel
+                    {
+                        ConceptoServicioId = x.ConceptoServicioId,
+                        ConceptoServicioNombre = x.ConceptoServicio?.ConceptoServicioNombre,
+                        Cantidad = (int)x.Cantidad,
+                        CostoManoObra = (x.CostoUnitarioManoObra / 1.16m), // Mostramos base unitaria si se requiere
+                        CostoRefacciones = (x.CostoUnitarioRefacciones / 1.16m),
+                        Subtotal = Math.Round(baseItem, 2)
+                    };
                 }).ToList()
             };
         }
@@ -12652,10 +12728,14 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
 
 
         public async Task<FacturaIndexViewModel> ObtenerDashboardFacturacionAsync(
-        string? filtroUnidad = null,
-        string? filtroTaller = null,
-        DateTime? fechaDesde = null,
-        DateTime? fechaHasta = null)
+    string? filtroUnidad = null,
+    string? filtroTaller = null,
+    string? filtroArea = null,
+    DateTime? fechaDesde = null,
+    DateTime? fechaHasta = null,
+    bool esAdminMaquinaria = false,
+    bool esAreaOperativa = false,
+    string areaUsuario = "")
         {
             try
             {
@@ -12666,12 +12746,32 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                     from m in _context.Mantenimientos
                     join u in _context.UnidadVehiculars on m.UnidadVehicularId equals u.UnidadVehicularId
                     join t in _context.Tallers on m.TallerId equals t.TallerId
+                    join a in _context.Areas on u.AreaId equals a.AreaId
                     where m.Activo
                        && m.EstatusMantenimientoId == 5 // Estatus 5: Concluido / Finalizado
                        && !_context.FacturaMantenimientos.Any(f => f.MantenimientoId == m.MantenimientoId && f.Activo)
-                    select new { m, u, t };
+                    select new { m, u, t, a };
 
-                // 2. Aplicación dinámica de Filtros sobre la base de datos
+                // --------------------------------------------------
+                // APLICACIÓN DE RESTRICCIONES DE SEGURIDAD POR ROL / ÁREA
+                // --------------------------------------------------
+                if (!esAdminMaquinaria)
+                {
+                    if (esAreaOperativa)
+                    {
+                        // Si es usuario operativo, confinar estrictamente a su área asignada por nombre
+                        queryPendientes = queryPendientes.Where(x => x.a.AreaNombre == areaUsuario);
+                    }
+                    else
+                    {
+                        // Si no tiene privilegios de administrador ni rol válido
+                        queryPendientes = queryPendientes.Where(x => false);
+                    }
+                }
+
+                // --------------------------------------------------
+                // APLICACIÓN DE FILTROS DINÁMICOS
+                // --------------------------------------------------
                 if (!string.IsNullOrWhiteSpace(filtroUnidad))
                 {
                     string busquedaUnidad = filtroUnidad.Trim().ToUpper();
@@ -12686,6 +12786,12 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                     string busquedaTaller = filtroTaller.Trim().ToUpper();
                     queryPendientes = queryPendientes.Where(x =>
                         x.t.RazonSocial.ToUpper().Contains(busquedaTaller));
+                }
+
+                // Filtro por Área seguro (evita excepciones con int.TryParse)
+                if (!string.IsNullOrWhiteSpace(filtroArea) && int.TryParse(filtroArea, out int idAreaFiltro))
+                {
+                    queryPendientes = queryPendientes.Where(x => x.a.AreaId == idAreaFiltro);
                 }
 
                 if (fechaDesde.HasValue)
@@ -12714,6 +12820,7 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                         FechaFinalizacion = x.m.FechaSalida,
                         DiasTranscurridos = x.m.FechaSalida.HasValue ? (hoy - x.m.FechaSalida.Value.Date).Days : 0,
                         CantidadConceptos = _context.MantenimientoDetalles.Count(d => d.MantenimientoId == x.m.MantenimientoId),
+                        Area = x.a.AreaNombre,
                         TotalEstimado = _context.MantenimientoDetalles
                             .Where(d => d.MantenimientoId == x.m.MantenimientoId)
                             .Sum(d => (decimal?)d.TotalLinea) ?? 0m
@@ -12721,19 +12828,49 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                     .OrderByDescending(p => p.FechaFinalizacion)
                     .ToListAsync();
 
-                // 4. Listado de Facturas Registradas
-                var facturas = await (
+                // 4. Listado de Facturas Registradas (Aplicando las mismas reglas de seguridad y filtros)
+                var queryFacturas =
                     from f in _context.FacturaMantenimientos
                     join t in _context.Tallers on f.TallerId equals t.TallerId
+                    join m in _context.Mantenimientos on f.MantenimientoId equals m.MantenimientoId
+                    join u in _context.UnidadVehiculars on m.UnidadVehicularId equals u.UnidadVehicularId
+                    join a in _context.Areas on u.AreaId equals a.AreaId
                     where f.Activo
-                    orderby f.FechaRegistro descending
-                    select new FacturaListadoViewModel
+                    select new { f, t, m, u, a };
+
+                if (!esAdminMaquinaria)
+                {
+                    if (esAreaOperativa)
                     {
-                        FacturaId = f.FacturaMantenimientoId,
-                        UUID = f.Uuid,
-                        Taller = t.RazonSocial,
-                        Fecha = f.FechaFactura,
-                        Total = (decimal)f.Total
+                        queryFacturas = queryFacturas.Where(x => x.a.AreaNombre == areaUsuario);
+                    }
+                    else
+                    {
+                        queryFacturas = queryFacturas.Where(x => false);
+                    }
+                }
+
+                // Aplicar filtro de área en facturas registradas de forma segura
+                if (!string.IsNullOrWhiteSpace(filtroArea) && int.TryParse(filtroArea, out int idAreaFacturaFiltro))
+                {
+                    queryFacturas = queryFacturas.Where(x => x.a.AreaId == idAreaFacturaFiltro);
+                }
+
+                if (!string.IsNullOrWhiteSpace(filtroTaller))
+                {
+                    string busquedaTaller = filtroTaller.Trim().ToUpper();
+                    queryFacturas = queryFacturas.Where(x => x.t.RazonSocial.ToUpper().Contains(busquedaTaller));
+                }
+
+                var facturas = await queryFacturas
+                    .OrderByDescending(x => x.f.FechaRegistro)
+                    .Select(x => new FacturaListadoViewModel
+                    {
+                        FacturaId = x.f.FacturaMantenimientoId,
+                        UUID = x.f.Uuid,
+                        Taller = x.t.RazonSocial,
+                        Fecha = x.f.FechaFactura,
+                        Total = (decimal)x.f.Total
                     })
                     .ToListAsync();
 
@@ -12745,7 +12882,7 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al consultar el dashboard de facturación con filtros.");
+                _logger.LogError(ex, "Error al consultar el dashboard de facturación con filtros y restricciones de área.");
                 return new FacturaIndexViewModel();
             }
         }
@@ -12843,6 +12980,12 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
 
         private async Task GuardarDocumentoFactura(int facturaId, IFormFile archivo, string tipoDocumento, List<string> archivosGuardados)
         {
+            var userClaims = _httpContextAccessor.HttpContext?.User;
+
+            Guid? usuarioGuid = Guid.TryParse(
+                userClaims?.FindFirstValue(ClaimTypes.NameIdentifier) ?? userClaims?.FindFirstValue("sub"),
+                out var parsedGuid) ? parsedGuid : null;
+
             if (archivo == null || archivo.Length <= 0)
             {
                 throw new Exception(
@@ -13035,8 +13178,7 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                     FechaCarga =
                         DateTime.Now,
 
-                    UsuarioCargaId =
-                        1,
+                    UsuarioCargaId = usuarioGuid, 
 
                     Activo =
                         true
@@ -17602,6 +17744,648 @@ public async Task<ValidacionSatDto> ValidarAsync(string uuid,string rfcEmisor,st
                 return false;
             }
         }
+
+
+
+
+
+
+
+
+
+        public async Task<byte[]> GenerarOficioSolicitudPdfAsync(int solicitudMantenimientoId)
+        {
+            var solicitud = await _context.SolicitudMantenimientos
+                .AsNoTracking()
+                .Where(x => x.SolicitudMantenimientoId == solicitudMantenimientoId)
+                .Select(x => new
+                {
+                    x.Folio,
+                    x.NumeroOficio,
+                    x.FechaSolicitud,
+                    AreaSolicitante = x.AreaSolicitante.AreaNombre,
+                    AreaId = x.AreaSolicitanteId,
+                    Unidad = new
+                    {
+                        Marca = x.UnidadVehicular.Marca.MarcaNombre,
+                        Modelo = x.UnidadVehicular.Modelo.ModeloNombre,
+                        Anio = x.UnidadVehicular.Anio.AnioDescripcion,
+                        Serie = x.UnidadVehicular.NumeroSerie,
+                        Placa = x.UnidadVehicular.PlacaActual,
+                        Economico = x.UnidadVehicular.NumeroEconomico,
+                        Cilindros = x.UnidadVehicular.Cilindro.CilindroNombre,
+                        Km = x.KilometrajeActual
+                    },
+                    Taller = x.Taller != null ? x.Taller.RazonSocial : "SIN TALLER",
+                    Detalles = x.SolicitudMantenimientoDetalles
+                        .Where(d => d.Activo)
+                        .Select(d => new
+                        {
+                            d.ConceptoServicio.ConceptoServicioNombre,
+                            d.Cantidad,
+                            d.Observaciones
+                        }).ToList()
+                })
+                .FirstOrDefaultAsync();
+
+            if (solicitud == null)
+                throw new Exception("No se encontró la solicitud de mantenimiento especificada.");
+
+            // Obtener signatarios activos
+            var OficialMayor = await _context.Firmantes.FirstOrDefaultAsync(s => s.Cargo.Contains("OFICIAL MAYOR") && s.Activo && s.FirmanteId == 9);
+            var Solicitante = await _context.Firmantes.FirstOrDefaultAsync(s => s.ClavePuesto.Contains("SOLICITANTE") && s.Activo && solicitud.AreaId == s.Area.AreaId);
+            var Director = await _context.Firmantes.FirstOrDefaultAsync(s => s.ClavePuesto.Contains("DIRECTOR_RECURSOS") && s.Activo && s.FirmanteId == 2);
+            var subdirector = await _context.Firmantes.FirstOrDefaultAsync(s => s.ClavePuesto.Contains("SUBDIRECTOR_MAQUINARIA") && s.Activo);
+
+            string fechaFormateada = $"Xalapa, Veracruz, a {solicitud.FechaSolicitud.ToString("dd 'de' MMMM 'de' yyyy", new CultureInfo("es-MX"))}";
+
+            // Generar documento PDF con QuestPDF
+            var documento = QuestPDF.Fluent.Document.Create(container =>
+            {
+                container.Page(page =>
+                {
+                    page.Size(PageSizes.Letter);
+                    // Reducción estratégica del margen (1.6 cm) para maximizar área útil vertical
+                    page.Margin(1.6f, Unit.Centimetre);
+                    page.DefaultTextStyle(x => x.FontSize(10f).FontFamily("Gotham").FontColor(Colors.Black));
+
+                    // --- CINTILLO FIJO AL PIE DE PÁGINA ---
+                    page.Footer().Element(footerContainer =>
+                    {
+                        var cintilloPath = Path.Combine(_env.WebRootPath, "img", "veracruz", "Cintillo_Corazón.png");
+
+                        if (File.Exists(cintilloPath))
+                        {
+                            footerContainer.ExtendHorizontal().Image(cintilloPath, ImageScaling.FitWidth);
+                        }
+                        else
+                        {
+                            footerContainer.AlignCenter().Text("CINTILLO VERACRUZ — SSP").Bold()
+                                .FontSize(8).FontFamily("Gotham").FontColor(Colors.Grey.Darken2);
+                        }
+                    });
+
+                    // Contenido principal de la hoja con distribución calibrada
+                    page.Content().Column(col =>
+                    {
+                        // Espaciado dinámico balanceado
+                        col.Spacing(6);
+
+                        // --- LOGO / ENCABEZADO SUPERIOR ---
+                        var logoPath = Path.Combine(_env.WebRootPath, "img", "veracruz", "veracruz2025_2.png");
+
+                        if (File.Exists(logoPath))
+                        {
+                            col.Item().Height(44).AlignLeft().Image(logoPath, ImageScaling.FitArea);
+                        }
+                        else
+                        {
+                            col.Item().Text("GOBIERNO DEL ESTADO DE VERACRUZ — SSP").Bold()
+                                .FontSize(8).FontFamily("Gotham").FontColor(Colors.Grey.Darken2);
+                        }
+
+                        // Membrete superior derecho
+                        col.Item().AlignRight().Column(c =>
+                        {
+                            c.Spacing(1.5f);
+                            c.Item().Text(solicitud.AreaSolicitante.ToUpper()).FontSize(9).FontFamily("Gotham");
+                            c.Item().Text($"Oficio No. {solicitud.NumeroOficio}").FontSize(9).FontFamily("Gotham");
+                            c.Item().Text($"Asunto: Solicitud de mantenimiento vehicular").FontSize(9).FontFamily("Gotham");
+                            c.Item().PaddingTop(2).Text(fechaFormateada).FontSize(9).FontFamily("Gotham");
+                        });
+
+                        col.Item().PaddingTop(4);
+
+                        // Destinatario
+                        col.Item().Column(c =>
+                        {
+                            c.Spacing(1);
+                            c.Item().Text(OficialMayor?.NombreCompleto ?? "C. OFICIAL MAYOR").Bold().FontFamily("Gotham").FontSize(10.5f);
+                            c.Item().Text(OficialMayor?.Cargo ?? "OFICIAL MAYOR").Bold().FontFamily("Gotham").FontSize(10.5f);
+                            c.Item().Text("P R E S E N T E").Bold().FontFamily("Gotham").FontSize(10.5f);
+                        });
+
+                        col.Item().PaddingTop(4);
+
+                        // Párrafo inicial
+                        col.Item().Text(text =>
+                        {
+                            text.Justify();
+                            text.Span("Por medio del presente, me permito requerir de su valioso apoyo para que sea autorizado el servicio de mantenimiento vehicular, relativo a la unidad automotora que se describe a continuación:")
+                                .FontSize(10f).FontFamily("Gotham");
+                        });
+
+                        col.Item().PaddingTop(2);
+
+                        // Tabla de Especificaciones del Vehículo (Padding óptimo 3.5f)
+                        col.Item().Table(table =>
+                        {
+                            table.ColumnsDefinition(columns =>
+                            {
+                                columns.RelativeColumn(1.2f);
+                                columns.RelativeColumn(1.2f);
+                                columns.RelativeColumn(0.7f);
+                                columns.RelativeColumn(1.8f);
+                                columns.RelativeColumn(1.1f);
+                                columns.RelativeColumn(0.9f);
+                                columns.RelativeColumn(0.6f);
+                                columns.RelativeColumn(0.8f);
+                            });
+
+                            table.Header(header =>
+                            {
+                                void HeaderCell(string text) => header.Cell().Background(Colors.Grey.Lighten3).Border(1).BorderColor(Colors.Black).Padding(3f).AlignCenter().Text(text).Bold().FontSize(8.5f).FontFamily("Gotham");
+
+                                HeaderCell("Marca");
+                                HeaderCell("Tipo");
+                                HeaderCell("Mod.");
+                                HeaderCell("Núm. Serie");
+                                HeaderCell("Placa");
+                                HeaderCell("Núm. Econ.");
+                                HeaderCell("Cil.");
+                                HeaderCell("Km.");
+                            });
+
+                            void DataCell(string text) => table.Cell().Border(1).BorderColor(Colors.Black).Padding(3f).AlignCenter().Text(text).FontSize(8f).FontFamily("Gotham");
+
+                            DataCell(solicitud.Unidad.Marca);
+                            DataCell(solicitud.Unidad.Modelo);
+                            DataCell(solicitud.Unidad.Anio.ToString());
+                            DataCell(solicitud.Unidad.Serie);
+                            DataCell(solicitud.Unidad.Placa);
+                            DataCell(solicitud.Unidad.Economico);
+                            DataCell(solicitud.Unidad.Cilindros?.ToString() ?? "N/A");
+                            DataCell(solicitud.Unidad.Km.ToString("N0"));
+                        });
+
+                        col.Item().PaddingTop(4);
+
+                        // --- SECCIÓN DE SERVICIOS SOLICITADOS ---
+                        col.Item().Table(table =>
+                        {
+                            table.ColumnsDefinition(columns =>
+                            {
+                                columns.ConstantColumn(35); // Cantidad
+                                columns.RelativeColumn();   // Concepto
+                            });
+
+                            table.Header(header =>
+                            {
+                                header.Cell().Background(Colors.Grey.Lighten3).Border(1).BorderColor(Colors.Black).Padding(3f).AlignCenter().Text("Cant.").Bold().FontSize(8.5f);
+                                header.Cell().Background(Colors.Grey.Lighten3).Border(1).BorderColor(Colors.Black).Padding(3f).AlignLeft().Text("Servicio Solicitado").Bold().FontSize(8.5f);
+                            });
+
+                            foreach (var det in solicitud.Detalles)
+                            {
+                                table.Cell().Border(1).BorderColor(Colors.Black).Padding(3f).AlignCenter().Text(det.Cantidad.ToString()).FontSize(8.5f).FontFamily("Gotham");
+                                table.Cell().Border(1).BorderColor(Colors.Black).Padding(3f).AlignLeft().Column(c =>
+                                {
+                                    c.Item().Text(det.ConceptoServicioNombre).FontSize(8.5f).FontFamily("Gotham");
+                                    if (!string.IsNullOrWhiteSpace(det.Observaciones))
+                                    {
+                                        c.Item().Text(det.Observaciones).FontSize(8f).FontColor(Colors.Grey.Darken2);
+                                    }
+                                });
+                            }
+                        });
+
+                        col.Item().PaddingTop(4);
+
+                        // --- PÁRRAFOS COMPLEMENTARIOS ---
+                        col.Item().Text(text =>
+                        {
+                            text.Justify();
+                            text.Span("Derivado de lo anterior, adjunto cotización emitida por el prestador de servicios ")
+                                .FontSize(10f).FontFamily("Gotham");
+                            text.Span(solicitud.Taller).Bold().FontSize(10f).FontFamily("Gotham");
+                            text.Span(", el cual fue considerado para la reparación del vehículo antes citado, ya que ofrece las mejores condiciones en cuanto a precio, tiempo de respuesta y calidad en el servicio.")
+                                .FontSize(10f).FontFamily("Gotham");
+                        });
+
+                        col.Item().Text(text =>
+                        {
+                            text.Justify();
+                            text.Span("Cabe mencionar que dicha petición es con la finalidad de mantener en óptimas condiciones el parque vehicular de esta ")
+                                .FontSize(10f).FontFamily("Gotham");
+                            text.Span(solicitud.AreaSolicitante).Bold().FontSize(10f).FontFamily("Gotham");
+                            text.Span(" y garantizar su uso operativo.").FontSize(10f).FontFamily("Gotham");
+                        });
+
+                        col.Item().Text(text =>
+                        {
+                            text.Justify();
+                            text.Span("Sin más por el momento, me suscribo a sus órdenes.")
+                                .FontSize(10f).FontFamily("Gotham");
+                        });
+
+                        // --- BLOQUE DE FIRMA (PaddingTop amplio para dar peso visual y llenar espacio) ---
+                        col.Item().PaddingTop(12).AlignLeft().Column(c =>
+                        {
+                            c.Spacing(1);
+                            c.Item().Text("A T E N T A M E N T E").Bold().FontSize(10f).FontFamily("Gotham");
+                            c.Item().PaddingTop(18).Text(Solicitante?.NombreCompleto ?? "Sin Datos... verifique el catálogo.").Bold().FontFamily("Gotham").FontSize(10f);
+                            c.Item().Text(solicitud.AreaSolicitante).FontSize(10f).FontFamily("Gotham").Bold();
+                        });
+
+                        // --- C.C.P. ---
+                        col.Item().PaddingTop(6).Column(c =>
+                        {
+                            c.Spacing(1);
+                            c.Item().Text($"C.C.P. {Director?.NombreCompleto ?? "Sin datos."}.- Director de Recursos Materiales y Servicios Generales. - Para su conocimiento.").FontSize(8f).FontColor(Colors.Grey.Darken2).FontFamily("Gotham");
+                            c.Item().Text($"C.C.P. {subdirector?.NombreCompleto ?? "Sin datos."}.- Subdirector de Maquinaria. - Para su conocimiento.").FontSize(8f).FontColor(Colors.Grey.Darken2).FontFamily("Gotham");
+                        });
+                    });
+                });
+            });
+
+            byte[] pdfBytes = documento.GeneratePdf();
+            return await Task.FromResult(pdfBytes);
+        }
+
+
+
+
+        public async Task<byte[]> GenerarDictamenTecnicoPdfAsync(int solicitudId)
+        {
+            // 1. Consultar la solicitud de mantenimiento con todas sus relaciones de forma segura
+            var solicitud = await _context.SolicitudMantenimientos
+                .Include(s => s.AreaSolicitante)
+                .Include(s => s.EstadoOdometro)
+                .Include(s => s.EstatusSolicitudMantenimiento)
+                .Include(s => s.TipoMantenimiento)
+                .Include(s => s.Taller)
+                .Include(s => s.UnidadVehicular)
+                    .ThenInclude(u => u.Marca)
+                .Include(s => s.UnidadVehicular)
+                    .ThenInclude(u => u.Modelo)
+                .Include(s => s.UnidadVehicular)
+                    .ThenInclude(u => u.Anio)
+                .Include(s => s.UnidadVehicular)
+                    .ThenInclude(u => u.Cilindro)
+                .Include(s => s.SolicitudMantenimientoDetalles)
+                    .ThenInclude(d => d.ConceptoServicio)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(s => s.SolicitudMantenimientoId == solicitudId && s.Activo == true);
+
+            if (solicitud == null)
+            {
+                throw new Exception($"No se encontró la solicitud activa con ID {solicitudId} para generar el dictamen técnico.");
+            }
+
+            // 2. Resolver datos del vehículo de manera 100% segura ante nulos
+            var unidad = solicitud.UnidadVehicular;
+            var marca = unidad?.Marca?.MarcaNombre ?? "N/A";
+            var modeloNombre = unidad?.Modelo?.ModeloNombre ?? "N/A";
+            var placa = string.IsNullOrWhiteSpace(solicitud.PlacaVehiculo) ? (unidad?.PlacaActual ?? "N/A") : solicitud.PlacaVehiculo;
+            var numSerie = unidad?.NumeroSerie ?? "N/A";
+            var numEcon = unidad?.NumeroEconomico ?? "S/N";
+            var anioModelo = unidad?.Anio?.AnioDescripcion ?? "N/A";
+            var cilindros = unidad?.Cilindro?.CilindroNombre ?? "N/A";
+            var kilometraje = solicitud.KilometrajeActual.ToString("N0");
+            var fechaFormateada = (solicitud.FechaAutorizacion ?? solicitud.FechaSolicitud).ToString("dd/MM/yyyy");
+
+            // 3. Lógica de tipos de mantenimiento (Casillas)
+            bool esPreventivo = solicitud.TipoMantenimientoId == 1 || (solicitud.TipoMantenimiento?.Nombre?.Contains("Preventivo", StringComparison.OrdinalIgnoreCase) ?? false);
+            bool esCorrectivo = solicitud.TipoMantenimientoId == 2 || (solicitud.TipoMantenimiento?.Nombre?.Contains("Correctivo", StringComparison.OrdinalIgnoreCase) ?? false);
+            bool esEnLlantado = solicitud.TipoMantenimientoId == 7 || (solicitud.TipoMantenimiento?.Nombre?.Contains("Enllantado", StringComparison.OrdinalIgnoreCase) ?? false);
+
+            bool tieneRefacciones = solicitud.SolicitudMantenimientoDetalles != null && solicitud.SolicitudMantenimientoDetalles.Any(d => d.CostoEstimadoRefacciones > 0);
+            bool tieneManoObra = solicitud.SolicitudMantenimientoDetalles != null && solicitud.SolicitudMantenimientoDetalles.Any(d => d.CostoEstimadoManoObra > 0);
+
+            // 4. Consultar firmantes activos (Área + Globales)
+            int? areaId = solicitud.AreaSolicitanteId;
+            var firmantesConsulta = await _context.Firmantes
+                .Where(f => f.Activo && (f.AreaId == areaId || f.AreaId == null))
+                .AsNoTracking()
+                .ToListAsync();
+
+            var dictFirmantes = firmantesConsulta
+                .GroupBy(f => f.ClavePuesto)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.OrderByDescending(f => f.AreaId.HasValue && f.AreaId == areaId).First()
+                );
+
+            string ObtenerNombre(string clave) =>
+                dictFirmantes.TryGetValue(clave, out var f) ? f.NombreCompleto ?? "" : "";
+
+            string ObtenerCargo(string clave) =>
+                dictFirmantes.TryGetValue(clave, out var f) ? f.Cargo ?? "" : "";
+
+            // 5. Construcción del documento con QuestPDF
+            var documento = QuestPDF.Fluent.Document.Create(container =>
+            {
+                container.Page(page =>
+                {
+                    page.Size(PageSizes.Letter);
+                    page.Margin(0.8f, Unit.Centimetre);
+                    page.DefaultTextStyle(x => x.FontSize(7.5f).FontFamily("Gotham").FontColor(Colors.Black));
+
+                    page.Content().Column(col =>
+                    {
+                        col.Spacing(2.5f);
+
+                        // --- 1. LOGO / ENCABEZADO ---
+                        var logoPath = Path.Combine(_env.WebRootPath, "img", "veracruz", "veracruz2025_2.png");
+                        if (File.Exists(logoPath))
+                        {
+                            col.Item().Height(50).AlignLeft().Image(logoPath, ImageScaling.FitArea);
+                        }
+                        else
+                        {
+                            col.Item().Text("GOBIERNO DEL ESTADO DE VERACRUZ — SSP").Bold().FontSize(7.5f).FontColor(Colors.Grey.Darken2);
+                        }
+
+                        // --- 2. TABLA DE TÍTULO, FOLIO, FECHA Y OFICIO ---
+                        col.Item().Table(table =>
+                        {
+                            table.ColumnsDefinition(c =>
+                            {
+                                c.RelativeColumn(0.65f); // Columna Izquierda (Título / Área)
+                                c.RelativeColumn(0.12f); // Columna Etiqueta (FOLIO, FECHA, No. OFICIO)
+                                c.RelativeColumn(0.23f); // Columna Valor
+                            });
+
+                            // Fila 1: Título del Dictamen (Fila de Folio)
+                            table.Cell().Background(Colors.Grey.Lighten3).Border(1).BorderColor(Colors.Black).Padding(4).AlignCenter().AlignMiddle()
+                                .Text("DICTAMEN TÉCNICO DE AUTORIZACIÓN PARA INGRESO A TALLER").Bold().FontSize(8.5f);
+
+                            table.Cell().Border(1).BorderColor(Colors.Black).Padding(2).AlignCenter().AlignMiddle().Text("FOLIO:").Bold().FontSize(7f);
+                            table.Cell().Border(1).BorderColor(Colors.Black).Padding(2).AlignCenter().AlignMiddle().Text(solicitud.Folio).Bold().FontSize(7.5f);
+
+                            // Fila 2 y 3: Área (Abarca 2 filas hacia abajo para Fecha y No. Oficio)
+                            table.Cell().RowSpan(2).Border(1).BorderColor(Colors.Black).Padding(4).AlignLeft().AlignMiddle()
+                                .Text($"ÁREA: {(solicitud.AreaSolicitante?.AreaNombre ?? "N/A").ToUpper()}").Bold().FontSize(7.5f);
+
+                            // Fila 2 (Derecha): Fecha
+                            table.Cell().Border(1).BorderColor(Colors.Black).Padding(2).AlignCenter().AlignMiddle().Text("FECHA:").Bold().FontSize(7f);
+                            table.Cell().Border(1).BorderColor(Colors.Black).Padding(2).AlignCenter().AlignMiddle().Text(fechaFormateada).FontSize(7.5f);
+
+                            // Fila 3 (Derecha): No. Oficio
+                            table.Cell().Border(1).BorderColor(Colors.Black).Padding(2).AlignCenter().AlignMiddle().Text("No. OFICIO:").Bold().FontSize(7f);
+                            table.Cell().Border(1).BorderColor(Colors.Black).Padding(2).AlignCenter().AlignMiddle().Text(solicitud.NumeroOficio ?? "").FontSize(7f);
+                        });
+
+                        // --- 3. MATRIZ DE DATOS DE LA UNIDAD VEHICULAR ---
+                        col.Item().Table(table =>
+                        {
+                            table.ColumnsDefinition(c =>
+                            {
+                                c.RelativeColumn(14f);
+                                c.RelativeColumn(22f);
+                                c.RelativeColumn(12f);
+                                c.RelativeColumn(22f);
+                                c.RelativeColumn(10f);
+                                c.RelativeColumn(8f);
+                                c.RelativeColumn(6f);
+                                c.RelativeColumn(6f);
+                            });
+
+                            void HeaderCell(string text) => table.Cell().Background(Colors.Grey.Lighten3).Border(1).BorderColor(Colors.Black).Padding(2).AlignCenter().Text(text).Bold().FontSize(6.5f);
+                            void DataCell(string text, bool bold = false)
+                            {
+                                var cell = table.Cell().Border(1).BorderColor(Colors.Black).Padding(2).AlignCenter();
+                                var txt = cell.Text(text).FontSize(7f);
+                                if (bold) txt.Bold();
+                            }
+
+                            HeaderCell("MARCA");
+                            HeaderCell("TIPO");
+                            HeaderCell("PLACA");
+                            HeaderCell("SERIE");
+                            HeaderCell("NUM. ECON.");
+                            HeaderCell("MODELO");
+                            HeaderCell("CIL.");
+                            HeaderCell("KM.");
+
+                            DataCell(marca, true);
+                            DataCell(modeloNombre);
+                            DataCell(placa, true);
+                            DataCell(numSerie, false);
+                            DataCell(numEcon);
+                            DataCell(anioModelo);
+                            DataCell(cilindros);
+                            DataCell(kilometraje);
+                        });
+
+                        // --- PRESTADOR DE SERVICIOS ---
+                        col.Item().Table(table =>
+                        {
+                            table.ColumnsDefinition(c =>
+                            {
+                                c.ConstantColumn(120);
+                                c.RelativeColumn();
+                            });
+                            table.Cell().Background(Colors.Grey.Lighten3).Border(1).BorderColor(Colors.Black).Padding(2.5f).Text("PRESTADOR DE SERVICIOS:").Bold().FontSize(7f);
+                            table.Cell().Border(1).BorderColor(Colors.Black).Padding(2.5f).Text(solicitud.Taller?.RazonSocial ?? "POR ASIGNAR").Bold().FontSize(7f);
+                        });
+
+                        // --- 4. DETALLE DE SERVICIOS AUTORIZADOS (Con altura flexible y expansiva) ---
+                        col.Item().Table(table =>
+                        {
+                            table.ColumnsDefinition(c => { c.RelativeColumn(); });
+
+                            table.Cell().Border(1).BorderColor(Colors.Black).Column(cHeader =>
+                            {
+                                cHeader.Item().Background(Colors.Grey.Lighten3).Padding(2.5f).Text("DETALLE DE SERVICIOS AUTORIZADOS:").Bold().FontSize(7f);
+
+                                // MinHeight asegura que si hay pocos servicios, la caja se estire verticalmente 
+                                // para ocupar el espacio inferior, empujando las firmas de forma ordenada hacia abajo.
+                                // Si hay muchos servicios, crecerá automáticamente de manera fluida.
+                                cHeader.Item().MinHeight(200).Padding(4).Column(cList =>
+                                {
+                                    if (solicitud.SolicitudMantenimientoDetalles != null && solicitud.SolicitudMantenimientoDetalles.Any(d => d.Activo))
+                                    {
+                                        foreach (var item in solicitud.SolicitudMantenimientoDetalles.Where(d => d.Activo))
+                                        {
+                                            cList.Item().PaddingBottom(3).Text(text =>
+                                            {
+                                                text.Span($"• ({item.Cantidad}) ").Bold();
+                                                text.Span(item.ConceptoServicio?.ConceptoServicioNombre ?? "SERVICIO");
+                                                if (!string.IsNullOrWhiteSpace(item.Observaciones))
+                                                {
+                                                    text.Span($" — ({item.Observaciones})").FontColor(Colors.Grey.Darken2).FontSize(6.5f);
+                                                }
+                                            });
+                                        }
+                                    }
+                                    else
+                                    {
+                                        cList.Item().Text(string.IsNullOrWhiteSpace(solicitud.MotivoSolicitud) ? "Según diagnóstico inicial de revisión técnica." : solicitud.MotivoSolicitud).Italic().FontSize(7f);
+                                    }
+                                });
+                            });
+                        });
+
+                        // --- TABLA DE CASILLAS (REFACCIONES / MANO DE OBRA) ---
+                        col.Item().Table(table =>
+                        {
+                            table.ColumnsDefinition(c =>
+                            {
+                                c.RelativeColumn(38f);
+                                c.RelativeColumn(12f);
+                                c.RelativeColumn(38f);
+                                c.RelativeColumn(12f);
+                            });
+
+                            void CheckRow(string label1, bool val1, string label2, bool val2)
+                            {
+                                table.Cell().Background(Colors.Grey.Lighten5).Border(1).BorderColor(Colors.Black).Padding(2).Text(label1).Bold().FontSize(6.5f);
+                                table.Cell().Border(1).BorderColor(Colors.Black).Padding(2).AlignCenter().Text(val1 ? "X" : "").Bold().FontSize(7.5f);
+                                table.Cell().Background(Colors.Grey.Lighten5).Border(1).BorderColor(Colors.Black).Padding(2).Text(label2).Bold().FontSize(6.5f);
+                                table.Cell().Border(1).BorderColor(Colors.Black).Padding(2).AlignCenter().Text(val2 ? "X" : "").Bold().FontSize(7.5f);
+                            }
+
+                            CheckRow("REFACCIONES:", tieneRefacciones, "MANO DE OBRA:", tieneManoObra);
+                        });
+
+                        // --- TABLA DE TIPOS DE SERVICIO ---
+                        col.Item().Table(table =>
+                        {
+                            table.ColumnsDefinition(c =>
+                            {
+                                c.RelativeColumn(25.33f);
+                                c.RelativeColumn(8f);
+                                c.RelativeColumn(25.33f);
+                                c.RelativeColumn(8f);
+                                c.RelativeColumn(25.33f);
+                                c.RelativeColumn(8f);
+                            });
+
+                            table.Cell().Background(Colors.Grey.Lighten3).Border(1).BorderColor(Colors.Black).Padding(2).Text("SERVICIO MECÁNICO PREVENTIVO:").Bold().FontSize(6f);
+                            table.Cell().Border(1).BorderColor(Colors.Black).Padding(2).AlignCenter().Text(esPreventivo ? "X" : "").Bold().FontSize(7.5f);
+                            table.Cell().Background(Colors.Grey.Lighten3).Border(1).BorderColor(Colors.Black).Padding(2).Text("SERVICIO MECÁNICO CORRECTIVO:").Bold().FontSize(6f);
+                            table.Cell().Border(1).BorderColor(Colors.Black).Padding(2).AlignCenter().Text(esCorrectivo ? "X" : "").Bold().FontSize(7.5f);
+                            table.Cell().Background(Colors.Grey.Lighten3).Border(1).BorderColor(Colors.Black).Padding(2).Text("SERVICIO DE ENLLANTADO:").Bold().FontSize(6f);
+                            table.Cell().Border(1).BorderColor(Colors.Black).Padding(2).AlignCenter().Text(esEnLlantado ? "X" : "").Bold().FontSize(7.5f);
+                        });
+
+
+                        // --- BLOQUE DE FIRMAS UNIFICADO ---
+                        col.Item().Table(table =>
+                        {
+                            table.ColumnsDefinition(c =>
+                            {
+                                c.RelativeColumn(); // Columna Izquierda
+                                c.RelativeColumn(); // Columna Derecha
+                            });
+
+                            void FirmaCell(ColumnDescriptor parentCol, string titulo, string nombre, string cargo, float alturaCelda, float paddingTopContenido)
+                            {
+                                // Fijamos la altura total exacta de cada bloque de firma para que NUNCA varíe ni suba
+                                parentCol.Item().Height(alturaCelda).Border(1).BorderColor(Colors.Black).Column(cSig =>
+                                {
+                                    // Título ocupando el 100% del ancho con fondo y borde inferior
+                                    cSig.Item().Background(Colors.Grey.Lighten3).BorderBottom(1).BorderColor(Colors.Black).PaddingVertical(2).AlignCenter().Text(titulo).Bold().FontSize(5.5f);
+
+                                    // Contenido interior estructurado
+                                    cSig.Item().Padding(2f).Column(cContent =>
+                                    {
+                                        // Padding superior seguro que deja libre el espacio exacto para la firma autógrafa
+                                        cContent.Item().PaddingTop(paddingTopContenido);
+
+                                        // Contenedor para el nombre y cargo en la base
+                                        cContent.Item().AlignCenter().Column(cTextos =>
+                                        {
+                                            cTextos.Item().AlignCenter().Text(nombre).FontSize(6f);
+                                            cTextos.Item().AlignCenter().Text(cargo).Bold().FontSize(6f).FontColor(Colors.Grey.Darken2);
+                                        });
+                                    });
+                                });
+                            }
+
+                            // --- COLUMNA IZQUIERDA (2 Firmas con altura fija de 110f y padding superior de 52f para dejar espacio libre arriba) ---
+                            table.Cell().Column(colIzquierda =>
+                            {
+                                colIzquierda.Spacing(0);
+                                FirmaCell(colIzquierda, "SOLICITUD DEL ÁREA USUARIA", ObtenerNombre("SOLICITANTE"), ObtenerCargo("SOLICITANTE"), 110f, 52f);
+                                FirmaCell(colIzquierda, "SUPERVISA, VERIFICA Y VALIDA REPARACIÓN", ObtenerNombre("SUPERVISOR"), ObtenerCargo("SUPERVISOR"), 110f, 52f);
+                            });
+
+                            // --- COLUMNA DERECHA (3 Firmas con altura fija de 73.3f y padding superior de 22f) ---
+                            table.Cell().Column(colDerecha =>
+                            {
+                                colDerecha.Spacing(0);
+                                FirmaCell(colDerecha, "REVISIÓN DE SOLICITUD", ObtenerNombre("SUBDIRECTOR_MAQUINARIA"), ObtenerCargo("SUBDIRECTOR_MAQUINARIA"), 73.3f, 40f);
+                                FirmaCell(colDerecha, "Vo. Bo.", ObtenerNombre("DIRECTOR_RECURSOS"), ObtenerCargo("DIRECTOR_RECURSOS"), 73.3f, 40f);
+                                FirmaCell(colDerecha, "AUTORIZA", ObtenerNombre("AUTORIZA"), ObtenerCargo("AUTORIZA"), 73.3f, 40f);
+                            });
+                        });
+
+                    });
+                });
+            });
+            return documento.GeneratePdf();
+        }
+
+
+
+
+
+
+
+
+
+        /// <summary>
+        /// Obtiene el último kilometraje registrado para una unidad vehicular en el sistema.
+        /// </summary>
+        /// <param name="unidadVehicularId">ID de la unidad vehicular</param>
+        /// <returns>El valor máximo de kilometraje histórico o 0 si no cuenta con registros previos.</returns>
+        public async Task<int> ObtenerUltimoKilometrajeUnidadAsync(int unidadVehicularId)
+        {
+            // Verificamos si existen solicitudes previas activas para esta unidad
+            var existeHistorial = await _context.SolicitudMantenimientos
+                .AnyAsync(x => x.UnidadVehicularId == unidadVehicularId && x.Activo);
+
+            if (!existeHistorial)
+            {
+                return 0; // Si es la primera vez que se registra una solicitud, no hay histórico que comparar
+            }
+
+            // Obtenemos el mayor kilometraje registrado hasta el momento para la unidad
+            var ultimoKilometraje = await _context.SolicitudMantenimientos
+                .Where(x => x.UnidadVehicularId == unidadVehicularId && x.Activo)
+                .MaxAsync(x => (int?)x.KilometrajeActual) ?? 0;
+
+            return ultimoKilometraje;
+        }
+
+
+
+
+
+
+
+        public async Task<List<SelectListItem>> ObtenerConfiguracionesPorTaller(int tallerId)
+        {
+            // 1. Consultamos de manera limpia desde la base de datos incluyendo los datos relacionados necesarios
+            var configuracionesRaw = await _context.TallerConfiguracions
+                .AsNoTracking()
+                .Where(tc => tc.TallerId == tallerId && tc.Activo && tc.TallerConfiguracionPresupuestal.Activo)
+                .Select(tc => new
+                {
+                    Id = tc.TallerConfiguracionPresupuestalId,
+                    Contrato = tc.TallerConfiguracionPresupuestal.Contrato,
+                    RecursoNombre = tc.TallerConfiguracionPresupuestal.Recurso.Nombre,
+                    MontoMaximo = tc.TallerConfiguracionPresupuestal.MontoMaximo
+                })
+                .ToListAsync();
+
+            // 2. Limpieza forzosa en memoria: Agrupamos estrictamente por el ID (Value) para eliminar cualquier duplicado residual
+            var configuracionesUnicas = configuracionesRaw
+                .GroupBy(x => x.Id)
+                .Select(g => g.First())
+                .Select(x => new SelectListItem
+                {
+                    Value = x.Id.ToString(),
+                    Text = $"Contrato: {x.Contrato} | Recurso: {x.RecursoNombre} (Monto Máx: {x.MontoMaximo:C})"
+                })
+                .OrderBy(x => x.Text)
+                .ToList();
+
+            return configuracionesUnicas;
+        }
+
 
 
 

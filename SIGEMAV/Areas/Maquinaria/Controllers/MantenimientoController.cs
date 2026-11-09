@@ -7,7 +7,7 @@ using static SIGEMAV.Areas.Maquinaria.DTOs.DTOs;
 namespace SIGEMAV.Areas.Maquinaria.Controllers
 {
     [Area("Maquinaria")]
-    [Authorize(Roles = "AdminMaquinaria,Sysadmin")]
+    [Authorize(Roles = "AdminMaquinaria,Sysadmin,AreaOperativa")]
     public class MantenimientoController : Controller
     {
         private readonly IMaquinariaService _maquinariaService;

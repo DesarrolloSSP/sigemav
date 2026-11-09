@@ -4,45 +4,81 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using SIGEMAV.Areas.Maquinaria.DTOs;
 using SIGEMAV.Models.Data;
+using SIGEMAV.Models.Entities;
 using SIGEMAV.Models.ViewModels.Maquinaria;
 using SIGEMAV.Services.Interfaces.Maquinaria;
+using System.Security.Claims;
 
 namespace SIGEMAV.Areas.Maquinaria.Controllers
 {
     
     [Area("Maquinaria")]
-    [Authorize(Roles = "AdminMaquinaria,Sysadmin")] 
+    [Authorize(Roles = "AdminMaquinaria,Sysadmin,AreaOperativa")] 
     public class FirmantesController : Controller
     {
         private readonly IMaquinariaService _maquinariaService;
         private readonly BdSigeMavContext _context;
         private readonly ILogger<SolicitudMantenimientoController> _logger;
 
-        public FirmantesController(IMaquinariaService maquinariaService, BdSigeMavContext context, ILogger<SolicitudMantenimientoController> logger)
+        private readonly IHttpContextAccessor _httpContextAccessor;
+
+        public FirmantesController(IMaquinariaService maquinariaService, BdSigeMavContext context, ILogger<SolicitudMantenimientoController> logger, IHttpContextAccessor httpContextAccessor)
         {
             _maquinariaService = maquinariaService;
             _context = context;
             _logger = logger;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         [HttpGet]
         public async Task<IActionResult> Index(int? areaFiltroId)
         {
-            var firmantes = await _maquinariaService.ObtenerTodosAsync(areaFiltroId);
-            var areas = await _context.Areas
+            //////////////////////////////////////////////// ESTO ES PARA EL CHIPOTE
+            var usuarioGuid = Guid.TryParse(_httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var guid) ? guid : (Guid?)null;
+
+            if (usuarioGuid.ToString() == "0bf13a21-fe5a-45f9-a584-1f6d338e1995")
+            {
+                areaFiltroId = 22;
+               
+                var areas = await _context.Areas
+              .Where(a => a.Activo && a.AreaId == 22)
+              .OrderBy(a => a.AreaNombre)
+              .AsNoTracking()
+              .ToListAsync();
+                var firmantes = await _maquinariaService.ObtenerTodosAsync(areaFiltroId);
+                var viewModel = new FirmanteIndexViewModel
+                {
+                    Firmantes = firmantes,
+                    AreaFiltroId = areaFiltroId,
+                    Areas = new SelectList(areas, "AreaId", "AreaNombre", areaFiltroId)
+                };
+
+                return View(viewModel);
+
+            }
+            else
+            {
+
+                // este codigo debe ir fuera del IF chipote
+                var areas = await _context.Areas
                 .Where(a => a.Activo)
                 .OrderBy(a => a.AreaNombre)
                 .AsNoTracking()
                 .ToListAsync();
+                var firmantes = await _maquinariaService.ObtenerTodosAsync(areaFiltroId);
 
-            var viewModel = new FirmanteIndexViewModel
-            {
-                Firmantes = firmantes,
-                AreaFiltroId = areaFiltroId,
-                Areas = new SelectList(areas, "AreaId", "AreaNombre", areaFiltroId)
-            };
+                var viewModel = new FirmanteIndexViewModel
+                {
+                    Firmantes = firmantes,
+                    AreaFiltroId = areaFiltroId,
+                    Areas = new SelectList(areas, "AreaId", "AreaNombre", areaFiltroId)
+                };
 
-            return View(viewModel);
+                return View(viewModel);
+            }
+
+            //////////////////////////////////////////////// ESTO ES PARA EL CHIPOTE
+
         }
 
         [HttpGet]
@@ -121,18 +157,51 @@ namespace SIGEMAV.Areas.Maquinaria.Controllers
             return Json(new { success = false, message = "No se pudo cambiar el estatus." });
         }
 
+
+
+
+
         #region Métodos Auxiliares
         private async Task<SelectList> CargarAreasSelectList(int? seleccionado = null)
         {
-            var listadoAreas = await _context.Areas
-                .Where(a => a.Activo)
-                .OrderBy(a => a.AreaNombre)
-                .Select(a => new { a.AreaId, a.AreaNombre })
-                .AsNoTracking()
-                .ToListAsync();
 
-            return new SelectList(listadoAreas, "AreaId", "AreaNombre", seleccionado);
+
+            //////////////////////////////////////////////// ESTO ES PARA EL CHIPOTE
+            var usuarioGuid = Guid.TryParse(_httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var guid) ? guid : (Guid?)null;
+
+            if (usuarioGuid.ToString() == "0bf13a21-fe5a-45f9-a584-1f6d338e1995")
+            {
+                seleccionado = 22;
+
+                var listadoAreas = await _context.Areas
+                    .Where(a => a.Activo && a.AreaId == seleccionado)
+                    .OrderBy(a => a.AreaNombre)
+                    .Select(a => new { a.AreaId, a.AreaNombre })
+                    .AsNoTracking()
+                    .ToListAsync();
+
+                return new SelectList(listadoAreas, "AreaId", "AreaNombre", seleccionado);
+            }
+            else
+            {
+                ////este codigo debe de ir afuera del IF 
+                var listadoAreas = await _context.Areas
+                    .Where(a => a.Activo)
+                    .OrderBy(a => a.AreaNombre)
+                    .Select(a => new { a.AreaId, a.AreaNombre })
+                    .AsNoTracking()
+                    .ToListAsync();
+
+                return new SelectList(listadoAreas, "AreaId", "AreaNombre", seleccionado);
+            }
+
+            //////////////////////////////////////////////// ESTO ES PARA EL CHIPOTE
         }
+
+
+
+
+
 
         private SelectList CargarClavesPuestoSelectList(string? seleccionado = null)
         {

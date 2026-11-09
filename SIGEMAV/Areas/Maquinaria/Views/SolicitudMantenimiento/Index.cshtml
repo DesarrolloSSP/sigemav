@@ -13,6 +13,8 @@
 	var filtroActivoFechaFin = Model.Filtro?.FechaFin.HasValue == true;
 
 	var filtroActivoRegistros = Model.RegistrosPorPagina != 10;
+
+	var usuarioAreaOperativa = Model.Filtro?.EsUsuarioDeAreaOperativa == true;
 }
 
 
@@ -211,14 +213,14 @@
 						<div>
 
 
-							<span class="text-primary small text-uppercase fw-semibold">
+							<span class="text-black small text-uppercase fw-semibold">
 
 								En revisión
 
 							</span>
 
 
-							<h2 class="fw-bold text-primary mb-0">
+							<h2 class="fw-bold text-black mb-0">
 
 								@Model.Kpi.EnRevision
 
@@ -236,7 +238,7 @@
 
 
 
-						<i class="bi bi-search fs-2 text-primary"></i>
+						<i class="bi bi-search fs-2 text-black"></i>
 
 
 					</div>
@@ -274,14 +276,14 @@
 						<div>
 
 
-							<span class="text-danger small text-uppercase fw-semibold">
+							<span class="text-info small text-uppercase fw-semibold">
 
 								En taller
 
 							</span>
 
 
-							<h2 class="fw-bold text-danger mb-0">
+							<h2 class="fw-bold text-info mb-0">
 
 								@Model.Kpi.EnMantenimiento
 
@@ -299,7 +301,68 @@
 
 
 
-						<i class="bi bi-tools fs-2 text-danger"></i>
+						<i class="bi bi-tools fs-2 text-info"></i>
+
+
+					</div>
+
+
+				</div>
+
+
+			</div>
+
+
+		</div>
+
+
+
+
+
+		<!-- AUTORIZADAS -->
+
+
+		<div class="col-xl-2 col-md-4">
+
+
+			<div class="card border-0 shadow-sm h-100">
+
+
+				<div class="card-body">
+
+
+					<div class="d-flex justify-content-between">
+
+
+						<div>
+
+
+							<span class="text-primary small text-uppercase fw-semibold">
+
+								autorizadas
+
+							</span>
+
+
+							<h2 class="fw-bold text-primary mb-1">
+
+								@Model.Kpi.Autorizadas
+
+							</h2>
+
+
+							<small class="text-muted">
+
+								Costo autorizado
+
+							</small>
+
+
+						</div>
+
+
+
+						<i class="bi bi-wallet2 fs-2 text-primary"></i>
 
 
 					</div>
@@ -336,14 +399,14 @@
 						<div>
 
 
-							<span class="text-secondary small text-uppercase fw-semibold">
+							<span class="text-success small text-uppercase fw-semibold">
 
 								Finalizadas
 
 							</span>
 
 
-							<h2 class="fw-bold mb-0">
+							<h2 class="fw-bold mb-0 text-success">
 
 								@Model.Kpi.Finalizadas
 
@@ -361,7 +424,7 @@
 
 
 
-						<i class="bi bi-check-circle fs-2 text-secondary"></i>
+						<i class="bi bi-check-circle fs-2 text-success"></i>
 
 
 					</div>
@@ -381,62 +444,7 @@
 
 
 
-		<!-- IMPORTE -->
-
-
-		<div class="col-xl-2 col-md-4">
-
-
-			<div class="card border-0 shadow-sm h-100">
-
-
-				<div class="card-body">
-
-
-					<div class="d-flex justify-content-between">
-
-
-						<div>
-
-
-							<span class="text-success small text-uppercase fw-semibold">
-
-								Importe
-
-							</span>
-
-
-							<h5 class="fw-bold text-success mb-1">
-
-								@Model.Kpi.ImporteCotizado.ToString("C")
-
-							</h5>
-
-
-							<small class="text-muted">
-
-								Costo autorizado
-
-							</small>
-
-
-						</div>
-
-
-
-						<i class="bi bi-wallet2 fs-2 text-success"></i>
-
-
-					</div>
-
-
-				</div>
-
-
-			</div>
-
-
-		</div>
+		
 
 
 
@@ -806,7 +814,7 @@
 
 								<th>Taller</th>
 
-								<th class="text-end" style="width:130px;">Importe</th>
+								<th class="text-end" style="width:130px;">Importe con IVA</th>
 
 								<th class="text-center" style="width:90px;">Servicios</th>
 
@@ -933,24 +941,22 @@
 
 
 									<td class="text-end">
-
-										@if (item.ImporteCotizacion.HasValue)
+										@if (item.ImporteCotizacionConIva.HasValue)
 										{
-											<span class="fw-bold text-success fs-6">
-
-												@item.ImporteCotizacion.Value.ToString("C")
-
-											</span>
+											<!-- Importe Total con IVA (Principal) -->
+											<div class="fw-bold text-success fs-6">
+												@item.ImporteCotizacionConIva.Value.ToString("C")
+											</div>
+        
+											<!-- Desglose secundario opcional (Base e IVA) para claridad del usuario -->
+											@* <div class="text-muted" style="font-size: 0.72rem;" title="Importe Base sin IVA">
+												Base: @item.ImporteCotizacion.Value.ToString("C")
+											</div> *@
 										}
 										else
 										{
-											<span class="text-muted">
-
-												—
-
-											</span>
+											<span class="text-muted">—</span>
 										}
-
 									</td>
 
 
@@ -1043,6 +1049,10 @@
 												<i class="bi bi-eye"></i>
 											</a>
 
+
+
+											@if(usuarioAreaOperativa == true)
+											{
 											<!-- DSP -->
 											<a asp-action="DSP"
 											   asp-route-id="@item.SolicitudMantenimientoId"
@@ -1053,23 +1063,26 @@
 												<i class="bi bi-cash-stack"></i>
 
 											</a>
-
-											<!-- Revisión Técnica -->
-											<a asp-action="Revisar"
-											   asp-route-id="@item.SolicitudMantenimientoId"
-											   class="btn btn-outline-primary"
-											   data-bs-toggle="tooltip"
-											   title="Revisión técnica">
-
-												<i class="bi bi-clipboard-check"></i>
-
-											</a>
-
-											@if (item.EstatusSolicitudMantenimientoId == 5)
-											{
-
+											}
 
 											
+											@if (usuarioAreaOperativa == false)
+											{
+												<!-- Revisión Técnica -->
+												<a asp-action="Revisar"
+												asp-route-id="@item.SolicitudMantenimientoId"
+												class="btn btn-outline-primary"
+												data-bs-toggle="tooltip"
+												title="Revisión técnica">
+
+													<i class="bi bi-clipboard-check"></i>
+
+												</a>
+											}
+
+											@if (item.EstatusSolicitudMantenimientoId == 5 && usuarioAreaOperativa == true)
+											{
+
 												<!-- Ingresar al Taller -->
 												<a asp-action="IngresarATaller"
 												   asp-route-id="@item.SolicitudMantenimientoId"
@@ -1082,7 +1095,7 @@
 												</a>
 											}
 
-											@if (item.EstatusSolicitudMantenimientoId == 7)
+											@if (item.EstatusSolicitudMantenimientoId == 7 && usuarioAreaOperativa == true)
 											{
 												<!-- Administrar mantenimiento -->
 												<a asp-controller="Mantenimiento"
@@ -1097,6 +1110,9 @@
 												</a>
 											}
 
+
+											@if(usuarioAreaOperativa == true)
+											{
 											<!-- Editar -->
 											<a asp-action="Edit"
 											   asp-route-id="@item.SolicitudMantenimientoId"
@@ -1107,6 +1123,8 @@
 												<i class="bi bi-pencil-square"></i>
 
 											</a>
+											}
+											
 
 										</div>
 
@@ -1554,6 +1572,22 @@
 
 
 	</script>
+
+
+
+
+	<script>
+        document.addEventListener("DOMContentLoaded", function () {
+            @if (TempData["AbrirOficioPdf"] != null)
+            {
+                var solicitudId = TempData["AbrirOficioPdf"];
+                <text>
+                    // Abrir automáticamente el PDF del oficio generado en una nueva pestaña
+                    window.open('@Url.Action("DescargarOficioSolicitud", "SolicitudMantenimiento", new { solicitudId = solicitudId })', '_blank');
+                </text>
+            }
+        });
+    </script>
 
 
 	

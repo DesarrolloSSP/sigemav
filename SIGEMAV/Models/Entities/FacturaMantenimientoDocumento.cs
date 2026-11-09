@@ -19,9 +19,9 @@ public partial class FacturaMantenimientoDocumento
 
     public DateTime? FechaCarga { get; set; }
 
-    public int? UsuarioCargaId { get; set; }
-
     public bool? Activo { get; set; }
+
+    public Guid? UsuarioCargaId { get; set; }
 
     public virtual FacturaMantenimiento? FacturaMantenimiento { get; set; }
 }

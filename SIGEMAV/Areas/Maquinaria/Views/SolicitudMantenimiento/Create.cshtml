@@ -171,19 +171,29 @@
         <span asp-validation-for="TallerId" class="text-danger small"></span>
     </div>
 
-    <!-- Contrato / Configuración Presupuestal -->
-    <div class="col-md-6">
-        <label asp-for="TallerConfiguracionPresupuestalId" class="form-label fw-semibold campo-obligatorio">
-            <i class="bi bi-file-earmark-spreadsheet me-1 text-secondary"></i>Contrato / Fuente de Recurso
-        </label>
-        <select asp-for="TallerConfiguracionPresupuestalId" asp-items="Model.ConfiguracionesTaller" class="form-select" id="TallerConfiguracionPresupuestalId" required disabled>
-            <option value="">Seleccione contrato / recurso</option>
-        </select>
-        <small id="mensajeConfiguracionTaller" class="text-muted d-block mt-1">
-            Seleccione un taller para cargar sus contratos vigentes.
-        </small>
-        <span asp-validation-for="TallerConfiguracionPresupuestalId" class="text-danger small"></span>
-    </div>
+@{
+    bool deshabilitarSelect = !Model.TallerId.HasValue || Model.TallerId.Value <= 0;
+}
+
+<!-- Contrato / Configuración Presupuestal -->
+<div class="col-md-6">
+    <label asp-for="TallerConfiguracionPresupuestalId" class="form-label fw-semibold campo-obligatorio">
+        <i class="bi bi-file-earmark-spreadsheet me-1 text-secondary"></i>Contrato / Fuente de Recurso
+    </label>
+    <select asp-for="TallerConfiguracionPresupuestalId" 
+            asp-items="@(new List<SelectListItem>())" 
+            class="form-select" 
+            id="TallerConfiguracionPresupuestalId" 
+            required 
+            data-selected="@Model.TallerConfiguracionPresupuestalId"
+            disabled="@(deshabilitarSelect ? "disabled" : null)">
+        <option value="">Seleccione contrato / recurso</option>
+    </select>
+    <small id="mensajeConfiguracionTaller" class="text-muted d-block mt-1">
+        Seleccione un taller para cargar sus contratos vigentes.
+    </small>
+    <span asp-validation-for="TallerConfiguracionPresupuestalId" class="text-danger small"></span>
+</div>
 
     <!-- Kilometraje Actual -->
     <div class="col-md-4">
@@ -619,16 +629,20 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
+        // Variable global para almacenar el último kilometraje histórico de la unidad seleccionada
         const serviciosExistentes = @Html.Raw(
                                     System.Text.Json.JsonSerializer.Serialize(
                                                     Model.Servicios ?? new List<SIGEMAV.Models.ViewModels.Maquinaria.SolicitudMantenimientoServicioViewModel>()
                                     )
                     );
+   
+        // Variable global para almacenar el último kilometraje histórico de la unidad seleccionada
+        let ultimoKilometrajeConocido = 0;
         let inicializandoUnidadVehicular = true;
 
         $(function () {
             inicializarUnidadVehicular();
-            inicializarEventosTaller(); // <--- INVOCACIÓN AGREGADA
+            inicializarEventosTaller();
             inicializarEventosGlobales();
             inicializarFormulario();
 
@@ -637,151 +651,215 @@
             }, 0);
         });
 
-        // ============================================================
-        // INICIALIZAR EVENTOS DEL TALLER Y CONTRATOS PRESUPUESTALES
-        // ============================================================
-        function inicializarEventosTaller() {
-            // Se soporta tanto id="TallerId" como id="tallerSelect"
-            const $taller =$("#TallerId").length ? $("#TallerId") : $("#tallerSelect");
-            const $configSelect =$("#TallerConfiguracionPresupuestalId").length ? $("#TallerConfiguracionPresupuestalId") : $("#tallerConfiguracionSelect");
+       // ============================================================
+     // INICIALIZAR EVENTOS DEL TALLER Y CONTRATOS PRESUPUESTALES
+     // ============================================================
+     function inicializarEventosTaller() {
+         const $taller = $("#TallerId").length ? $("#TallerId") : $("#tallerSelect");
+         const $configSelect = $("#TallerConfiguracionPresupuestalId").length ? $("#TallerConfiguracionPresupuestalId") : $("#tallerConfiguracionSelect");
 
-            $taller.on("change", function () {
-                const tallerId = $(this).val();
-                const $mensaje =$("#mensajeConfiguracionTaller");
+         // Bandera para evitar ejecuciones duplicadas de eventos durante la inicialización
+         let cargandoConfiguracionesIniciales = false;
 
-                // Reiniciar el selector de contratos
-                $configSelect.empty().append('<option value="">Seleccione contrato / recurso</option>');
+         $taller.on("change", function () {
+             const tallerId = $(this).val();
+             const $mensaje = $("#mensajeConfiguracionTaller");
+        
+             // Recuperar el valor previamente seleccionado (guardado en el atributo data o value actual)
+             const valorASeleccionar = $configSelect.attr("data-selected") || $configSelect.val();
 
-                if (!tallerId) {
-                    $configSelect.prop("disabled", true);
-                    if ($mensaje.length) {$mensaje.removeClass("text-danger text-success").addClass("text-muted")
-                                .text("Seleccione un taller para cargar sus contratos vigentes.");
-                    }
-                    return;
-                }
+             // REINICIALIZACIÓN FORZOSA ABSOLUTA DEL DOM: 
+             // Vaciamos por completo el select y removemos cualquier opción estática previa
+             $configSelect.empty().append('<option value="">Seleccione contrato / recurso</option>');
 
-                // Petición AJAX al backend
-                $.get("@Url.Action("ObtenerConfiguracionesPorTaller", "SolicitudMantenimiento", new { area = "Maquinaria" })", { tallerId: tallerId })
-                    .done(function (data) {
-                        if (!data || data.length === 0) {
-                            $configSelect.prop("disabled", true);
-                            if ($mensaje.length) {$mensaje.removeClass("text-muted text-success").addClass("text-danger")
-                                        .text("El taller seleccionado no cuenta con una configuración presupuestal activa.");
-                            }
+             if (!tallerId) {
+                 $configSelect.prop("disabled", true);
+                 if ($mensaje.length) {
+                     $mensaje.removeClass("text-danger text-success").addClass("text-muted")
+                             .text("Seleccione un taller para cargar sus contratos vigentes.");
+                 }
+                 return;
+             }
 
-                            Swal.fire({
-                                icon: "warning",
-                                title: "Sin Contrato Activo",
-                                text: "El taller seleccionado no cuenta con contratos presupuestales activos registrados.",
-                                confirmButtonColor: "#800705"
-                            });
-                            return;
-                        }
+             // Evitar llamadas múltiples concurrentes
+             if (cargandoConfiguracionesIniciales) return;
+             cargandoConfiguracionesIniciales = true;
 
-                        // Poblar combo
-                        $.each(data, function (index, item) {
-                            $configSelect.append(new Option(item.text, item.value));
-                        });
+             // Petición AJAX limpia
+             $.get("@Url.Action("ObtenerConfiguracionesPorTaller", "SolicitudMantenimiento", new { area = "Maquinaria" })", { tallerId: tallerId })
+                 .done(function (data) {
+                     // Volvemos a vaciar por seguridad justo antes de pintar la respuesta de la red
+                     $configSelect.empty().append('<option value="">Seleccione contrato / recurso</option>');
 
-                        // HABILITAR SELECTOR
-                        $configSelect.prop("disabled", false);
+                     if (!data || data.length === 0) {
+                         $configSelect.prop("disabled", true);
+                         if ($mensaje.length) {
+                             $mensaje.removeClass("text-muted text-success").addClass("text-danger")
+                                     .text("El taller seleccionado no cuenta con una configuración presupuestal activa.");
+                         }
+                         cargandoConfiguracionesIniciales = false;
+                         return;
+                     }
 
-                        // Si hay solo una configuración, la selecciona automáticamente
-                        if (data.length === 1) {
-                            $configSelect.val(data[0].value).trigger("change");
-                            if ($mensaje.length) {$mensaje.removeClass("text-muted text-danger").addClass("text-success")
-                                        .text("Contrato seleccionado automáticamente.");
-                            }
-                        } else {
-                            if ($mensaje.length) {$mensaje.removeClass("text-muted text-danger").addClass("text-muted")
-                                        .text("Seleccione la fuente de recurso o contrato aplicable.");
-                            }
-                        }
-                    })
-                    .fail(function () {
-                        $configSelect.prop("disabled", true);
-                        if ($mensaje.length) {$mensaje.removeClass("text-muted text-success").addClass("text-danger")
-                                    .text("Error al consultar los contratos del taller.");
-                        }
+                     // Filtrar duplicados de manera estricta en el cliente por seguridad usando un Map
+                     const elementosUnicos = [];
+                     const map = new Map();
+                     $.each(data, function (index, item) {
+                         if (!map.has(item.value)) {
+                             map.set(item.value, true);
+                             elementosUnicos.push(item);
+                         }
+                     });
 
-                        Swal.fire({
-                            icon: "error",
-                            title: "Error",
-                            text: "No fue posible obtener los contratos presupuestales del taller.",
-                            confirmButtonColor: "#800705"
-                        });
-                    });
-            });
+                     // Poblar de cero el combo exclusivamente con los elementos únicos
+                     $.each(elementosUnicos, function (index, item) {
+                         $configSelect.append(new Option(item.text, item.value));
+                     });
 
-            // Disparar si ya viene con un valor preseleccionado
-            if ($taller.val()) {$taller.trigger("change");
-            }
-        }
+                     $configSelect.prop("disabled", false);
+
+                     // Restaurar selección previa si coincide, o seleccionar si es único
+                     if (valorASeleccionar && $configSelect.find(`option[value="${valorASeleccionar}"]`).length > 0) {
+                         $configSelect.val(valorASeleccionar);
+                         $configSelect.removeAttr("data-selected");
+                     } else if (elementosUnicos.length === 1) {
+                         $configSelect.val(elementosUnicos[0].value);
+                     }
+
+                     cargandoConfiguracionesIniciales = false;
+                 })
+                 .fail(function () {
+                     $configSelect.prop("disabled", true);
+                     cargandoConfiguracionesIniciales = false;
+                 });
+         });
+
+         // Disparar al cargar solo si hay un taller válido seleccionado (al recargar por validación fallida)
+         if ($taller.val()) {
+             // Limpiamos cualquier valor residual antes de disparar el change inicial
+             $configSelect.val("");
+             $taller.trigger("change");
+         }
+     }
 
         // ============================================================
         // INICIALIZAR UNIDAD VEHICULAR
         // ============================================================
-        function inicializarUnidadVehicular() {
-            $("#unidadVehicularSelect").select2({
-                placeholder: "Buscar unidad vehicular",
-                allowClear: true,
-                width: "100%",
-                ajax: {
-                    url: "@Url.Action("BuscarUnidadesVehiculares", "SolicitudMantenimiento", new { area = "Maquinaria" })",
-                    dataType: "json",
-                    delay: 300,
-                    data: function (params) {
-                        return { term: params.term || "" };
-                    },
-                    processResults: function (data) {
-                        return { results: data };
-                    },
-                    cache: true
-                }
-            });
+     // Variable global para rastrear la unidad previamente seleccionada
+     let unidadVehicularAnterior = "";
 
-            $("#unidadVehicularSelect").on("select2:select", function (e) {
-                const unidadVehicularId = e.params.data.id;
+     // ============================================================
+     // INICIALIZAR UNIDAD VEHICULAR
+     // ============================================================
+     function inicializarUnidadVehicular() { 
+         $("#unidadVehicularSelect").select2({
+             placeholder: "Buscar unidad vehicular",
+             allowClear: true,
+             width: "100%",
+             ajax: {
+                 url: "@Url.Action("BuscarUnidadesVehiculares", "SolicitudMantenimiento", new { area = "Maquinaria" })",
+                 dataType: "json",
+                 delay: 300,
+                 data: function (params) {
+                     return { term: params.term || "" };
+                 },
+                 processResults: function (data) {
+                     return { results: data };
+                 },
+                 cache: true
+             }
+         });
 
-                $.get("@Url.Action("ObtenerAreaUnidad", "SolicitudMantenimiento", new { area = "Maquinaria" })", { unidadVehicularId: unidadVehicularId })
-                    .done(function (data) {
-                        $("#AreaSolicitanteId").val(data.areaId);
-                        $("#AreaSolicitanteIdDisplay").val(data.areaId);
-                    })
-                    .fail(function () {
-                        Swal.fire({
-                            icon: "error",
-                            title: "Error",
-                            text: "No fue posible obtener el área.",
-                            confirmButtonColor: "#800705"
-                        });
-                    });
+         // Al cargar la página, guardamos el valor inicial que traiga el select
+         unidadVehicularAnterior = $("#unidadVehicularSelect").val() || "";
 
-                if (!inicializandoUnidadVehicular) {
-                    limpiarServicios();
-                    Swal.fire({
-                        icon: "info",
-                        title: "Unidad actualizada",
-                        text: "Agregue nuevamente los servicios para cargar conceptos compatibles.",
-                        confirmButtonColor: "#800705"
-                    });
-                }
-            });
+         $("#unidadVehicularSelect").on("select2:select", function (e) {
+             const unidadVehicularId = e.params.data.id;
 
-            $("#unidadVehicularSelect").on("select2:clear", function () {
-                $("#AreaSolicitanteId").val("").trigger("change");
-                $("#AreaSolicitanteIdDisplay").val("");
-                limpiarServicios();
-            });
-        }
+             // GARANTÍA TOTAL DE LIMPIEZA: Si hay una unidad anterior distinta a la nueva, o si ya existían servicios previos
+             if (unidadVehicularAnterior && unidadVehicularAnterior !== unidadVehicularId) {
+                 limpiarServiciosServidorYCliente(); // Función de purga total
+                 Swal.fire({
+                     icon: "info",
+                     title: "Unidad actualizada",
+                     text: "Se ha cambiado la unidad vehicular. Todos los registros y servicios anteriores han sido eliminados por completo.",
+                     confirmButtonColor: "#800705"
+                 });
+             } else if (!inicializandoUnidadVehicular && $("#tablaServicios tbody tr").length > 0) {
+                 // Por si acaso selecciona la misma u ocurre un reajuste con filas activas
+                 limpiarServiciosServidorYCliente();
+             }
 
-        function limpiarServicios() {
-            $("#tablaServicios tbody").empty();
-            indiceServicio = 0;
-            if (typeof recalcularImporteCotizacion === "function") {
-                recalcularImporteCotizacion();
-            }
-        }
+             // Actualizamos el registro de la unidad actual
+             unidadVehicularAnterior = unidadVehicularId;
+
+             // 1. Obtener área
+             $.get("@Url.Action("ObtenerAreaUnidad", "SolicitudMantenimiento", new { area = "Maquinaria" })", { unidadVehicularId: unidadVehicularId })
+                 .done(function (data) {
+                     $("#AreaSolicitanteId").val(data.areaId);
+                     $("#AreaSolicitanteIdDisplay").val(data.areaId);
+                 })
+                 .fail(function () {
+                     Swal.fire({
+                         icon: "error",
+                         title: "Error",
+                         text: "No fue posible obtener el área.",
+                         confirmButtonColor: "#800705"
+                     });
+                 });
+
+             // 2. Obtener el último kilometraje histórico de la unidad
+             $.get("@Url.Action("ObtenerUltimoKilometraje", "SolicitudMantenimiento", new { area = "Maquinaria" })", { unidadVehicularId: unidadVehicularId })
+                 .done(function (data) {
+                     ultimoKilometrajeConocido = data.ultimoKilometraje || 0;
+                 })
+                 .fail(function () {
+                     ultimoKilometrajeConocido = 0;
+                 });
+         });
+
+         $("#unidadVehicularSelect").on("select2:clear", function () {
+             $("#AreaSolicitanteId").val("").trigger("change");
+             $("#AreaSolicitanteIdDisplay").val("");
+             ultimoKilometrajeConocido = 0; 
+             unidadVehicularAnterior = ""; 
+             limpiarServiciosServidorYCliente();
+         });
+     }
+
+     // ============================================================
+     // PURGA TOTAL DE SERVICIOS (CLIENTE Y ESTRUCTURAS)
+     // ============================================================
+     function limpiarServiciosServidorYCliente() {
+         // 1. Destruir instancias de Select2 dentro de las filas para evitar fugas de memoria en el DOM
+         $("#tablaServicios tbody tr").each(function () {
+             $(this).find(".conceptoServicio, .objetoGastoManoObra, .objetoGastoRefacciones").each(function () {
+                 if ($(this).hasClass("select2-hidden-accessible")) {
+                     $(this).select2("destroy");
+                 }
+             });
+         });
+
+         // 2. Vaciar por completo el contenedor HTML de la tabla
+         $("#tablaServicios tbody").empty();
+
+         // 3. Reiniciar el índice de servicios global
+         indiceServicio = 0;
+
+         // 4. Limpiar cualquier arreglo global remanente (como el de servicios existentes de postback)
+         if (typeof serviciosExistentes !== "undefined") {
+             serviciosExistentes.length = 0;
+         }
+
+         // 5. Recalculadores e interfaces globales
+         if (typeof actualizarConceptosDisponibles === "function") {
+             actualizarConceptosDisponibles();
+         }
+
+         if (typeof recalcularImporteCotizacion === "function") {
+             recalcularImporteCotizacion();
+         }
+     }
     </script>
 
 
@@ -824,27 +902,45 @@
                 archivos > 0 &&
                 estadoOdometro > 0;
 
+
+            // Si el odómetro opera correctamente (ej. ID 1)
+         if (estadoOdometro === 1) {
+             if (kilometraje <= 0) {
+                 Swal.fire({
+                     icon: "warning",
+                     title: "Kilometraje requerido",
+                     text: "Debe capturar un kilometraje mayor a cero.",
+                     confirmButtonColor: "#800705"
+                 });
+                 return false;
+             }
+
+             // Validación contra el histórico obtenido por AJAX
+             if (ultimoKilometrajeConocido > 0 && kilometraje < ultimoKilometrajeConocido) {
+                 Swal.fire({
+                     icon: "error",
+                     title: "Kilometraje inválido",
+                     text: `El kilometraje capturado (${kilometraje}) no puede ser menor al último registrado en el sistema para esta unidad (${ultimoKilometrajeConocido}).`,
+                     confirmButtonColor: "#800705"
+                 });
+                 return false;
+             }
+         }
+
+
+
             if (!valido) {
                 alerta.removeClass("d-none");
                 Swal.fire({
                     icon: "warning",
                     title: "Campos obligatorios",
-                    html: "Debe completar todos los campos obligatorios (incluyendo el contrato del taller) antes de agregar servicios.",
+                    html: "Debe completar todos los campos obligatorios.",
                     confirmButtonColor: "#800705"
                 });
                 return false;
             }
 
-            if (estadoOdometro === 1 && kilometraje <= 0) {
-                Swal.fire({
-                    icon: "warning",
-                    title: "Kilometraje requerido",
-                    text: "Debe capturar un kilometraje mayor a cero.",
-                    confirmButtonColor: "#800705"
-                });
-                return false;
-            }
-
+           
             if (estadoOdometro !== 1 && kilometraje > 0) {
                 Swal.fire({
                     icon: "warning",
@@ -1704,7 +1800,7 @@
 
 
 
-    <script>
+   @*  <script>
             $(function () {
             inicializarUnidadVehicular();
             inicializarEventosTaller(); // <--- AGREGADO
@@ -1803,7 +1899,7 @@
                 $taller.trigger("change");
             }
         }
-    </script>
+    </script> *@
 
 
 }

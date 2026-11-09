@@ -27,7 +27,5 @@ public partial class Municipio
 
     public bool? TcmunicipioCpdh { get; set; }
 
-    public int UnidadVehicularId { get; set; }
-
     public virtual ICollection<UnidadVehicular> UnidadVehiculars { get; set; } = new List<UnidadVehicular>();
 }
