@@ -104,12 +104,20 @@ namespace SIGEMAV.Areas.Account.Controllers
 
 
             var claims = new List<Claim>
-{
-    
-    new Claim(ClaimTypes.NameIdentifier, usuario.IdUsuario),
-    new Claim(ClaimTypes.Name, usuario.UserName),
-    new Claim("NombreCompleto", usuario.NombreCompleto)
-};
+            {
+
+                new Claim(ClaimTypes.NameIdentifier, usuario.IdUsuario),
+
+                 //new Claim(ClaimTypes.NameIdentifier,usuario.UserId.ToString()),
+
+                new Claim(
+                    ClaimTypes.Name,
+                    usuario.UserName),
+
+                new Claim(
+                    "NombreCompleto",
+                    usuario.NombreCompleto)
+            };
 
             foreach (var rol in usuario.Roles)
             {

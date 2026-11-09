@@ -1,0 +1,500 @@
+﻿@using SIGEMAV.Models.ViewModels.Maquinaria
+
+@model FacturaIndexViewModel
+
+
+@* @model List<FacturaMantenimientoIndexDto> *@
+
+@*
+<div class="card shadow-sm border">
+    <div class="card-header bg-dark text-white d-flex justify-content-between">
+        <h5 class="mb-0">
+            <i class="bi bi-receipt me-2"></i>
+            Facturación de Mantenimiento
+        </h5>
+
+        <a class="btn btn-success btn-sm"
+           href="@Url.Action("Create")">
+            Nueva Factura
+        </a>
+    </div>
+
+    <div class="card-body">
+
+        <table class="table table-hover table-sm align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Folio</th>
+                    <th>UUID</th>
+                    <th>Taller</th>
+                    <th>Unidad</th>
+                    <th>Fecha</th>
+                    <th class="text-end">Total</th>
+                    <th>Estatus</th>
+                    <th class="text-center">Acciones</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.Serie-@item.Folio</td>
+                        <td class="text-truncate" style="max-width:180px;">
+                            @item.UUID
+                        </td>
+                        <td>@item.TallerNombre</td>
+                        <td>@item.UnidadVehicular</td>
+                        <td>@item.FechaFactura.ToString("dd/MM/yyyy")</td>
+
+                        <td class="text-end fw-bold">
+                            @item.Total.ToString("C2")
+                        </td>
+
+                        <td>
+                            <span class="badge bg-@item.ColorEstatus">
+                                @item.Estatus
+                            </span>
+                        </td>
+
+                        <td class="text-center">
+                            <a class="btn btn-sm btn-primary"
+                               href="@Url.Action("Details", new { id = item.FacturaMantenimientoId })">
+                                Ver
+                            </a>
+
+                            <a class="btn btn-sm btn-warning"
+                               href="@Url.Action("Edit", new { id = item.FacturaMantenimientoId })">
+                                Editar
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+    </div>
+</div> *@
+
+<div class="container-fluid">
+
+
+    <!-- ========================= -->
+    <!-- HEADER -->
+    <!-- ========================= -->
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+
+            <h2 class="fw-bold mb-1">
+
+                @* <i class="bi bi-receipt-cutoff text-danger me-2"></i> *@
+
+                Facturación de mantenimiento
+
+            </h2>
+
+            <div class="text-muted">
+
+                Control documental, presupuestal y financiero
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="container-fluid px-4 my-3">
+
+        <!-- ALERTAS DE CONTROL DE FLUJO Y ERRORES -->
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i>@TempData["Success"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+        @if (TempData["Warning"] != null)
+        {
+            <div class="alert alert-warning alert-dismissible fade show shadow-sm" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["Warning"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+                <i class="bi bi-x-circle-fill me-2"></i>@TempData["Error"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <!-- RESUMEN INFORMATIVO / METRICAS (UNA SOLA FILA: 4 TARJETAS DE 3 COLUMNAS) -->
+        <div class="row g-3 mb-4">
+            <!-- 1. Mantenimientos Pendientes -->
+            <div class="col-md-3">
+                <div class="card border-0 bg-warning bg-opacity-10 shadow-sm border-start border-4 border-warning h-100">
+                    <div class="card-body py-3">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <span class="text-muted small fw-bold text-uppercase">Mantenimientos Pendientes</span>
+                                <h3 class="fw-bold mb-0 text-dark">@(Model.Pendientes?.Count ?? 0)</h3>
+                            </div>
+                            <div class="fs-1 text-warning">
+                                <i class="bi bi-hourglass-split"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Monto Pendiente -->
+            <div class="col-md-3">
+                <div class="card border-0 bg-primary bg-opacity-10 shadow-sm border-start border-4 border-primary h-100">
+                    <div class="card-body py-3">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <span class="text-muted small fw-bold text-uppercase">Monto Pendiente</span>
+                                <h3 class="fw-bold mb-0 text-primary">@((Model.Pendientes?.Sum(x => x.TotalEstimado) ?? 0m).ToString("C"))</h3>
+                            </div>
+                            <div class="fs-1 text-primary">
+                                <i class="bi bi-cash-stack"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Monto Facturado -->
+            <div class="col-md-3">
+                <div class="card border-0 bg-info bg-opacity-10 shadow-sm border-start border-4 border-info h-100">
+                    <div class="card-body py-3">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <span class="text-muted small fw-bold text-uppercase">Monto Facturado</span>
+                                <h3 class="fw-bold mb-0 text-info">@((Model.Facturas?.Sum(x => x.Total) ?? 0m).ToString("C"))</h3>
+                            </div>
+                            <div class="fs-1 text-info">
+                                <i class="bi bi-currency-dollar"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. Facturas Registradas -->
+            <div class="col-md-3">
+                <div class="card border-0 bg-success bg-opacity-10 shadow-sm border-start border-4 border-success h-100">
+                    <div class="card-body py-3">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <span class="text-muted small fw-bold text-uppercase">Facturas Registradas</span>
+                                <h3 class="fw-bold mb-0 text-success">@(Model.Facturas?.Count ?? 0)</h3>
+                            </div>
+                            <div class="fs-1 text-success">
+                                <i class="bi bi-receipt"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- SECCIÓN DE FILTROS Y RESTRICCIONES DE ÁREA -->
+        <!-- ============================================== -->
+        <div class="card shadow-sm border-0 mb-4 rounded-3 overflow-hidden">
+            <div class="card-body bg-light p-4">
+                <form asp-action="Index" method="get">
+                    <div class="row g-3 align-items-end">
+
+                        <!-- UNIDAD / PLACA -->
+                        <div class="col-md-2">
+                            <label for="filtroUnidad" class="form-label extra-small text-uppercase fw-bold text-secondary mb-1">
+                                <i class="bi bi-truck me-1"></i>Unidad / Placa
+                            </label>
+                            <input id="filtroUnidad" name="filtroUnidad" value="@Context.Request.Query["filtroUnidad"]" class="form-control form-control-sm" placeholder="Ej: ECO-01 / ABC-123" />
+                        </div>
+
+                        <!-- TALLER -->
+                        <div class="col-md-2">
+                            <label for="filtroTaller" class="form-label extra-small text-uppercase fw-bold text-secondary mb-1">
+                                <i class="bi bi-tools me-1"></i>Taller
+                            </label>
+                            <input id="filtroTaller" name="filtroTaller" value="@Context.Request.Query["filtroTaller"]" class="form-control form-control-sm" placeholder="Nombre del taller..." />
+                        </div>
+
+                        <!-- ÁREA (Mantiene la selección mediante asp-items y el query string) -->
+                        <div class="col-md-2">
+                            <label for="filtroArea" class="form-label extra-small text-uppercase fw-bold text-secondary mb-1">
+                                <i class="bi bi-building me-1"></i>Área
+                            </label>
+                            <select id="filtroArea" name="filtroArea" class="form-select form-select-sm" asp-items="@(ViewBag.Areas as List<SelectListItem>)">
+                                <option value="">Todas las áreas</option>
+                            </select>
+                        </div>
+
+                        <!-- DESDE -->
+                        <div class="col-md-2">
+                            <label for="fechaDesde" class="form-label extra-small text-uppercase fw-bold text-secondary mb-1">
+                                <i class="bi bi-calendar-event me-1"></i>Desde
+                            </label>
+                            <input type="date" id="fechaDesde" name="fechaDesde" value="@Context.Request.Query["fechaDesde"]" class="form-control form-control-sm" />
+                        </div>
+
+                        <!-- HASTA -->
+                        <div class="col-md-2">
+                            <label for="fechaHasta" class="form-label extra-small text-uppercase fw-bold text-secondary mb-1">
+                                <i class="bi bi-calendar-event me-1"></i>Hasta
+                            </label>
+                            <input type="date" id="fechaHasta" name="fechaHasta" value="@Context.Request.Query["fechaHasta"]" class="form-control form-control-sm" />
+                        </div>
+
+                        <!-- BOTONES DE ACCIÓN -->
+                        <div class="col-md-2 d-flex gap-2">
+                            <button type="submit" class="btn btn-dark btn-sm w-100 fw-bold shadow-sm">
+                                <i class="bi bi-search me-1"></i>Filtrar
+                            </button>
+                            <a asp-action="Index" class="btn btn-outline-secondary btn-sm px-3" title="Limpiar Filtros">
+                                <i class="bi bi-arrow-counterclockwise"></i>
+                            </a>
+                        </div>
+
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- TABLA DE PENDIENTES POR FACTURAR -->
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
+                <h5 class="mb-0 fw-bold text-dark">
+                    <i class="bi bi-hourglass-split text-warning me-2"></i>Mantenimientos concluidos pendientes de facturar
+                </h5>
+                <span class="badge bg-secondary font-monospace">@(Model.Pendientes?.Count ?? 0) REGISTROS</span>
+            </div>
+
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr class="small text-muted text-uppercase">
+                                <th style="width: 10%;">Folio / Fecha</th>
+                                <th style="width: 20%;">Vehículo / Unidad</th>
+                                <th style="width: 15%;">Taller Asignado</th>
+                                <th style="width: 15%;">Área</th> <!-- NUEVA COLUMNA -->
+                                <th style="width: 8%;" class="text-center">Conceptos</th>
+                                <th style="width: 12%;" class="text-center">Antigüedad</th>
+                                <th style="width: 10%;" class="text-end">Monto Estimado</th>
+                                <th style="width: 10%;" class="text-center">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.Pendientes != null && Model.Pendientes.Any())
+                            {
+                                @foreach (var item in Model.Pendientes)
+                                {
+                                    <tr>
+                                        <td>
+                                            <div class="fw-bold text-dark font-monospace">@item.Folio</div>
+                                            <div class="small text-muted">
+                                                <i class="bi bi-calendar-check me-1"></i>
+                                                @(item.FechaFinalizacion.HasValue ? item.FechaFinalizacion.Value.ToString("dd/MM/yyyy") : "N/D")
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="fw-semibold text-dark">@item.Unidad</div>
+                                            <div>
+                                                <span class="badge bg-dark font-monospace" style="font-size: 10pt;">@item.Placa</span>
+                                            </div>
+                                        </td>
+                                        <td class="small text-uppercase">
+                                            <i class="bi bi-tools me-1 text-secondary"></i>@item.Taller
+                                        </td>
+                                        <!-- NUEVA CELDA DE ÁREA -->
+                                        <td>
+                                            <span class="badge bg-light text-dark border fw-medium px-2 py-1" style="font-size: 9pt;">
+                                                <i class="bi bi-building me-1 text-muted"></i>@item.Area
+                                            </span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-info text-dark" style="font-size: 10pt;">@item.CantidadConceptos</span>
+                                        </td>
+                                        <td class="text-center">
+                                            @if (item.DiasTranscurridos > 15)
+                                            {
+                                                <span class="badge bg-danger" title="Mantenimiento finalizado hace más de 15 días">
+                                                    <i class="bi bi-exclamation-circle me-1"></i>@item.DiasTranscurridos días
+                                                </span>
+                                            }
+                                            else if (item.DiasTranscurridos > 7)
+                                            {
+                                                <span class="badge bg-warning text-dark">
+                                                    <i class="bi bi-clock me-1"></i>@item.DiasTranscurridos días
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-success">
+                                                    <i class="bi bi-check2 me-1"></i>@item.DiasTranscurridos días
+                                                </span>
+                                            }
+                                        </td>
+                                        <td class="text-end fw-bold text-primary">
+                                            @item.TotalEstimado.ToString("C")
+                                        </td>
+                                        <td class="text-center">
+                                            <a asp-action="Create"
+                                               asp-route-mantenimientoId="@item.MantenimientoId"
+                                               class="btn btn-success btn-sm w-100 shadow-sm">
+                                                <i class="bi bi-file-earmark-text me-1"></i>Facturar
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="8" class="text-center py-5 text-muted">
+                                        <i class="bi bi-check-circle fa-2x mb-2 text-success d-block" style="font-size: 2rem;"></i>
+                                        <span class="fw-semibold">No existen mantenimientos pendientes de facturar.</span>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+
+    <!-- ========================= -->
+    <!-- FACTURAS -->
+    <!-- ========================= -->
+  
+        <div class="card shadow-sm border-0 mt-4">
+
+            <div class="card-header bg-white">
+
+                <h5 class="mb-0 fw-bold">
+
+                    <i class="bi bi-journal-check text-success me-2"></i>
+
+                    Facturas registradas
+
+                </h5>
+
+            </div>
+
+            <div class="card-body p-0">
+
+                <div class="table-responsive">
+
+                    <table class="table table-hover mb-0">
+
+                        <thead class="table-light">
+
+                            <tr>
+
+                                <th>UUID</th>
+
+                                <th>Taller</th>
+
+                                <th>Fecha</th>
+
+                                <th class="text-end">
+
+                                    Total
+
+                                </th>
+
+                                <th></th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+                        @if (Model.Facturas != null && Model.Facturas.Any())
+                        {
+                            @foreach (var item in Model.Facturas)
+                            {
+                                <tr>
+
+                                    <td>
+
+                                        <small>
+
+                                            @item.UUID
+
+                                        </small>
+
+                                    </td>
+
+                                    <td>
+
+                                        @item.Taller
+
+                                    </td>
+
+                                    <td>
+
+                                        @item.Fecha
+
+                                    </td>
+
+                                    <td class="text-end fw-bold">
+
+                                        @item.Total.ToString("C")
+
+                                    </td>
+
+                                    <td>
+
+                                        <a asp-action="Details"
+                                        asp-route-id="@item.FacturaId"
+                                        class="btn btn-outline-dark btn-sm">
+
+                                            Ver
+
+                                        </a>
+
+                                    </td>
+
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="8" class="text-center py-5 text-muted">
+                                    <i class="bi bi-x-circle fa-2x mb-2 text-danger d-block" style="font-size: 2rem;"></i>
+                                    <span class="fw-semibold">No existen facturas registradas.</span>
+                                </td>
+                            </tr>
+
+        
+                        }
+                    </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </div>
+   
+   
+
+
+
+</div>

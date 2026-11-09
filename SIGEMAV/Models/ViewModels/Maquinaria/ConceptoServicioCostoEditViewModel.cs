@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace SIGEMAV.Models.ViewModels.Maquinaria
 {
-    public class ConceptoServicioCostoEditViewModel
+    public class ConceptoServicioCostoEditViewModel : IValidatableObject
     {
         public int ConceptoServicioCostoId { get; set; }
 
@@ -30,12 +30,12 @@ namespace SIGEMAV.Models.ViewModels.Maquinaria
 
         public DateOnly? FechaFinVigencia { get; set; }
 
-        [Required(ErrorMessage = "Debe indicar el costo de mano de obra.")]
-        [Range(0.01, 999999)]
+        
+        [Range(0, 999999)]
         public decimal CostoManoObra { get; set; }
 
-        [Required(ErrorMessage = "Debe indicar el costo de refacciones.")]
-        [Range(0.01, 999999)]
+        
+        [Range(0, 999999)]
         public decimal CostoRefacciones { get; set; }
 
         [StringLength(500)]
@@ -60,5 +60,39 @@ namespace SIGEMAV.Models.ViewModels.Maquinaria
             = new();
 
         public int TipoCatalogoServicioId { get; set; }
+
+
+
+
+
+
+
+
+
+
+
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            if (CostoManoObra == 0 && CostoRefacciones == 0)
+            {
+                yield return new ValidationResult("Debe capturar un costo de mano de obra, de refacciones o ambos.",
+                    new[]
+                    {
+                    nameof(CostoManoObra),
+                    nameof(CostoRefacciones)
+                    });
+            }
+
+            if (FechaFinVigencia.HasValue && FechaFinVigencia < FechaInicioVigencia)
+            {
+                yield return new ValidationResult("La fecha fin de vigencia debe ser mayor o igual a la fecha de inicio.",
+                    new[]
+                    {
+                    nameof(FechaFinVigencia)
+                    });
+            }
+        }
+
+
     }
 }

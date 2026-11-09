@@ -23,5 +23,24 @@
         public string? Observaciones { get; set; }
 
         public string? ConceptoServicioNombre { get; set; }
+
+        public decimal CostoManoObraConIva { get; set; }
+        public decimal CostoRefaccionesConIva { get; set; }
+
+
+
+
+
+        // Subtotal de la fila (Cantidad * (ManoObraBase + RefaccionesBase))
+        public decimal SubtotalRenglon => Cantidad * (CostoEstimadoManoObra + CostoEstimadoRefacciones);
+
+        // IVA total de la fila (16% del subtotal del renglón)
+        public decimal IvaRenglon => SubtotalRenglon * 0.16m;
+
+        // Total final de la fila (Subtotal + IVA)
+        public decimal TotalRenglon => SubtotalRenglon + IvaRenglon;
+
+
+
     }
 }

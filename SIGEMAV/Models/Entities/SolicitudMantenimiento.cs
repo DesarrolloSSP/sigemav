@@ -35,10 +35,6 @@ public partial class SolicitudMantenimiento
 
     public DateTime? FechaAutorizacion { get; set; }
 
-    public int? UsuarioSolicitaId { get; set; }
-
-    public int? UsuarioAutorizaId { get; set; }
-
     public bool Activo { get; set; }
 
     public DateTime FechaCreacion { get; set; }
@@ -49,7 +45,17 @@ public partial class SolicitudMantenimiento
 
     public string? PlacaVehiculo { get; set; }
 
+    public Guid? UsuarioSolicitaId { get; set; }
+
+    public Guid? UsuarioAutorizaId { get; set; }
+
+    public byte EstadoOdometroId { get; set; }
+
+    public int? TallerConfiguracionPresupuestalId { get; set; }
+
     public virtual Area AreaSolicitante { get; set; } = null!;
+
+    public virtual EstadoOdometro EstadoOdometro { get; set; } = null!;
 
     public virtual EstatusSolicitudMantenimiento EstatusSolicitudMantenimiento { get; set; } = null!;
 
@@ -66,6 +72,8 @@ public partial class SolicitudMantenimiento
     public virtual ICollection<SolicitudMantenimientoSeguimiento> SolicitudMantenimientoSeguimientos { get; set; } = new List<SolicitudMantenimientoSeguimiento>();
 
     public virtual Taller? Taller { get; set; }
+
+    public virtual TallerConfiguracionPresupuestal? TallerConfiguracionPresupuestal { get; set; }
 
     public virtual ICollection<TallerMovimientoPresupuesto> TallerMovimientoPresupuestos { get; set; } = new List<TallerMovimientoPresupuesto>();
 

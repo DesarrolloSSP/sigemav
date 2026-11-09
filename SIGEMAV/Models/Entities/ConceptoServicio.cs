@@ -17,6 +17,8 @@ public partial class ConceptoServicio
 
     public DateTime FechaCreacion { get; set; }
 
+    public bool? Migrado { get; set; }
+
     public virtual ICollection<ConceptoServicioCosto> ConceptoServicioCostos { get; set; } = new List<ConceptoServicioCosto>();
 
     public virtual ICollection<ConfiguracionValidacionTecnica> ConfiguracionValidacionTecnicas { get; set; } = new List<ConfiguracionValidacionTecnica>();

@@ -13,9 +13,9 @@ public partial class MantenimientoSeguimiento
 
     public string? Observaciones { get; set; }
 
-    public int UsuarioId { get; set; }
-
     public DateTime FechaMovimiento { get; set; }
+
+    public Guid? UsuarioId { get; set; }
 
     public virtual EstatusMantenimiento EstatusMantenimiento { get; set; } = null!;
 

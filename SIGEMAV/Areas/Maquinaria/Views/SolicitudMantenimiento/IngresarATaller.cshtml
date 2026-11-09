@@ -3,283 +3,289 @@
 
 @model SIGEMAV.Models.ViewModels.Maquinaria.MantenimientoCreateViewModel
 
-@{
+@* @{
     ViewData["Title"] = "Ingresar a taller";
-}
+} *@
 
-<div class="card shadow-sm border-0">
+<div class="container-fluid px-3">
+    <div class="card shadow-sm border-0 rounded-3">
+        
+        <!-- ENCABEZADO PRINCIPAL -->
+        <div class="card-header bg-light border-bottom d-flex justify-content-between align-items-center py-3 px-4">
+            <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-car-front-fill text-primary fs-4"></i>
+                <div>
+                    <h5 class="fw-bold mb-0 text-dark">
+                        Ingreso de unidad a taller
+                    </h5>
+                    <small class="text-muted extra-small">
+                        Confirmación operativa de inicio de mantenimiento
+                    </small>
+                </div>
+            </div>
+            <a asp-action="Index" class="btn btn-outline-secondary btn-sm px-3 rounded-2 d-flex align-items-center gap-1">
+                <i class="bi bi-arrow-left"></i>
+                <span>Regresar</span>
+            </a>
+        </div>
 
-    <div class="card-header bg-white">
+        <div class="card-body p-4">
 
-        <div class="d-flex justify-content-between align-items-center">
+            <!-- ============================================== -->
+            <!-- RESUMEN EJECUTIVO / INDICADORES CLAVE (KPIs) -->
+            <!-- ============================================== -->
+            <div class="row g-3 mb-4">
+                
+                <!-- FOLIO Y OFICIO -->
+                <div class="col-lg-3 col-md-6">
+                    <div class="p-3 bg-light border rounded-3 h-100 d-flex flex-column justify-content-center">
+                        <div class="text-uppercase text-muted extra-small fw-bold mb-1">
+                            Folio Solicitud
+                        </div>
+                        <div class="fs-4 fw-bold text-dark mb-1">
+                            @Model.Folio
+                        </div>
+                        <div class="extra-small text-muted d-flex align-items-center gap-1">
+                            <i class="bi bi-file-earmark-text"></i>
+                            <span>Oficio: <strong>@Model.NumeroOficio</strong></span>
+                        </div>
+                    </div>
+                </div>
 
-            <div>
+                <!-- UNIDAD VEHICULAR -->
+                <div class="col-lg-3 col-md-6">
+                    <div class="p-3 bg-light border rounded-3 h-100 d-flex flex-column justify-content-center">
+                        <div class="text-uppercase text-muted extra-small fw-bold mb-1">
+                            Unidad Vehicular
+                        </div>
+                        <div class="fs-6 fw-bold text-dark text-truncate" title="@Model.UnidadTexto">
+                            @Model.UnidadTexto
+                        </div>
+                        <div class="extra-small text-muted mt-1">
+                            Vehículo asignado a la solicitud
+                        </div>
+                    </div>
+                </div>
 
-                <h4 class="fw-bold mb-0">
-                    Ingresar solicitud al taller
-                </h4>
+                <!-- KILOMETRAJE INGRESO -->
+                <div class="col-lg-3 col-md-6">
+                    <div class="p-3 bg-light border rounded-3 h-100 d-flex flex-column justify-content-center">
+                        <div class="text-uppercase text-muted extra-small fw-bold mb-1">
+                            Kilometraje de Ingreso
+                        </div>
+                        <div class="fs-4 fw-bold text-dark mb-0">
+                            @Model.KilometrajeEntrada.ToString("N0") <span class="fs-6 fw-normal text-muted">km</span>
+                        </div>
+                        <div class="extra-small text-success mt-1 d-flex align-items-center gap-1">
+                            <i class="bi bi-speedometer2"></i>
+                            <span>Lectura capturada</span>
+                        </div>
+                    </div>
+                </div>
 
-                <small class="text-muted">
-                    Confirmación de ingreso
-                </small>
+              <!-- COSTO AUTORIZADO CON IVA -->
+                    <div class="col-lg-3 col-md-6">
+                        <div class="p-3 bg-white border shadow-sm rounded-3 h-100 d-flex flex-column justify-content-between">
+                            <div>
+                                <div class="text-uppercase text-muted extra-small fw-bold mb-1">
+                                    Costo Autorizado (IVA Inc.)
+                                </div>
+                                @{
+                                    var totalGeneralConIva = Model.Servicios.Sum(x => x.TotalEstimado);
+                                    var baseGeneral = totalGeneralConIva / 1.16m;
+                                    var ivaGeneral = totalGeneralConIva - baseGeneral;
+                                }
+                                <div class="fs-4 fw-bold text-success mb-1">
+                                    @totalGeneralConIva.ToString("C")
+                                </div>
+                            </div>
+                            <div class="extra-small text-muted pt-2 border-top d-flex justify-content-between align-items-center">
+                                <span>Base: @baseGeneral.ToString("C")</span>
+                                <span>IVA (16%): @ivaGeneral.ToString("C")</span>
+                            </div>
+                        </div>
+                    </div>
 
             </div>
 
+            <!-- ============================================== -->
+            <!-- DATOS OPERATIVOS Y TALLER -->
+            <!-- ============================================== -->
+            <div class="card border-0 shadow-sm rounded-3 mb-4 overflow-hidden">
+                <div class="card-header bg-light border-bottom py-3 px-4 d-flex align-items-center gap-2">
+                    <i class="bi bi-building text-primary fs-6"></i>
+                    <h6 class="fw-bold mb-0 text-dark">
+                        Datos operativos del servicio
+                    </h6>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row align-items-center g-3">
+                        <div class="col-md-8">
+                            <div class="text-uppercase text-muted extra-small fw-bold mb-1 text-black">
+                                Taller Asignado
+                            </div>
+                            <div class="fs-6 fw-semibold text-dark">
+                                <i class="bi bi-tools text-secondary me-2"></i>@Model.Taller
+                            </div>
+                        </div>
+                        <div class="col-md-4 border-start-md ps-md-4">
+                            <div class="text-uppercase text-muted extra-small fw-bold mb-1 text-black">
+                                Estatus Operativo
+                            </div>
+                            <div>
+                                <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-3 py-2 rounded-pill fs-6 fw-bold text-warning">
+                                    <i class="bi bi-hourglass-split me-1"></i>Pendiente Ingreso
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-            <div>
+            <!-- ============================================== -->
+                <!-- SERVICIOS AUTORIZADOS (TABLA) -->
+                <!-- ============================================== -->
+                <div class="card border-0 shadow-sm rounded-3 mb-4 overflow-hidden">
+                    <div class="card-header bg-light border-bottom d-flex justify-content-between align-items-center py-3 px-4">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-wrench-adjustable text-primary fs-5"></i>
+                            <h6 class="fw-bold mb-0 text-dark">
+                                Servicios autorizados (Con IVA 16% Desglosado)
+                            </h6>
+                        </div>
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle fs-6 px-3 py-1 rounded-pill">
+                            @Model.Servicios.Count servicio(s)
+                        </span>
+                    </div>
 
-                <a asp-action="Index"
-                   class="btn btn-outline-secondary">
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="bg-light border-bottom text-uppercase extra-small text-muted fw-bold">
+                                    <tr>
+                                        <th class="ps-4 py-3" style="min-width: 220px;">Servicio / Concepto</th>
+                                        <th class="text-center py-3" style="width: 70px;">Cantidad</th>
+                                        <th class="text-end py-3" style="width: 140px;">Mano de Obra</th>
+                                        <th class="text-end py-3" style="width: 140px;">Refacciones</th>
+                                        <th class="text-end py-3" style="width: 130px;">IVA (16%)</th>
+                                        <th class="text-end py-3" style="width: 150px;">Total</th>
+                                        <th class="pe-4 py-3" style="min-width: 180px;">Observaciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var servicio in Model.Servicios)
+                                    {
+                                        var subMoBase = servicio.CostoEstimadoManoObra * servicio.Cantidad;
+                                        var subRefBase = servicio.CostoEstimadoRefacciones * servicio.Cantidad;
+                        
+                                        var subMoConIva = (servicio.CostoManoObraConIva > 0 ? servicio.CostoManoObraConIva : servicio.CostoEstimadoManoObra * 1.16m) * servicio.Cantidad;
+                                        var subRefConIva = (servicio.CostoRefaccionesConIva > 0 ? servicio.CostoRefaccionesConIva : servicio.CostoEstimadoRefacciones * 1.16m) * servicio.Cantidad;
+                        
+                                        var totalFila = subMoConIva + subRefConIva;
+                                        var ivaFila = totalFila - (subMoBase + subRefBase);
 
-                    <i class="bi bi-arrow-left me-1"></i>
-                    Regresar
+                                        <tr>
+                                            <td class="ps-4 py-3 fw-semibold text-dark">
+                                                @servicio.ConceptoServicio
+                                            </td>
+                                            <td class="text-center py-3">
+                                                <span class="badge bg-light text-dark border px-2 py-1 fs-6 fw-normal">
+                                                    @servicio.Cantidad
+                                                </span>
+                                            </td>
+                                            <!-- Mano de Obra (Base) -->
+                                            <td class="text-end py-3 text-secondary">
+                                                @subMoBase.ToString("C")
+                                            </td>
+                                            <!-- Refacciones (Base) -->
+                                            <td class="text-end py-3 text-secondary">
+                                                @subRefBase.ToString("C")
+                                            </td>
+                                            <!-- IVA (16%) -->
+                                            <td class="text-end py-3 text-muted">
+                                                @ivaFila.ToString("C")
+                                            </td>
+                                            <!-- Total Fila -->
+                                            <td class="text-end py-3 fw-bold text-dark">
+                                                <span class="text-success">@totalFila.ToString("C")</span>
+                                            </td>
+                                            <td class="pe-4 py-3 text-muted small">
+                                                @(string.IsNullOrWhiteSpace(servicio.Observaciones) ? "-" : servicio.Observaciones)
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                                <tfoot class="bg-light border-top fw-bold text-dark">
+                                    @{
+                                        var sumaMoBase = Model.Servicios.Sum(x => x.CostoEstimadoManoObra * x.Cantidad);
+                                        var sumaRefBase = Model.Servicios.Sum(x => x.CostoEstimadoRefacciones * x.Cantidad);
+                                        var sumaTotalGeneral = Model.Servicios.Sum(x => x.TotalEstimado);
+                                        var sumaIvaGeneral = sumaTotalGeneral - (sumaMoBase + sumaRefBase);
+                                    }
+                                    <tr>
+                                        <td colspan="2" class="text-end py-3 ps-4 text-uppercase extra-small text-muted">
+                                            Totales Generales
+                                        </td>
+                                        <td class="text-end py-3 text-dark">
+                                            @sumaMoBase.ToString("C")
+                                        </td>
+                                        <td class="text-end py-3 text-dark">
+                                            @sumaRefBase.ToString("C")
+                                        </td>
+                                        <td class="text-end py-3 text-muted">
+                                            @sumaIvaGeneral.ToString("C")
+                                        </td>
+                                        <td class="text-end py-3 fs-6 text-primary fw-bold">
+                                            @sumaTotalGeneral.ToString("C")
+                                        </td>
+                                        <td></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
 
+            <!-- ============================================== -->
+            <!-- IMPACTO DE LA ACCIÓN / CALLOUT -->
+            <!-- ============================================== -->
+            <div class="alert alert-info border-0 shadow-sm rounded-3 p-4 mb-4">
+                <div class="d-flex align-items-start gap-3">
+                    <div class="p-2 bg-info bg-opacity-20 text-info rounded-3">
+                        <i class="bi bi-cpu-fill fs-5 text-white"></i>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold mb-2 text-dark">
+                            Efecto operativo del ingreso a taller
+                        </h6>
+                        <ul class="mb-0 text-muted small ps-3">
+                            <li class="mb-1">Se generará el registro formal de orden de mantenimiento.</li>
+                            <li class="mb-1">La solicitud actualizará automáticamente su estatus a <strong>En Mantenimiento</strong>.</li>
+                            <li>Se habilitará el seguimiento técnico y bitácora de ejecución de trabajos.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================== -->
+            <!-- BOTONES DE ACCIÓN -->
+            <!-- ============================================== -->
+            <div class="d-flex justify-content-end align-items-center gap-2">
+                <a asp-action="Index" class="btn btn-outline-secondary px-4 py-2 rounded-2 fw-semibold">
+                    Cancelar
                 </a>
 
+                <form asp-action="IngresarATaller" method="post" class="m-0">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="solicitudMantenimientoId" value="@Model.SolicitudMantenimientoId" />
+
+                    <button type="submit" class="btn btn-primary px-4 py-2 rounded-2 fw-semibold shadow-sm d-flex align-items-center gap-2">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>Confirmar ingreso a taller</span>
+                    </button>
+                </form>
             </div>
 
         </div>
-
     </div>
-
-    <div class="card-body">
-
-        <form asp-action="IngresarATaller"
-              method="post">
-
-            @Html.AntiForgeryToken()
-
-            @* <input type="hidden" asp-for="SolicitudMantenimientoId" /> *@
-            
-            <input type="hidden" name="solicitudMantenimientoId" value="@Model.SolicitudMantenimientoId" />
-
-            <div class="row g-3">
-
-                <div class="col-md-3">
-
-                    <label class="form-label fw-semibold">
-                        Folio
-                    </label>
-
-                    <input class="form-control"
-                           value="@Model.Folio"
-                           readonly />
-
-                </div>
-
-                <div class="col-md-3">
-
-                    <label class="form-label fw-semibold">
-                        Número de oficio
-                    </label>
-
-                    <input class="form-control"
-                           value="@Model.NumeroOficio"
-                           readonly />
-
-                </div>
-
-                <div class="col-md-3">
-
-                    <label class="form-label fw-semibold">
-                        Unidad vehicular
-                    </label>
-
-                    <input class="form-control"
-                           value="@Model.UnidadTexto"
-                           readonly />
-
-                </div>
-
-                <div class="col-md-3">
-
-                    <label class="form-label fw-semibold">
-                        Kilometraje
-                    </label>
-
-                    <input class="form-control"
-                           value="@Model.KilometrajeEntrada"
-                           readonly />
-
-                </div>
-
-
-                  <div class="col-md-12">
-
-                    <label class="form-label fw-semibold">
-                        Taller
-                    </label>
-
-                    <input class="form-control"
-                           value="@Model.Taller"
-                           readonly />
-
-                </div>
-
-
-            </div>
-
-            <hr />
-
-
-
-
-
-            <div class="mt-4">
-
-                <h5 class="fw-bold">
-                    Servicios autorizados
-                </h5>
-
-                <div class="table-responsive">
-
-                    <table class="table table-bordered table-hover align-middle">
-
-                        <thead class="table-light">
-
-                            <tr>
-
-                                <th>
-                                    Concepto
-                                </th>
-
-                                <th class="text-center">
-                                    Cantidad
-                                </th>
-
-                                <th class="text-end">
-                                    Mano de Obra
-                                </th>
-
-                                <th class="text-end">
-                                    Refacciones
-                                </th>
-
-                                <th class="text-end">
-                                    Total
-                                </th>
-
-                                <th>
-                                    Observaciones
-                                </th>
-
-                            </tr>
-
-                        </thead>
-
-                        <tbody>
-
-                            @foreach (var servicio in Model.Servicios)
-                            {
-                                <tr>
-
-                                    <td>
-                                        @servicio.ConceptoServicio
-                                    </td>
-
-                                    <td class="text-center">
-                                        @servicio.Cantidad
-                                    </td>
-
-                                    <td class="text-end">
-                                        @servicio.CostoEstimadoManoObra.ToString("C")
-                                    </td>
-
-                                    <td class="text-end">
-                                        @servicio.CostoEstimadoRefacciones.ToString("C")
-                                    </td>
-
-                                    <td class="text-end fw-bold">
-                                        @servicio.TotalEstimado.ToString("C")
-                                    </td>
-
-                                    <td>
-                                        @servicio.Observaciones
-                                    </td>
-
-                                </tr>
-                            }
-
-                        </tbody>
-
-                        <tfoot>
-
-                            <tr class="table-secondary">
-
-                                <th colspan="4"
-                                    class="text-end">
-
-                                    Total estimado autorizado
-
-                                </th>
-
-                                <th class="text-end">
-
-                                    @Model.Servicios.Sum(x => x.TotalEstimado).ToString("C")
-
-                                </th>
-
-                                <th></th>
-
-                            </tr>
-
-                        </tfoot>
-
-                    </table>
-
-                </div>
-
-            </div>
-
-
-
-            <hr />
-
-
-
-
-
-
-
-
-
-
-            <div class="alert alert-warning">
-
-                <strong>Importante:</strong>
-
-                Al confirmar esta acción:
-
-                <ul class="mb-0 mt-2">
-                    <li>Se creará el registro de mantenimiento.</li>
-                    <li>La solicitud cambiará a estatus "En Taller".</li>
-                    <li>Se generará el primer seguimiento del mantenimiento.</li>
-                </ul>
-
-            </div>
-
-            <div class="d-flex justify-content-end gap-2">
-
-                <a asp-action="Index"
-                   class="btn btn-outline-secondary">
-
-                    Cancelar
-
-                </a>
-
-                <button type="submit"
-                        class="btn btn-dark">
-
-                    <i class="bi bi-car-front-fill me-1"></i>
-                    Confirmar Ingreso
-
-                </button>
-
-            </div>
-
-        </form>
-
-    </div>
-
 </div>
-

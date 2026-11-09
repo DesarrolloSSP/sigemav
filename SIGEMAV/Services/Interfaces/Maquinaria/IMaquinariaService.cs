@@ -1,7 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using SIGEMAV.Areas.Maquinaria.DTOs;
 using SIGEMAV.Models.ViewModels.Maquinaria;
+using System.Security.Claims;
 using static SIGEMAV.Areas.Maquinaria.DTOs.DTOs;
+using SIGEMAV.Areas.Maquinaria.Funciones;
 
 namespace SIGEMAV.Services.Interfaces.Maquinaria
 {
@@ -9,13 +12,27 @@ namespace SIGEMAV.Services.Interfaces.Maquinaria
     {
         //Task<PaginacionViewModel<UnidadVehicularViewModel>> ObtenerVehiculos(int pagina = 1, int registrosPorPagina = 10);
 
-        Task<PaginacionViewModel<UnidadVehicularViewModel>> ObtenerVehiculos(int pagina = 1, int registrosPorPagina = 10,
-          string? busqueda = null,
-          int? marcaId = null,
-          int? modeloId = null,
-          int? areaId = null,
-          int? municipioId = null
-      );
+        Task<PaginacionViewModel<UnidadVehicularViewModel>> ObtenerVehiculos(
+      int pagina = 1,
+      int registrosPorPagina = 10,
+      string? busqueda = null,
+      int? marcaId = null,
+      int? modeloId = null,
+      int? anioDesde = null,
+      int? anioHasta = null,
+      int? areaId = null,
+      int? municipioId = null);
+
+
+
+        //catalogos
+        Task<List<SelectListItem>> ObtenerAreasSelectList(int? seleccionado);
+        Task<List<SelectListItem>> ObtenerEstatusSelectList(int? seleccionado);
+        Task<List<SelectListItem>> ObtenerTiposMantenimientoSelectList(int? seleccionado);
+
+        Task<List<SelectListItem>> ObtenerEstadosOdometro();
+
+        Task<List<SolicitudMantenimientoDocumentoViewModel>> ObtenerDocumentosSolicitudMantenimiento(int solicitudMantenimientoId);
 
 
         //vehiculo
@@ -59,8 +76,9 @@ namespace SIGEMAV.Services.Interfaces.Maquinaria
         Task CrearTipoCatalogoServicioAsync(TipoCatalogoServicioCreateDto dto);
 
 
+        Task<List<Select2ItemViewModel>> BusquedaRapidaUnidades(string? term);
 
-
+        Task<PaginacionViewModel<SolicitudMantenimientoViewModel>> ObtenerSolicitudesMantenimiento(SolicitudMantenimientoFiltroViewModel filtro, int pagina = 1, int registrosPorPagina = 10);
 
 
         // Solicitudes de Mantenimiento
@@ -70,9 +88,8 @@ namespace SIGEMAV.Services.Interfaces.Maquinaria
 
         Task<UnidadVehicularDetailsViewModel> ObtenerUnidadVehicularDetails(int id);
 
-        
-        Task<PaginacionViewModel<SolicitudMantenimientoViewModel>> ObtenerSolicitudesMantenimiento(int pagina = 1, int registrosPorPagina = 10);
-        Task CrearSolicitudMantenimiento(SolicitudMantenimientoCreateDto dto, IEnumerable<IFormFile> archivos);
+
+        Task<ResultadoCreacionSolicitudDto> CrearSolicitudMantenimiento(SolicitudMantenimientoCreateDto dto, IEnumerable<IFormFile>? archivos);
 
         Task<List<SelectListItem>> ObtenerEstatusSolicitudMantenimiento();
 
@@ -116,12 +133,12 @@ namespace SIGEMAV.Services.Interfaces.Maquinaria
         Task<bool> EliminarAsync(UnidadVehicularEliminarDto dto);
 
 
-        
+
 
         // OBJETO DEL GASTO
         Task<IEnumerable<SelectListItem>> ObtenerObjetosGasto();
 
-       
+
 
 
 
@@ -130,8 +147,8 @@ namespace SIGEMAV.Services.Interfaces.Maquinaria
 
         Task CrearConceptoServicioAsync(ConceptoServicioCreateDto dto);
 
-        Task<List<SelectListItem>> ObtenerConceptosServicioFiltrados(int unidadVehicularId);
 
+        Task<List<SelectListItem>> ObtenerConceptosServicioFiltrados(int unidadVehicularId);
 
         Task<ConceptoServicioEditViewModel> ObtenerConceptoServicioEdit(int id);
 
@@ -156,8 +173,6 @@ namespace SIGEMAV.Services.Interfaces.Maquinaria
         Task EliminarConceptoServicioCosto(int id);
 
         Task<SolicitudMantenimientoEditViewModel> ObtenerSolicitudMantenimientoEdit(int id);
-
-
 
 
         //transferencia de unidad vehicular
@@ -194,27 +209,31 @@ namespace SIGEMAV.Services.Interfaces.Maquinaria
 
 
 
+
+
+
+
         // DSP
         Task<DSPViewModel> ObtenerDSP(int solicitudId);
         Task<IEnumerable<SelectListItem>> ObtenerDSPDisponibles(int areaId);
-
-        Task ProcesarDSP(DSPDto dto);
+        Task<ProcesarDSPResultadoDto> ProcesarDSP(DSPDto dto);
 
 
 
         //mantenimiento
         Task IngresarSolicitudATaller(int solicitudId);
-        Task<MantenimientoCreateViewModel?>ObtenerSolicitudParaIngresoTaller(int solicitudId);
+        Task<MantenimientoCreateViewModel?> ObtenerSolicitudParaIngresoTaller(int solicitudId);
 
         Task<MantenimientoEditViewModel> ObtenerMantenimientoEditar(int solicitudId);
 
         Task EditarMantenimiento(MantenimientoEditDto dto);
 
-        Task FinalizarMantenimiento(int mantenimientoId);
+
+        Task FinalizarMantenimiento(int mantenimientoId, List<MantenimientoDetalleDto> servicios);
 
 
         // Validacion de servicios historicos
-        Task<List<ConfiguracionValidacionTecnicaDto>>ObtenerConfiguracionValidacion(List<int> conceptos);
+        Task<List<ConfiguracionValidacionTecnicaDto>> ObtenerConfiguracionValidacion(List<int> conceptos);
         Task<ResultadoOperacionDto> GuardarConfiguracion(ConfiguracionValidacionTecnicaViewModel vm);
 
         Task<List<SelectListItem>> ObtenerConceptosPorTipo(int tipoCatalogoServicioId);
@@ -223,8 +242,134 @@ namespace SIGEMAV.Services.Interfaces.Maquinaria
 
         Task<ResultadoOperacionDto> CrearConfiguracion(ConfiguracionValidacionTecnicaCreateDto dto);
 
-        Task<ResultadoValidacionHistoricaDto> ValidarServiciosHistoricos(int unidadVehicularId, List<int> conceptos, int tipoMantenimientoId);
+        Task<ResultadoValidacionHistoricaDto> ValidarServiciosHistoricos(int unidadVehicularId, List<int> conceptos, int tipoMantenimientoId, int? solicitudExcluirId = null);
+
+
+        //FACTURACION
+
+        Task<FacturaMantenimientoViewModel> PrepararVistaAsync(int mantenimientoId);
+        //Task RegistrarFacturaAsync(FacturaMantenimientoDto dto, IFormFile xml, IFormFile pdf);
+        //Task RegistrarFacturaAsync(FacturaMantenimientoCreateDto dto, IFormFile xml, IFormFile pdf);
+
+        Task CruzarPresupuestoAsync(int mantenimientoId);
+        //Task<FacturaMantenimientoDetalleDto> ObtenerFacturaAsync(int facturaId);
+        Task<FacturaMantenimientoDto> ObtenerFacturaAsync(int facturaId);
+        Task<List<FacturaMantenimientoIndexDto>> ObtenerFacturasAsync();
+
+        
+
+        Task ValidarFacturaAsync(FacturaParseadaDto factura, int mantenimientoId);
+
+
+
+
+        Task<ValidacionSatDto> RegistrarFacturaAsync(FacturaMantenimientoCreateDto dto, IFormFile xml, IFormFile pdf);
+
+        //SAT
+        public interface IValidacionSatService { Task<ValidacionSatDto> ValidarAsync(string uuid, string rfcEmisor, string rfcReceptor, decimal total); }
+
+
+
+        
+        Task<List<RecursoDto>> ObtenerRecursosActivosAsync();
+
+        Task<List<BancoDto>> ObtenerBancosActivosAsync();
+
+        Task<PaginacionDto<TallerDto>> ObtenerTalleresAsync(int pagina = 1,int registrosPorPagina = 10,string? busqueda = null,bool? activo = null);
+
+        Task<List<FianzaDto>> ObtenerFianzasActivasAsync();
+
+        Task<List<ObjetivoMantenimientoDto>>ObtenerObjetivosMantenimientoActivosAsync();
+
+
+        Task<ResultadoOperacion> CrearTallerAsync(TallerCreateDto dto);
+
+        Task<ResultadoOperacion> ActualizarTallerAsync(TallerEditDto dto);
+
+
+        Task<TallerEditarDto?> ObtenerTallerParaEditarAsync(int tallerId);
+
+
+
+        Task<ResultadoOperacion> ActualizarConfiguracionPresupuestalAsync(TallerConfiguracionPresupuestalEditDto dto);
+
+
+        Task<ResultadoOperacion> CrearConfiguracionPresupuestalAsync(TallerConfiguracionPresupuestalCreateDto dto);
+
+        Task<List<TallerConfiguracionPresupuestalDto>> ObtenerConfiguracionesPresupuestalesAsync(string? busqueda = null, bool? activo = null);
+
+
+        Task<TallerConfiguracionPresupuestalViewModel?> ObtenerConfiguracionPresupuestalParaEditarAsync(int id);
+
+
+
+
+        ////
+        Task<List<TallerControlPresupuestalDto>> ObtenerControlesPresupuestalesAsync(string? busqueda = null, short? ejercicio = null, bool? activo = null);
+
+        Task<List<TallerConfiguracionPresupuestalSelectDto>> ObtenerConfiguracionesPresupuestalesActivasAsync();
+
+        Task<TallerControlPresupuestalEditViewModel?> ObtenerControlPresupuestalParaEditarAsync(int id);
+
+        Task<ResultadoOperacion> CrearControlPresupuestalAsync(TallerControlPresupuestalCreateDto dto);
+
+
+        Task<ResultadoOperacion> ActualizarControlPresupuestalAsync(TallerControlPresupuestalEditDto dto);
+
+
+        Task<List<TallerConfiguracionDto>> ObtenerConfiguracionesTallerAsync();
+
+        Task<TallerConfiguracionCreateViewModel> CargarCatalogosTallerConfiguracionAsync(TallerConfiguracionCreateViewModel model);
+
+        Task CargarConfiguracionesPresupuestalesParaEditarAsync(TallerConfiguracionEditViewModel model);
+
+        Task<BaseResponse> CrearTallerConfiguracionAsync(TallerConfiguracionCreateDto dto, ClaimsPrincipal usuario);
+
+        Task<BaseResponse> EditarTallerConfiguracionAsync(TallerConfiguracionEditDto dto);
+
+
+
+        Task<TallerConfiguracionEditViewModel?> ObtenerTallerConfiguracionParaEditarAsync(int tallerId, int configuracionId);
+
+
+        //firmantes
+        Task<List<FirmanteDto>> ObtenerTodosAsync(int? areaId = null);
+        Task<FirmanteDto?> ObtenerPorIdAsync(int firmanteId);
+        Task<bool> GuardarAsync(FirmanteDto dto);
+        Task<bool> CambiarEstatusAsync(int firmanteId);
+        Task<bool> EliminarAsync(int firmanteId);
+
+        Task<bool> GuardarFirmanteAsync(FirmanteDto dto);
+
+
+
+
+
+        //reportes
+        Task<byte[]> GenerarOficioSolicitudPdfAsync(int solicitudMantenimientoId);
+        Task<byte[]> GenerarDictamenTecnicoPdfAsync(int solicitudId);
+
+
+
+
+        Task<int> ObtenerUltimoKilometrajeUnidadAsync(int unidadVehicularId);
+
+        Task<List<SelectListItem>> ObtenerConfiguracionesPorTaller(int tallerId);
+
+
+
+        Task<FacturaIndexViewModel> ObtenerDashboardFacturacionAsync(
+       string? filtroUnidad = null,
+       string? filtroTaller = null,
+       string? filtroArea = null,
+       DateTime? fechaDesde = null,
+       DateTime? fechaHasta = null,
+       bool esAdministrador = false,
+       bool esAreaOperativa = false,
+       string areaUsuario = "");
 
 
     }
+
+
 }

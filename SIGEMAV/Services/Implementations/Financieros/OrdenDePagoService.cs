@@ -2,12 +2,14 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SIGEMAV.Models.Data;
+using SIGEMAV.Models.Entities;
 using SIGEMAV.Models.ViewModels.Financieros.Odp;
 using SIGEMAV.Models.ViewModels.OrdeDePago;
 using SIGEMAV.Services.Interfaces.Financieros;
 
 namespace SIGEMAV.Services.Implementations.Financieros
 {
+    
     public class OrdenDePagoService : IOrdenDePago
     {
 
@@ -33,7 +35,7 @@ namespace SIGEMAV.Services.Implementations.Financieros
                     MantenimientoId = x.MantenimientoId,
                     MantenimientoDetalleId = x.MantenimientoDetalleId,
                     IdObjetoGasto = x.IdObjetoGasto,
-                    ClaveObjGasto= x.ClaveObjGasto,
+                    ClaveObjGasto = x.ClaveObjGasto,
                     Descripcion = x.Descripcion,
                     CostoUnitario = (decimal)x.CostoUnitario,
                     Subtotal = (decimal)x.Subtotal,
@@ -51,7 +53,7 @@ namespace SIGEMAV.Services.Implementations.Financieros
 
 
 
-    
+
         public async Task<byte[]> GenerarExcel(string folio)
         {
             var detalles = await Obtener(folio);

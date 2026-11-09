@@ -1,0 +1,396 @@
+﻿
+@model SIGEMAV.Models.ViewModels.Maquinaria.TallerControlPresupuestalEditViewModel
+
+@{
+    ViewData["Title"] = "Editar control presupuestal";
+}
+
+<div class="card shadow-sm">
+
+    <div class="card-header bg-light">
+
+        <div class="d-flex align-items-center gap-2">
+
+            <div class="text-primary">
+
+                <i class="bi bi-wallet2 fs-4"></i>
+
+            </div>
+
+            <div>
+
+                <h4 class="mb-0">
+                    Editar control presupuestal
+                </h4>
+
+                <small class="text-muted">
+                    Administración de la vigencia y presupuesto anual
+                </small>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <form asp-action="EditarControlPresupuestal"
+          method="post">
+
+        @Html.AntiForgeryToken()
+
+        <input type="hidden"
+               asp-for="IdControlTaller" />
+
+
+        <div class="card-body">
+
+            <div asp-validation-summary="ModelOnly"
+                 class="alert alert-danger"
+                 role="alert">
+            </div>
+
+
+            <!-- ================================================= -->
+            <!-- IDENTIFICACIÓN -->
+            <!-- ================================================= -->
+
+            <div class="card border mb-4">
+
+                <div class="card-header bg-light">
+
+                    <strong>
+                        <i class="bi bi-file-earmark-text me-1"></i>
+                        Identificación
+                    </strong>
+
+                </div>
+
+                <div class="card-body">
+
+                    <div class="row g-3">
+
+                        <div class="col-md-6">
+
+                            <label class="form-label">
+                                Contrato
+                            </label>
+
+                            <input type="text"
+                                   class="form-control bg-light"
+                                   value="@Model.Contrato"
+                                   readonly />
+
+                        </div>
+
+
+                        <div class="col-md-3">
+
+                            <label class="form-label">
+                                Recurso
+                            </label>
+
+                            <input type="text"
+                                   class="form-control bg-light"
+                                   value="@Model.RecursoNombre"
+                                   readonly />
+
+                        </div>
+
+
+                        <div class="col-md-3">
+
+                            <label asp-for="Ejercicio"
+                                   class="form-label">
+
+                                Ejercicio
+
+                            </label>
+
+                            <input asp-for="Ejercicio"
+                                   class="form-control bg-light"
+                                   readonly />
+
+                        </div>
+
+
+                        <div class="col-md-6">
+
+                            <label class="form-label">
+                                Monto máximo contractual
+                            </label>
+
+                            <input class="form-control bg-light text-end"
+                                   value="@Model.MontoMaximo.ToString("C2")"
+                                   readonly />
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- ================================================= -->
+            <!-- CONTROL FINANCIERO -->
+            <!-- ================================================= -->
+
+            <div class="card border mb-4">
+
+                <div class="card-header bg-light">
+
+                    <strong>
+                        <i class="bi bi-cash-stack me-1"></i>
+                        Control financiero
+                    </strong>
+
+                    <div class="small text-muted mt-1">
+
+                        Los importes comprometido, ejercido y disponible
+                        son administrados por el sistema.
+
+                    </div>
+
+                </div>
+
+                <div class="card-body">
+
+                    <div class="row g-3">
+
+                        <!-- ASIGNADO -->
+
+                        <div class="col-md-6">
+
+                            <label asp-for="PresupuestoAsignado"
+                                   class="form-label">
+
+                                Presupuesto asignado
+
+                            </label>
+
+                            <div class="input-group">
+
+                                <span class="input-group-text">
+                                    $
+                                </span>
+
+                                <input asp-for="PresupuestoAsignado"
+                                       class="form-control text-end"
+                                       type="number"
+                                       min="0.01"
+                                       step="0.01" />
+
+                            </div>
+
+                            <span asp-validation-for="PresupuestoAsignado"
+                                  class="text-danger">
+                            </span>
+
+                        </div>
+
+
+                        <!-- COMPROMETIDO -->
+
+                        <div class="col-md-6">
+
+                            <label class="form-label">
+                                Presupuesto comprometido
+                            </label>
+
+                            <input class="form-control bg-light text-end"
+                                   value="@Model.PresupuestoComprometido.ToString("C2")"
+                                   readonly />
+
+                        </div>
+
+
+                        <!-- EJERCIDO -->
+
+                        <div class="col-md-6">
+
+                            <label class="form-label">
+                                Presupuesto ejercido
+                            </label>
+
+                            <input class="form-control bg-light text-end"
+                                   value="@Model.PresupuestoEjercido.ToString("C2")"
+                                   readonly />
+
+                        </div>
+
+
+                        <!-- DISPONIBLE -->
+
+                        <div class="col-md-6">
+
+                            <label class="form-label">
+                                Presupuesto disponible
+                            </label>
+
+                            <input class="form-control bg-light text-end fw-semibold"
+                                   value="@Model.PresupuestoDisponible.ToString("C2")"
+                                   readonly />
+
+                            <div class="form-text">
+
+                                Se recalcula automáticamente al guardar.
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- ================================================= -->
+            <!-- VIGENCIA -->
+            <!-- ================================================= -->
+
+            <div class="card border mb-4">
+
+                <div class="card-header bg-light">
+
+                    <strong>
+                        <i class="bi bi-calendar-range me-1"></i>
+                        Vigencia
+                    </strong>
+
+                </div>
+
+                <div class="card-body">
+
+                    <div class="row g-3">
+
+                        <div class="col-md-6">
+
+                            <label asp-for="FechaInicio"
+                                   class="form-label">
+
+                                Fecha de inicio
+
+                            </label>
+
+                            <input asp-for="FechaInicio"
+                                   type="date"
+                                   class="form-control" />
+
+                            <span asp-validation-for="FechaInicio"
+                                  class="text-danger">
+                            </span>
+
+                        </div>
+
+
+                        <div class="col-md-6">
+
+                            <label asp-for="FechaFin"
+                                   class="form-label">
+
+                                Fecha de fin
+
+                            </label>
+
+                            <input asp-for="FechaFin"
+                                   type="date"
+                                   class="form-control" />
+
+                            <span asp-validation-for="FechaFin"
+                                  class="text-danger">
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- ================================================= -->
+            <!-- ESTADO -->
+            <!-- ================================================= -->
+
+            <div class="card border">
+
+                <div class="card-header bg-light">
+
+                    <strong>
+                        <i class="bi bi-toggle-on me-1"></i>
+                        Estado
+                    </strong>
+
+                </div>
+
+                <div class="card-body">
+
+                    <div class="form-check form-switch">
+
+                        <input asp-for="Activo"
+                               class="form-check-input"
+                               type="checkbox" />
+
+                        <label asp-for="Activo"
+                               class="form-check-label">
+
+                            Control activo
+
+                        </label>
+
+                    </div>
+
+                    <div class="form-text">
+
+                        Un control con presupuesto comprometido o ejercido
+                        no puede desactivarse.
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ===================================================== -->
+        <!-- FOOTER -->
+        <!-- ===================================================== -->
+
+        <div class="card-footer d-flex justify-content-end gap-2">
+
+            <a asp-action="ControlPresupuestal"
+               class="btn btn-outline-secondary">
+
+                <i class="bi bi-x-circle me-1"></i>
+
+                Cancelar
+
+            </a>
+
+            <button type="submit"
+                    class="btn btn-primary">
+
+                <i class="bi bi-check-circle me-1"></i>
+
+                Guardar cambios
+
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+
+@section Scripts
+{
+    <partial name="_ValidationScriptsPartial" />
+}

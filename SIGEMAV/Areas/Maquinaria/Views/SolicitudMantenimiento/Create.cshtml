@@ -1,294 +1,257 @@
 ﻿@model SIGEMAV.Models.ViewModels.Maquinaria.SolicitudMantenimientoCreateViewModel
 
-@{
+@* @{
 	ViewData["Title"] =
 		"Nueva Solicitud de Mantenimiento";
 }
+ *@
+
+
 
 <div class="card shadow-sm border-0">
 
-	<div class="card-header bg-white">
+    <div class="card-header bg-white">
 
-		<div class="d-flex justify-content-between align-items-center">
+        <div class="d-flex justify-content-between align-items-center">
 
-			<div>
+            <div>
 
-				<h4 class="fw-bold mb-0">
-					Nueva solicitud de mantenimiento
-				</h4>
+                <h4 class="fw-bold mb-0">
+                    Nueva solicitud de mantenimiento
+                </h4>
 
-				<small class="text-muted">
-					Gestión administrativa de mantenimiento vehicular
-				</small>
+                <small class="text-muted">
+                    Gestión administrativa de mantenimiento vehicular
+                </small>
 
-			</div>
+            </div>
 
-			<div>
+            <div>
 
-				<a asp-action="Index"
-				   class="btn btn-outline-secondary">
+                <a asp-action="Index"
+                   class="btn btn-outline-secondary">
 
-					<i class="bi bi-arrow-left me-1"></i>
-					Regresar
+                    <i class="bi bi-arrow-left me-1"></i>
+                    Regresar
 
-				</a>
+                </a>
 
-			</div>
+            </div>
 
-		</div>
+        </div>
 
-	</div>
+    </div>
 
-	<div class="card-body">
+    <div class="card-body">
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="alert alert-danger border-0 shadow-sm mb-4">
 
-		<form asp-action="Create" method="post" enctype="multipart/form-data">
+                <div class="d-flex align-items-start">
 
-			<div asp-validation-summary="ModelOnly" class="alert alert-danger">
-			</div>
+                    <div class="me-3">
+                        <i class="bi bi-exclamation-circle-fill fs-4"></i>
+                    </div>
 
-			<div id="alertaCamposObligatorios"
-				 class="alert alert-warning border-0 shadow-sm d-none">
+                    <div>
 
-				<i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        <div class="fw-bold mb-1">
+                            No fue posible guardar la solicitud
+                        </div>
 
-				Debe completar todos los campos obligatorios
-				antes de agregar servicios.
+                        <div class="small">
+                            Revisa los siguientes campos:
+                        </div>
 
-			</div>
-
-
-			<div class="row g-4">
-
-				<!-- Folio -->
-				@*   <div class="col-md-3">
-
-                    <label asp-for="Folio"
-                           class="form-label fw-semibold">
-
-                        Folio
-
-                    </label>
-
-                    <input asp-for="Folio"
-                           class="form-control" />
-
-                </div> *@
-				<!-- Fecha -->
-				<div class="col-md-6">
-
-					<label asp-for="FechaSolicitud"
-						   class="form-label fw-semibold campo-obligatorio">
-
-						Fecha Solicitud
-
-					</label>
-
-					
-
-					<input asp-for="FechaSolicitud"
-						   type="datetime-local"
-						   class="form-control" required/>
-
-				</div>
-
-
-				<!-- Oficio -->
-				<div class="col-md-6">
-
-					<label asp-for="NumeroOficio"
-						   class="form-label fw-semibold campo-obligatorio">
-
-						Número de Oficio
-
-					</label>
-
-					<input asp-for="NumeroOficio"
-						   class="form-control" required/>
-
-				</div>
-
-              
-
-
-				<!-- Estatus -->
-				@*   <div class="col-md-3">
-
-                    <label asp-for="EstatusSolicitudMantenimientoId"
-                           class="form-label fw-semibold">
-
-                        Estatus
-
-                    </label>
-
-                    <select asp-for="EstatusSolicitudMantenimientoId"
-                            asp-items="Model.Estatuses"
-                            class="form-select">
-
-                        <option value="">
-                            Seleccione estatus
-                        </option>
-
-                    </select>
-
-                </div> *@
-
-               
-
-				<!-- Unidad -->
-				<div class="col-md-4">
-
-					<label asp-for="UnidadVehicularId"
-						   class="form-label fw-semibold campo-obligatorio">
-
-						Unidad Vehicular
-
-					</label>
-
-					<select asp-for="UnidadVehicularId"
-							class="form-select"
-							id="unidadVehicularSelect" required>
-
-						@if (Model.UnidadVehicularId > 0)
-						{
-							<option value="@Model.UnidadVehicularId" selected>
-								@Model.UnidadVehicularTexto
-							</option>
-						}
-
-					</select>
-
-					<span asp-validation-for="UnidadVehicularId"
-						  class="text-danger">
-					</span>
-
-				</div>
-
-
-				<!-- Kilometraje -->
-				<div class="col-md-4">
-
-					<label asp-for="KilometrajeActual"
-						   class="form-label fw-semibold campo-obligatorio">
-
-						Kilometraje Actual
-
-					</label>
-
-					<input asp-for="KilometrajeActual"
-						   class="form-control" required />
-
-				</div>
-
-
-				<!-- Tipo -->
-				<div class="col-md-4">
-
-					<label asp-for="TipoMantenimientoId"
-						   class="form-label fw-semibold campo-obligatorio">
-
-						Tipo de Mantenimiento
-
-					</label>
-
-					<select asp-for="TipoMantenimientoId"
-							asp-items="Model.TiposMantenimiento"
-							class="form-select" required>
-
-						<option value="">
-							Seleccione tipo
-						</option>
-
-					</select>
-
-				</div>
-
-			
-
-
-
-				<!-- Taller -->
-				<div class="col-md-4">
-
-					<label asp-for="TallerId"
-						   class="form-label fw-semibold campo-obligatorio">
-
-						Taller
-
-					</label>
-
-					<select asp-for="TallerId"
-							asp-items="Model.Talleres"
-							class="form-select" required>
-
-						<option value="">
-							Seleccione taller
-						</option>
-
-					</select>
-
-				</div>
-
-				<!-- Cotización -->
-				<div class="col-md-4">
-
-					<label class="form-label fw-semibold">
-
-						Importe Cotización
-
-					</label>
-
-					<input id="ImporteCotizacionVisual"
-						   class="form-control text-end"
-						   readonly
-						   value="0.00" />
-
-					<small class="text-muted">
-						Calculado automáticamente a partir de los servicios.
-					</small>
-
-				</div>
-
-			
-
-				<!-- Área -->
-				<div class="col-md-4">
-					<label asp-for="AreaSolicitanteId"
-						   class="form-label fw-semibold campo-obligatorio">
-						Área Solicitante
-					</label>
-					<select id="AreaSolicitanteIdDisplay"
-							asp-items="Model.Areas"
-							class="form-select"
-							disabled>
-						<option value="">
-							Seleccione área
-						</option>
-					</select>
-					<input type="hidden" asp-for="AreaSolicitanteId" />
-
-					<small class="text-muted">
-						Área obtenida de la plantilla vehicular.
-					</small>
-				</div>
-
-             
-
-             
-
-             
-				<!-- Motivo -->
-				<div class="col-md-12">
+                        <ul class="mb-0 mt-2 small">
+                            @foreach (var error in ViewData.ModelState.Values
+                                .SelectMany(v => v.Errors)
+                                .Where(e => !string.IsNullOrWhiteSpace(e.ErrorMessage)))
+                            {
+                                <li>@error.ErrorMessage</li>
+                            }
+                        </ul>
+
+                    </div>
+
+                </div>
+
+            </div>
+        }
+
+
+
+
+        <form asp-action="Create" method="post" enctype="multipart/form-data">
+
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger">
+            </div>
+
+            <div id="alertaCamposObligatorios"
+                 class="alert alert-warning border-0 shadow-sm d-none">
+
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+
+                Debe completar todos los campos obligatorios
+                antes de agregar servicios.
+
+            </div>
+
+
+            <div class="row g-4">
+
+                <!-- Fecha de la Solicitud -->
+    <div class="col-md-4">
+        <label asp-for="FechaSolicitud" class="form-label fw-semibold campo-obligatorio">
+            <i class="bi bi-calendar-event me-1 text-secondary"></i>Fecha de la solicitud
+        </label>
+        <input asp-for="FechaSolicitud" type="datetime-local" class="form-control" required />
+        <span asp-validation-for="FechaSolicitud" class="text-danger small"></span>
+    </div>
+
+    <!-- Número de Oficio -->
+    <div class="col-md-4">
+        <label asp-for="NumeroOficio" class="form-label fw-semibold campo-obligatorio">
+            <i class="bi bi-file-earmark-text me-1 text-secondary"></i>Número de oficio
+        </label>
+        <input asp-for="NumeroOficio" class="form-control" placeholder="Ej. OF/2026/001" required />
+        <span asp-validation-for="NumeroOficio" class="text-danger small"></span>
+    </div>
+
+    <!-- Unidad Vehicular -->
+    <div class="col-md-4">
+        <label asp-for="UnidadVehicularId" class="form-label fw-semibold campo-obligatorio">
+            <i class="bi bi-truck me-1 text-secondary"></i>Unidad vehicular
+        </label>
+        <select asp-for="UnidadVehicularId" class="form-select" id="unidadVehicularSelect" required>
+            @if (Model.UnidadVehicularId > 0)
+            {
+                <option value="@Model.UnidadVehicularId" selected>
+                    @Model.UnidadVehicularTexto
+                </option>
+            }
+        </select>
+        <span asp-validation-for="UnidadVehicularId" class="text-danger small"></span>
+    </div>
+
+    <!-- Área Solicitante -->
+    <div class="col-md-6">
+        <label asp-for="AreaSolicitanteId" class="form-label fw-semibold campo-obligatorio">
+            <i class="bi bi-building me-1 text-secondary"></i>Área solicitante
+        </label>
+        <select id="AreaSolicitanteIdDisplay" asp-items="Model.Areas" class="form-select bg-light" disabled>
+            <option value="">Seleccione área</option>
+        </select>
+        <input type="hidden" asp-for="AreaSolicitanteId" />
+        <small class="text-muted d-block mt-1">
+            <i class="bi bi-info-circle me-1"></i>Área obtenida automáticamente de la plantilla vehicular.
+        </small>
+        <span asp-validation-for="AreaSolicitanteId" class="text-danger small"></span>
+    </div>
+
+    <!-- Tipo de Mantenimiento -->
+    <div class="col-md-6">
+        <label asp-for="TipoMantenimientoId" class="form-label fw-semibold campo-obligatorio">
+            <i class="bi bi-tools me-1 text-secondary"></i>Tipo de mantenimiento
+        </label>
+        <select asp-for="TipoMantenimientoId" asp-items="Model.TiposMantenimiento" class="form-select" required>
+            <option value="">Seleccione tipo</option>
+        </select>
+        <span asp-validation-for="TipoMantenimientoId" class="text-danger small"></span>
+    </div>
+
+    <!-- Taller -->
+    <div class="col-md-6">
+        <label asp-for="TallerId" class="form-label fw-semibold campo-obligatorio">
+            <i class="bi bi-wrench-gap me-1 text-secondary"></i>Taller
+        </label>
+        <select asp-for="TallerId" asp-items="Model.Talleres" class="form-select" id="TallerId" required>
+            <option value="">Seleccione taller</option>
+        </select>
+        <span asp-validation-for="TallerId" class="text-danger small"></span>
+    </div>
+
+@{
+    bool deshabilitarSelect = !Model.TallerId.HasValue || Model.TallerId.Value <= 0;
+}
+
+<!-- Contrato / Configuración Presupuestal -->
+<div class="col-md-6">
+    <label asp-for="TallerConfiguracionPresupuestalId" class="form-label fw-semibold campo-obligatorio">
+        <i class="bi bi-file-earmark-spreadsheet me-1 text-secondary"></i>Contrato / Fuente de Recurso
+    </label>
+    <select asp-for="TallerConfiguracionPresupuestalId" 
+            asp-items="@(new List<SelectListItem>())" 
+            class="form-select" 
+            id="TallerConfiguracionPresupuestalId" 
+            required 
+            data-selected="@Model.TallerConfiguracionPresupuestalId"
+            disabled="@(deshabilitarSelect ? "disabled" : null)">
+        <option value="">Seleccione contrato / recurso</option>
+    </select>
+    <small id="mensajeConfiguracionTaller" class="text-muted d-block mt-1">
+        Seleccione un taller para cargar sus contratos vigentes.
+    </small>
+    <span asp-validation-for="TallerConfiguracionPresupuestalId" class="text-danger small"></span>
+</div>
+
+    <!-- Kilometraje Actual -->
+    <div class="col-md-4">
+        <label asp-for="KilometrajeActual" class="form-label fw-semibold campo-obligatorio">
+            <i class="bi bi-speedometer2 me-1 text-secondary"></i>Kilometraje actual
+        </label>
+        <input asp-for="KilometrajeActual" class="form-control" maxlength="6" inputmode="numeric" autocomplete="off" placeholder="000000" required />
+        <small class="text-muted d-block mt-1">Capture la lectura actual del odómetro.</small>
+        <span asp-validation-for="KilometrajeActual" class="text-danger small"></span>
+    </div>
+
+    <!-- Estado del Odómetro -->
+    <div class="col-md-4">
+        <label asp-for="EstadoOdometroId" class="form-label fw-semibold campo-obligatorio">
+            <i class="bi bi-exclamation-triangle me-1 text-secondary"></i>Estado del odómetro
+        </label>
+        <select asp-for="EstadoOdometroId" asp-items="Model.EstadosOdometro" class="form-select" required>
+            <option value="">Seleccione estado</option>
+        </select>
+        <small class="text-muted d-block mt-1">Indique si la lectura es confiable o existe incidencia.</small>
+        <span asp-validation-for="EstadoOdometroId" class="text-danger small"></span>
+    </div>
+
+    <!-- Importe Cotización -->
+    <div class="col-md-4">
+        <label class="form-label fw-semibold">
+            <i class="bi bi-currency-dollar me-1 text-secondary"></i>Importe cotización
+        </label>
+        <div class="input-group">
+            <span class="input-group-text bg-light">$</span>
+            <input id="ImporteCotizacionVisual" class="form-control text-end bg-light fw-bold" readonly value="0.00" />
+        </div>
+        <small class="text-muted d-block mt-1">Calculado automáticamente desde servicios.</small>
+    </div>
+
+    <!-- Nota Informativa (Ancho completo para evitar desalineación visual) -->
+    <div class="col-12 mt-3">
+        <div class="alert alert-info d-flex align-items-center mb-0 py-2 px-3 fs-7" role="alert">
+            <i class="bi bi-info-circle-fill me-2 fs-5 flex-shrink-0"></i>
+            <div>
+                El estado del odómetro debe corresponder con el kilometraje capturado. Si el odómetro opera correctamente, registre la lectura actual; en caso contrario, seleccione la incidencia correspondiente.
+            </div>
+        </div>
+    </div>
+
+                <!-- Motivo -->
+                @* <div class="col-md-12">
 
 					<label asp-for="MotivoSolicitud" class="form-label fw-semibold">
-						Motivo de Solicitud
+						Motivo de solicitud
 					</label>
 
 					<textarea asp-for="MotivoSolicitud" rows="3" class="form-control"></textarea>
 
-				</div>
+				</div> *@
 
-				<!-- Diagnóstico -->
-				<div class="col-md-6">
+                <!-- Diagnóstico -->
+                @* <div class="col-md-6">
 
 					<label asp-for="DiagnosticoInicial"
 						   class="form-label fw-semibold campo-obligatorio">
@@ -302,220 +265,220 @@
 							  class="form-control" required>
                     </textarea>
 
-				</div>
+				</div> *@
 
-				<!-- Observaciones -->
-				<div class="col-md-6">
+                <!-- Observaciones -->
+                <div class="col-md-12">
 
-					<label asp-for="Observaciones"
-						   class="form-label fw-semibold">
+                    <label asp-for="Observaciones"
+                           class="form-label fw-semibold">
 
-						Observaciones
+                        Observaciones
 
-					</label>
+                    </label>
 
-					<textarea asp-for="Observaciones"
-							  rows="4"
-							  class="form-control">
+                    <textarea asp-for="Observaciones"
+                              rows="4"
+                              class="form-control">
                     </textarea>
 
-				</div>
+                </div>
 
-			</div>
+            </div>
 
 
 
 
 
-			@if (Model.Archivos != null && Model.Archivos.Any())
-			{
-				<div class="alert alert-warning">
+            @if (Model.Archivos != null && Model.Archivos.Any())
+            {
+                <div class="alert alert-warning">
 
-					Los archivos deben volver a seleccionarse
-					después de una validación fallida.
+                    Los archivos deben volver a seleccionarse
+                    después de una validación fallida.
 
-				</div>
-			}
-			<!-- Documentos -->
-			<div class="col-md-12">
+                </div>
+            }
+            <!-- Documentos -->
+            <div class="col-md-12">
 
-				<label class="form-label fw-semibold campo-obligatorio">
-					Documentos Soporte
-				</label>
+                <label class="form-label fw-semibold campo-obligatorio">
+                    Soporte documental
+                </label>
 
-				<input asp-for="Archivos"
-					   type="file"
-					   class="form-control"
-					   id="archivosInput"
-					   multiple
-					   accept=".pdf,.jpg,.jpeg,.png" required/>
+                <input asp-for="Archivos"
+                       type="file"
+                       class="form-control"
+                       id="archivosInput"
+                       multiple
+                       accept=".pdf,.jpg,.jpeg,.png" required />
 
-				<small class="text-muted">
-					Adjunte oficio, evidencias fotográficas,
-					cotizaciones o diagnósticos.
-					Máximo 5 archivos de 2 MB c/u.
-				</small>
+                <small class="text-muted">
+                    Adjunte oficio de solicitud, evidencia fotográfica,
+                    cotización o diagnóstico.
+                    Máximo 5 archivos de 2 MB c/u.
+                </small>
 
-				<div id="errorArchivos"
-					 class="text-danger small mt-2">
-				</div>
+                <div id="errorArchivos"
+                     class="text-danger small mt-2">
+                </div>
 
-			</div>
+            </div>
 
 
 
 
 
 
-			<!-- SERVICIOS -->
-			<div class="col-md-12">
+            <!-- SERVICIOS -->
+            <div class="col-md-12">
 
-				<div class="card border-0 shadow-sm">
+                <div class="card border-0 shadow-sm">
 
-					<div class="card-header border-0 text-white"
-						 style="background: linear-gradient(90deg, #800705 0%, #a10b08 100%);">
+                    <div class="card-header border-0 text-white"
+                         style="background: linear-gradient(90deg, #800705 0%, #a10b08 100%);">
 
-						<div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
 
-							<div>
+                            <div>
 
-								<div class="d-flex align-items-center gap-2">
+                                <div class="d-flex align-items-center gap-2">
 
-									<i class="bi bi-receipt-cutoff fs-4"></i>
+                                    <i class="bi bi-receipt-cutoff fs-4"></i>
 
-									<h5 class="fw-bold mb-0">
-										COTIZACIÓN INICIAL
-									</h5>
+                                    <h5 class="fw-bold mb-0">
+                                        COTIZACIÓN INICIAL
+                                    </h5>
 
-								</div>
+                                </div>
 
-								<small class="opacity-75">
-									Seleccione los servicios y clasifique manualmente los objetos de gasto.
-								</small>
+                                <small class="opacity-75">
+                                    Seleccione los servicios y clasifique manualmente los objetos de gasto.
+                                </small>
 
-							</div>
+                            </div>
 
-							<button type="button"
-									id="btnAgregarServicio"
-									class="btn btn-light btn-sm fw-semibold shadow-sm">
+                            <button type="button"
+                                    id="btnAgregarServicio"
+                                    class="btn btn-light btn-sm fw-semibold shadow-sm">
 
-								<i class="bi bi-plus-circle me-1"></i>
-								Agregar Servicio
+                                <i class="bi bi-plus-circle me-1"></i>
+                                Agregar Servicio
 
-							</button>
+                            </button>
 
-						</div>
+                        </div>
 
-					</div>
+                    </div>
 
-					<div class="card-body bg-light-subtle">
+                    <div class="card-body bg-light-subtle">
 
-						<div class="table-responsive">
+                        <div class="table-responsive">
 
-							<table class="table table-bordered table-hover align-middle"
-								   id="tablaServicios">
+                            <table class="table table-bordered table-hover align-middle"
+                                   id="tablaServicios">
 
-								<thead class="table-light">
+                                <thead class="table-light">
 
-									<tr>
+                                    <tr>
 
-										<th class="col-concepto">
-											Concepto
-										</th>
+                                        <th class="col-concepto">
+                                            Concepto
+                                        </th>
 
-										<th class="col-cantidad text-center">
-											Cantidad
-										</th>
+                                        <th class="col-cantidad text-center">
+                                            Cantidad
+                                        </th>
 
-										<th class="col-manoobra text-end">
-											$ Mano de obra
-										</th>
+                                        <th class="col-manoobra text-end">
+                                            $ Mano de obra
+                                        </th>
 
-										<th class="col-partida-mo">
-											Partida M.O.
-										</th>
+                                        <th class="col-partida-mo">
+                                            Afecta a partida
+                                        </th>
 
-										<th class="col-refacciones text-end">
-											$ Refacciones
-										</th>
+                                        <th class="col-refacciones text-end">
+                                            $ Refacciones
+                                        </th>
 
-										<th class="col-partida-ref">
-											Partida Ref.
-										</th>
+                                        <th class="col-partida-ref">
+                                            Afecta a partida
+                                        </th>
 
-										<th class="col-observaciones">
-											Observaciones
-										</th>
+                                        <th class="col-observaciones">
+                                            Observaciones
+                                        </th>
 
-										<th class="col-acciones text-center">
-										</th>
+                                        <th class="col-acciones text-center">
+                                        </th>
 
-									</tr>
+                                    </tr>
 
-								</thead>
+                                </thead>
 
-								<tbody>
-								</tbody>
+                                <tbody>
+                                </tbody>
 
-							</table>
+                            </table>
 
-						</div>
+                        </div>
 
-						<div class="mt-3">
+                        <div class="mt-3">
 
-							<div class="alert alert-light border mb-0">
+                            <div class="alert alert-light border mb-0">
 
-								<div class="d-flex align-items-start">
+                                <div class="d-flex align-items-start">
 
-									<i class="bi bi-info-circle-fill text-primary fs-5 me-2"></i>
+                                    <i class="bi bi-info-circle-fill text-primary fs-5 me-2"></i>
 
-									<div class="small">
+                                    <div class="small">
 
-										<strong>Importante:</strong>
+                                        <strong>Importante:</strong>
 
-										Un mismo servicio puede afectar diferentes objetos de gasto.
+                                        Un mismo servicio puede afectar diferentes objetos de gasto.
 
-										<br />
+                                        <br />
 
-										Ejemplo:
-										<strong>Cambio de aceite</strong>
-										puede afectar:
+                                        Ejemplo:
+                                        <strong>Cambio de aceite</strong>
+                                        puede afectar:
 
-										<ul class="mb-0 mt-2">
+                                        <ul class="mb-0 mt-2">
 
-											<li>
-												Mano de obra →
-												355001 Conservación y Mantenimiento
-											</li>
+                                            <li>
+                                                Mano de obra →
+                                                355001 Conservación y Mantenimiento
+                                            </li>
 
-											<li>
-												Refacciones/Insumos →
-												261001 Lubricantes y Aditivos
-											</li>
+                                            <li>
+                                                Refacciones/Insumos →
+                                                261001 Lubricantes y Aditivos
+                                            </li>
 
-										</ul>
+                                        </ul>
 
-									</div>
+                                    </div>
 
-								</div>
+                                </div>
 
-							</div>
+                            </div>
 
-						</div>
+                        </div>
 
-						<div class="mt-2">
+                        <div class="mt-2">
 
-							<small class="text-muted">
-								Los costos son calculados automáticamente desde la matriz oficial de mantenimiento.
-							</small>
+                            <small class="text-muted">
+                                Los costos son calculados automáticamente desde la matriz oficial de mantenimiento.
+                            </small>
 
-						</div>
+                        </div>
 
-					</div>
+                    </div>
 
-				</div>
+                </div>
 
-			</div>
+            </div>
 
 
 
@@ -525,1784 +488,1422 @@
 
 
 
-			<hr class="my-4" />
+            <hr class="my-4" />
 
-			<div class="d-flex justify-content-end gap-2">
+            <div class="d-flex justify-content-end gap-2">
 
-				<a asp-action="Index"
-				   class="btn btn-outline-secondary">
+                <a asp-action="Index"
+                   class="btn btn-outline-secondary">
 
-					Cancelar
+                    Cancelar
 
-				</a>
+                </a>
 
-				<button type="submit"
-						class="btn text-light"
-						style="background-color:#800705">
+                <button type="submit"
+                        class="btn text-light"
+                        style="background-color:#800705">
 
-					<i class="bi bi-save me-1"></i>
-					Guardar Solicitud
+                    <i class="bi bi-save me-1"></i>
+                    Guardar Solicitud
 
-				</button>
+                </button>
 
-			</div>
+            </div>
 
-		</form>
+        </form>
 
-	</div>
+    </div>
 
 </div>
 
 
 
 @section Scripts {
-
-	@{
-		await Html.RenderPartialAsync(
-			"_ValidationScriptsPartial");
-	}
-
-
-	<style>
-
-    .campo-obligatorio::after {
-
-        content: " *";
-
-        color: red;
-
-        font-weight: bold;
+    @{
+        await Html.RenderPartialAsync(
+            "_ValidationScriptsPartial");
     }
+    <style>
+        .campo-obligatorio::after {
+            content: " *";
+            color: red;
+            font-weight: bold;
+        }
+
+        .input-validation-obligatorio {
+            border: 2px solid #dc3545 !important;
+            background-color: #fff8f8;
+        }
+
+        #tablaServicios {
+            table-layout: fixed;
+            width: 100%;
+        }
+
+            #tablaServicios .col-concepto {
+                width: 28%;
+            }
+
+            #tablaServicios .col-cantidad {
+                width: 6%;
+            }
+
+            #tablaServicios .col-manoobra {
+                width: 10%;
+            }
+
+            #tablaServicios .col-partida-mo {
+                width: 15%;
+            }
+
+            #tablaServicios .col-refacciones {
+                width: 10%;
+            }
+
+            #tablaServicios .col-partida-ref {
+                width: 15%;
+            }
+
+            #tablaServicios .col-observaciones {
+                width: 12%;
+            }
+
+            #tablaServicios .col-acciones {
+                width: 4%;
+            }
+
+        /* =========================================
+                                                                                   SELECT2
+                                                                                ========================================= */
+
+        .select2-container {
+            width: 100% !important;
+        }
+
+        /* =========================================
+                                                                                   CONCEPTO SERVICIO
+                                                                                ========================================= */
+
+        .columnaConceptoServicio {
+            min-width: 350px;
+        }
+
+        .contenedorConceptoServicio {
+            min-width: 320px;
+        }
+
+
+
+        .select2-container--default .select2-selection--single {
+            display: flex !important;
+            align-items: center !important;
+            min-height: 70px;
+            height: auto !important;
+            padding-top: 6px;
+            padding-bottom: 6px;
+        }
+
+        .select2-selection__rendered {
+            white-space: normal !important;
+            word-break: break-word;
+            line-height: 1.3rem !important;
+            padding-top: 6px !important;
+            padding-bottom: 6px !important;
+            padding-left: 12px !important;
+            padding-right: 28px !important;
+            display: flex !important;
+            align-items: center !important;
+            min-height: 58px;
+        }
+
+        .select2-selection__arrow {
+            height: 100% !important;
+            top: 0 !important;
+            right: 6px !important;
+        }
+
+    </style>
+    <!-- SELECT2 -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        // Variable global para almacenar el último kilometraje histórico de la unidad seleccionada
+        const serviciosExistentes = @Html.Raw(
+                                    System.Text.Json.JsonSerializer.Serialize(
+                                                    Model.Servicios ?? new List<SIGEMAV.Models.ViewModels.Maquinaria.SolicitudMantenimientoServicioViewModel>()
+                                    )
+                    );
+   
+        // Variable global para almacenar el último kilometraje histórico de la unidad seleccionada
+        let ultimoKilometrajeConocido = 0;
+        let inicializandoUnidadVehicular = true;
+
+        $(function () {
+            inicializarUnidadVehicular();
+            inicializarEventosTaller();
+            inicializarEventosGlobales();
+            inicializarFormulario();
+
+            setTimeout(function () {
+                inicializandoUnidadVehicular = false;
+            }, 0);
+        });
+
+       // ============================================================
+     // INICIALIZAR EVENTOS DEL TALLER Y CONTRATOS PRESUPUESTALES
+     // ============================================================
+     function inicializarEventosTaller() {
+         const $taller = $("#TallerId").length ? $("#TallerId") : $("#tallerSelect");
+         const $configSelect = $("#TallerConfiguracionPresupuestalId").length ? $("#TallerConfiguracionPresupuestalId") : $("#tallerConfiguracionSelect");
+
+         // Bandera para evitar ejecuciones duplicadas de eventos durante la inicialización
+         let cargandoConfiguracionesIniciales = false;
+
+         $taller.on("change", function () {
+             const tallerId = $(this).val();
+             const $mensaje = $("#mensajeConfiguracionTaller");
+        
+             // Recuperar el valor previamente seleccionado (guardado en el atributo data o value actual)
+             const valorASeleccionar = $configSelect.attr("data-selected") || $configSelect.val();
+
+             // REINICIALIZACIÓN FORZOSA ABSOLUTA DEL DOM: 
+             // Vaciamos por completo el select y removemos cualquier opción estática previa
+             $configSelect.empty().append('<option value="">Seleccione contrato / recurso</option>');
+
+             if (!tallerId) {
+                 $configSelect.prop("disabled", true);
+                 if ($mensaje.length) {
+                     $mensaje.removeClass("text-danger text-success").addClass("text-muted")
+                             .text("Seleccione un taller para cargar sus contratos vigentes.");
+                 }
+                 return;
+             }
+
+             // Evitar llamadas múltiples concurrentes
+             if (cargandoConfiguracionesIniciales) return;
+             cargandoConfiguracionesIniciales = true;
+
+             // Petición AJAX limpia
+             $.get("@Url.Action("ObtenerConfiguracionesPorTaller", "SolicitudMantenimiento", new { area = "Maquinaria" })", { tallerId: tallerId })
+                 .done(function (data) {
+                     // Volvemos a vaciar por seguridad justo antes de pintar la respuesta de la red
+                     $configSelect.empty().append('<option value="">Seleccione contrato / recurso</option>');
+
+                     if (!data || data.length === 0) {
+                         $configSelect.prop("disabled", true);
+                         if ($mensaje.length) {
+                             $mensaje.removeClass("text-muted text-success").addClass("text-danger")
+                                     .text("El taller seleccionado no cuenta con una configuración presupuestal activa.");
+                         }
+                         cargandoConfiguracionesIniciales = false;
+                         return;
+                     }
+
+                     // Filtrar duplicados de manera estricta en el cliente por seguridad usando un Map
+                     const elementosUnicos = [];
+                     const map = new Map();
+                     $.each(data, function (index, item) {
+                         if (!map.has(item.value)) {
+                             map.set(item.value, true);
+                             elementosUnicos.push(item);
+                         }
+                     });
+
+                     // Poblar de cero el combo exclusivamente con los elementos únicos
+                     $.each(elementosUnicos, function (index, item) {
+                         $configSelect.append(new Option(item.text, item.value));
+                     });
+
+                     $configSelect.prop("disabled", false);
+
+                     // Restaurar selección previa si coincide, o seleccionar si es único
+                     if (valorASeleccionar && $configSelect.find(`option[value="${valorASeleccionar}"]`).length > 0) {
+                         $configSelect.val(valorASeleccionar);
+                         $configSelect.removeAttr("data-selected");
+                     } else if (elementosUnicos.length === 1) {
+                         $configSelect.val(elementosUnicos[0].value);
+                     }
+
+                     cargandoConfiguracionesIniciales = false;
+                 })
+                 .fail(function () {
+                     $configSelect.prop("disabled", true);
+                     cargandoConfiguracionesIniciales = false;
+                 });
+         });
+
+         // Disparar al cargar solo si hay un taller válido seleccionado (al recargar por validación fallida)
+         if ($taller.val()) {
+             // Limpiamos cualquier valor residual antes de disparar el change inicial
+             $configSelect.val("");
+             $taller.trigger("change");
+         }
+     }
+
+        // ============================================================
+        // INICIALIZAR UNIDAD VEHICULAR
+        // ============================================================
+     // Variable global para rastrear la unidad previamente seleccionada
+     let unidadVehicularAnterior = "";
+
+     // ============================================================
+     // INICIALIZAR UNIDAD VEHICULAR
+     // ============================================================
+     function inicializarUnidadVehicular() { 
+         $("#unidadVehicularSelect").select2({
+             placeholder: "Buscar unidad vehicular",
+             allowClear: true,
+             width: "100%",
+             ajax: {
+                 url: "@Url.Action("BuscarUnidadesVehiculares", "SolicitudMantenimiento", new { area = "Maquinaria" })",
+                 dataType: "json",
+                 delay: 300,
+                 data: function (params) {
+                     return { term: params.term || "" };
+                 },
+                 processResults: function (data) {
+                     return { results: data };
+                 },
+                 cache: true
+             }
+         });
+
+         // Al cargar la página, guardamos el valor inicial que traiga el select
+         unidadVehicularAnterior = $("#unidadVehicularSelect").val() || "";
+
+         $("#unidadVehicularSelect").on("select2:select", function (e) {
+             const unidadVehicularId = e.params.data.id;
+
+             // GARANTÍA TOTAL DE LIMPIEZA: Si hay una unidad anterior distinta a la nueva, o si ya existían servicios previos
+             if (unidadVehicularAnterior && unidadVehicularAnterior !== unidadVehicularId) {
+                 limpiarServiciosServidorYCliente(); // Función de purga total
+                 Swal.fire({
+                     icon: "info",
+                     title: "Unidad actualizada",
+                     text: "Se ha cambiado la unidad vehicular. Todos los registros y servicios anteriores han sido eliminados por completo.",
+                     confirmButtonColor: "#800705"
+                 });
+             } else if (!inicializandoUnidadVehicular && $("#tablaServicios tbody tr").length > 0) {
+                 // Por si acaso selecciona la misma u ocurre un reajuste con filas activas
+                 limpiarServiciosServidorYCliente();
+             }
+
+             // Actualizamos el registro de la unidad actual
+             unidadVehicularAnterior = unidadVehicularId;
+
+             // 1. Obtener área
+             $.get("@Url.Action("ObtenerAreaUnidad", "SolicitudMantenimiento", new { area = "Maquinaria" })", { unidadVehicularId: unidadVehicularId })
+                 .done(function (data) {
+                     $("#AreaSolicitanteId").val(data.areaId);
+                     $("#AreaSolicitanteIdDisplay").val(data.areaId);
+                 })
+                 .fail(function () {
+                     Swal.fire({
+                         icon: "error",
+                         title: "Error",
+                         text: "No fue posible obtener el área.",
+                         confirmButtonColor: "#800705"
+                     });
+                 });
+
+             // 2. Obtener el último kilometraje histórico de la unidad
+             $.get("@Url.Action("ObtenerUltimoKilometraje", "SolicitudMantenimiento", new { area = "Maquinaria" })", { unidadVehicularId: unidadVehicularId })
+                 .done(function (data) {
+                     ultimoKilometrajeConocido = data.ultimoKilometraje || 0;
+                 })
+                 .fail(function () {
+                     ultimoKilometrajeConocido = 0;
+                 });
+         });
+
+         $("#unidadVehicularSelect").on("select2:clear", function () {
+             $("#AreaSolicitanteId").val("").trigger("change");
+             $("#AreaSolicitanteIdDisplay").val("");
+             ultimoKilometrajeConocido = 0; 
+             unidadVehicularAnterior = ""; 
+             limpiarServiciosServidorYCliente();
+         });
+     }
+
+     // ============================================================
+     // PURGA TOTAL DE SERVICIOS (CLIENTE Y ESTRUCTURAS)
+     // ============================================================
+     function limpiarServiciosServidorYCliente() {
+         // 1. Destruir instancias de Select2 dentro de las filas para evitar fugas de memoria en el DOM
+         $("#tablaServicios tbody tr").each(function () {
+             $(this).find(".conceptoServicio, .objetoGastoManoObra, .objetoGastoRefacciones").each(function () {
+                 if ($(this).hasClass("select2-hidden-accessible")) {
+                     $(this).select2("destroy");
+                 }
+             });
+         });
+
+         // 2. Vaciar por completo el contenedor HTML de la tabla
+         $("#tablaServicios tbody").empty();
+
+         // 3. Reiniciar el índice de servicios global
+         indiceServicio = 0;
+
+         // 4. Limpiar cualquier arreglo global remanente (como el de servicios existentes de postback)
+         if (typeof serviciosExistentes !== "undefined") {
+             serviciosExistentes.length = 0;
+         }
+
+         // 5. Recalculadores e interfaces globales
+         if (typeof actualizarConceptosDisponibles === "function") {
+             actualizarConceptosDisponibles();
+         }
+
+         if (typeof recalcularImporteCotizacion === "function") {
+             recalcularImporteCotizacion();
+         }
+     }
+    </script>
+
+
+
+    <script>
+        // ============================================================
+        // CREATE 02 - FORMATO Y VALIDACIONES GENERALES
+        // ============================================================
+        function formatoMoneda(valor) {
+            const numero = parseFloat(valor || 0);
+            return numero.toLocaleString("es-MX", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+
+        function validarCamposObligatorios() {
+            const alerta = $("#alertaCamposObligatorios");
+
+            const fechaSolicitud = $("#FechaSolicitud").val();
+            const numeroOficio = $("#NumeroOficio").val();
+            const unidadVehicular = $("#unidadVehicularSelect").val();
+            const tipoMantenimiento = $("#TipoMantenimientoId").val();
+            const taller = $("#TallerId").length ? $("#TallerId").val() : $("#tallerSelect").val();
+            const tallerConfiguracion = $("#TallerConfiguracionPresupuestalId").length ? $("#TallerConfiguracionPresupuestalId").val() : $("#tallerConfiguracionSelect").val();
+            const area = $("#AreaSolicitanteId").val();
+            const estadoOdometro = parseInt($("#EstadoOdometroId").val()) || 0;
+
+            const inputArchivos = $("#archivosInput")[0];
+            const archivos = inputArchivos ? inputArchivos.files.length : 0;
+            const kilometraje = parseInt($("#KilometrajeActual").val()) || 0;
+
+            const valido = fechaSolicitud &&
+                numeroOficio &&
+                unidadVehicular &&
+                tipoMantenimiento &&
+                taller &&
+                tallerConfiguracion && // <--- VALIDACIÓN INCLUIDA
+                area &&
+                archivos > 0 &&
+                estadoOdometro > 0;
+
+
+            // Si el odómetro opera correctamente (ej. ID 1)
+         if (estadoOdometro === 1) {
+             if (kilometraje <= 0) {
+                 Swal.fire({
+                     icon: "warning",
+                     title: "Kilometraje requerido",
+                     text: "Debe capturar un kilometraje mayor a cero.",
+                     confirmButtonColor: "#800705"
+                 });
+                 return false;
+             }
+
+             // Validación contra el histórico obtenido por AJAX
+             if (ultimoKilometrajeConocido > 0 && kilometraje < ultimoKilometrajeConocido) {
+                 Swal.fire({
+                     icon: "error",
+                     title: "Kilometraje inválido",
+                     text: `El kilometraje capturado (${kilometraje}) no puede ser menor al último registrado en el sistema para esta unidad (${ultimoKilometrajeConocido}).`,
+                     confirmButtonColor: "#800705"
+                 });
+                 return false;
+             }
+         }
+
+
+
+            if (!valido) {
+                alerta.removeClass("d-none");
+                Swal.fire({
+                    icon: "warning",
+                    title: "Campos obligatorios",
+                    html: "Debe completar todos los campos obligatorios.",
+                    confirmButtonColor: "#800705"
+                });
+                return false;
+            }
+
+           
+            if (estadoOdometro !== 1 && kilometraje > 0) {
+                Swal.fire({
+                    icon: "warning",
+                    title: "Información inconsistente",
+                    text: "Si existe kilometraje, el estado del odómetro debe ser Operando correctamente.",
+                    confirmButtonColor: "#800705"
+                });
+                return false;
+            }
+
+            alerta.addClass("d-none");
+            return true;
+        }
+    </script>
+
+
+
+
+
+
+
+    <script>
+        // CREATE 03 - VALIDACIÓN DE ARCHIVOS
+        (() => {
+            const input = document.getElementById("archivosInput");
+            const errorDiv = document.getElementById("errorArchivos");
+
+            if (!input || !errorDiv) return;
+
+            const maxArchivos = 5;
+            const maxSize = 2 * 1024 * 1024; // 2 MB
+            const extensionesPermitidas = [".pdf", ".jpg", ".jpeg", ".png"];
+
+            input.addEventListener("change", function () {
+                errorDiv.innerHTML = "";
+                const archivos = Array.from(input.files || []);
+
+                if (archivos.length > maxArchivos) {
+                    errorDiv.innerHTML = `Solo se permiten ${maxArchivos} archivos.`;
+                    input.value = "";
+                    return;
+                }
+
+                for (const archivo of archivos) {
+                    if (archivo.size > maxSize) {
+                        errorDiv.innerHTML = `El archivo '${archivo.name}' excede 2 MB.`;
+                        input.value = "";
+                        return;
+                    }
+
+                    const posicionExtension = archivo.name.lastIndexOf(".");
+                    const extension = posicionExtension >= 0 ? archivo.name.substring(posicionExtension).toLowerCase() : "";
+
+                    if (!extensionesPermitidas.includes(extension)) {
+                        errorDiv.innerHTML = `El archivo '${archivo.name}' no tiene una extensión permitida.`;
+                        input.value = "";
+                        return;
+                    }
+
+                    if (archivo.name.length > 150) {
+                        errorDiv.innerHTML = `El nombre del archivo '${archivo.name}' es demasiado largo.`;
+                        input.value = "";
+                        return;
+                    }
+                }
+            });
+        })();
+    </script>
+
+
+
+    
+
+    
+    
+    
+    
+    
+    <script>
+        // ÍNDICE DE SERVICIOS
+        let indiceServicio = 0;
+
+        // RECONSTRUIR SERVICIOS DESPUÉS DE POSTBACK
+        $(document).ready(async function () {
+            if (typeof serviciosExistentes !== "undefined" && Array.isArray(serviciosExistentes) && serviciosExistentes.length > 0) {
+                for (const servicio of serviciosExistentes) {
+                    await agregarFilaServicio(false, servicio);
+                }
+                recalcularImporteCotizacion();
+            }
+
+            // ACTUALIZAR CONCEPTOS DISPONIBLES
+            actualizarConceptosDisponibles();
+        });
+
+        // BOTÓN AGREGAR SERVICIO
+        $(document).on("click", "#btnAgregarServicio", async function (e) {
+            e.preventDefault();
+            await agregarFilaServicio(true);
+        });
+
+        // ============================================================
+        // AGREGAR / RECONSTRUIR FILA
+        // ============================================================
+        async function agregarFilaServicio(validar = true, servicio = null) {
+            // VALIDAR CAMPOS GENERALES (INCLUYE TALLER Y CONTRATO)
+            if (validar && typeof validarCamposObligatorios === "function" && !validarCamposObligatorios()) {
+                return false;
+            }
+
+            const index = indiceServicio;
+
+            const conceptoId = servicio?.ConceptoServicioId ?? "";
+            const cantidad = servicio?.Cantidad ?? 1;
+            const costoManoObra = servicio?.CostoEstimadoManoObra ?? 0;
+            const costoRefacciones = servicio?.CostoEstimadoRefacciones ?? 0;
+            const objetoGastoManoObra = servicio?.IdObjetoGastoManoObra ?? "";
+            const objetoGastoRefacciones = servicio?.IdObjetoGastoRefacciones ?? "";
+            const observaciones = servicio?.Observaciones ?? "";
+
+            // OPCIONES DE OBJETOS DE GASTO
+            let opcionesObjetoGasto = "";
+            @foreach (var item in Model.ObjetosGasto)
+            {
+                        <text>
+                                    opcionesObjetoGasto += `<option value="@item.Value">@Html.Raw(item.Text)</option>`;
+                        </text>
+            }
+
+            const id = `Servicios_${index}__ConceptoServicioId`;
+
+            // CREAR FILA
+            $("#tablaServicios tbody").append(`
+                <tr>
+                    <!-- CONCEPTO -->
+                    <td class="col-concepto">
+                        <select name="Servicios[${index}].ConceptoServicioId" id="${id}" class="form-select conceptoServicio">
+                            <option value="">Cargando conceptos...</option>
+                        </select>
+                    </td>
+                    <!-- CANTIDAD -->
+                    <td class="col-cantidad">
+                        <input type="number" name="Servicios[${index}].Cantidad" class="form-control cantidadServicio text-center" value="${cantidad}" min="1" step="1" required />
+                    </td>
+                    <!-- COSTO MANO DE OBRA -->
+                    <td class="col-manoobra">
+                        <input type="text" class="form-control costoManoObraVisual text-end bg-light" value="${formatoMoneda(costoManoObra)}" readonly />
+                        <input type="hidden" name="Servicios[${index}].CostoEstimadoManoObra" class="costoManoObra" value="${costoManoObra}" />
+                    </td>
+                    <!-- PARTIDA MANO DE OBRA -->
+                    <td class="col-partida-mo">
+                        <select name="Servicios[${index}].IdObjetoGastoManoObra" class="form-select objetoGastoManoObra">
+                            <option value="">Seleccione...</option>
+                            ${opcionesObjetoGasto}
+                        </select>
+                        <small class="ayudaManoObra text-muted d-block mt-1"></small>
+                    </td>
+                    <!-- COSTO REFACCIONES -->
+                    <td class="col-refacciones">
+                        <input type="text" class="form-control costoRefaccionesVisual text-end bg-light" value="${formatoMoneda(costoRefacciones)}" readonly />
+                        <input type="hidden" name="Servicios[${index}].CostoEstimadoRefacciones" class="costoRefacciones" value="${costoRefacciones}" />
+                    </td>
+                    <!-- PARTIDA REFACCIONES -->
+                    <td class="col-partida-ref">
+                        <select name="Servicios[${index}].IdObjetoGastoRefacciones" class="form-select objetoGastoRefacciones">
+                            <option value="">Seleccione...</option>
+                            ${opcionesObjetoGasto}
+                        </select>
+                        <small class="ayudaRefacciones text-muted d-block mt-1"></small>
+                    </td>
+                    <!-- OBSERVACIONES -->
+                    <td class="col-observaciones">
+                        <textarea name="Servicios[${index}].Observaciones" class="form-control">${observaciones}</textarea>
+                    </td>
+                    <!-- ACCIONES -->
+                    <td class="col-acciones text-center">
+                        <button type="button" class="btn btn-danger btn-sm btnEliminarFila">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `);
+
+            const fila = $("#tablaServicios tbody tr:last");
+            const select = fila.find(".conceptoServicio");
+
+            // INICIALIZAR SELECT2 EN FILA
+            select.select2({
+                placeholder: "Buscar concepto",
+                allowClear: true,
+                width: "100%",
+                dropdownParent: $("#tablaServicios")
+            });
+
+            fila.find(".objetoGastoManoObra").select2({
+                placeholder: "Seleccione...",
+                allowClear: true,
+                width: "100%",
+                dropdownParent: $("#tablaServicios")
+            });
+
+            fila.find(".objetoGastoRefacciones").select2({
+                placeholder: "Seleccione...",
+                allowClear: true,
+                width: "100%",
+                dropdownParent: $("#tablaServicios")
+            });
+
+            // CARGAR CONCEPTOS Y ASIGNAR VALORES
+            if (typeof cargarConceptosPorUnidad === "function") {
+                await cargarConceptosPorUnidad(select, conceptoId);
+            }
+
+            fila.find(".objetoGastoManoObra").val(objetoGastoManoObra).trigger("change.select2");
+            fila.find(".objetoGastoRefacciones").val(objetoGastoRefacciones).trigger("change.select2");
+
+            fila.find(".costoManoObra").val(costoManoObra);
+            fila.find(".costoManoObraVisual").val(formatoMoneda(costoManoObra));
+
+            fila.find(".costoRefacciones").val(costoRefacciones);
+            fila.find(".costoRefaccionesVisual").val(formatoMoneda(costoRefacciones));
+
+            const ayudaMO = fila.find(".ayudaManoObra");
+            const ayudaRef = fila.find(".ayudaRefacciones");
+
+            if (typeof aplicarRegla === "function") {
+                aplicarRegla(fila.find(".objetoGastoManoObra"), ayudaMO, parseFloat(costoManoObra || 0) > 0);
+                aplicarRegla(fila.find(".objetoGastoRefacciones"), ayudaRef, parseFloat(costoRefacciones || 0) > 0);
+            }
+
+            actualizarConceptosDisponibles();
+            indiceServicio++;
+
+            if (typeof recalcularImporteCotizacion === "function") {
+                recalcularImporteCotizacion();
+            }
+
+            return true;
+        }
+
+        // ============================================================
+        // ELIMINAR SERVICIO
+        // ============================================================
+        $(document).on("click", ".btnEliminarFila", function () {
+            const fila = $(this).closest("tr");
+
+            fila.find(".conceptoServicio, .objetoGastoManoObra, .objetoGastoRefacciones").each(function () {
+                if ($(this).hasClass("select2-hidden-accessible")) {
+                    $(this).select2("destroy");
+                }
+            });
+
+            fila.remove();
+
+            if (typeof renumerarServicios === "function") {
+                renumerarServicios();
+            } else {
+                indiceServicio = $("#tablaServicios tbody tr").length;
+            }
+
+            actualizarConceptosDisponibles();
+
+            if (typeof recalcularImporteCotizacion === "function") {
+                recalcularImporteCotizacion();
+            }
+        });
+
+        // ============================================================
+        // CAMBIO DE CONCEPTO
+        // ============================================================
+        $(document).on("change", ".conceptoServicio", function () {
+            const selectActual = $(this);
+            const conceptoServicioId = selectActual.val();
+
+            actualizarConceptosDisponibles();
+
+            if (!conceptoServicioId) return;
+
+            let repetido = false;
+            $(".conceptoServicio").not(this).each(function () {
+                if ($(this).val() === conceptoServicioId) {
+                    repetido = true;
+                    return false;
+                }
+            });
+
+            if (repetido) {
+                Swal.fire({
+                    icon: "warning",
+                    title: "Concepto duplicado",
+                    text: "El concepto ya fue agregado.",
+                    confirmButtonColor: "#800705"
+                });
+
+                selectActual.val(null).trigger("change.select2");
+                actualizarConceptosDisponibles();
+                return;
+            }
+
+            const fila = selectActual.closest("tr");
+            const unidadVehicularId = $("#unidadVehicularSelect").val();
+
+            if (!unidadVehicularId) return;
+
+            $.ajax({
+                url: "/Maquinaria/SolicitudMantenimiento/ObtenerCostoConceptoCreate",
+                type: "GET",
+                data: {
+                    unidadVehicularId: unidadVehicularId,
+                    conceptoServicioId: conceptoServicioId
+                },
+                success: function (data) {
+                    const costoMO = parseFloat(data.costoManoObra || 0);
+                    const costoRef = parseFloat(data.costoRefacciones || 0);
+
+                    const selectMO = fila.find(".objetoGastoManoObra");
+                    const selectRef = fila.find(".objetoGastoRefacciones");
+                    const ayudaMO = fila.find(".ayudaManoObra");
+                    const ayudaRef = fila.find(".ayudaRefacciones");
+                    const inputMO = fila.find(".costoManoObra");
+                    const inputRef = fila.find(".costoRefacciones");
+                    const visualMO = fila.find(".costoManoObraVisual");
+                    const visualRef = fila.find(".costoRefaccionesVisual");
+
+                    selectMO.val("").trigger("change.select2");
+                    selectRef.val("").trigger("change.select2");
+
+                    inputMO.val(costoMO);
+                    inputRef.val(costoRef);
+                    visualMO.val(formatoMoneda(costoMO));
+                    visualRef.val(formatoMoneda(costoRef));
+
+                    if (typeof aplicarRegla === "function") {
+                        aplicarRegla(selectMO, ayudaMO, costoMO > 0);
+                        aplicarRegla(selectRef, ayudaRef, costoRef > 0);
+                    }
+
+                    if (typeof recalcularImporteCotizacion === "function") {
+                        recalcularImporteCotizacion();
+                    }
+                },
+                error: function () {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Error",
+                        text: "No fue posible obtener los costos del concepto.",
+                        confirmButtonColor: "#800705"
+                    });
+                }
+            });
+        });
+
+        // ============================================================
+        // VALIDACIÓN DE PARTIDAS DUPLICADAS
+        // ============================================================
+        $(document).on("change", ".objetoGastoManoObra, .objetoGastoRefacciones", function () {
+            const fila = $(this).closest("tr");
+            const partidaManoObra = fila.find(".objetoGastoManoObra").val();
+            const partidaRefacciones = fila.find(".objetoGastoRefacciones").val();
+
+            if (partidaManoObra && partidaRefacciones && partidaManoObra === partidaRefacciones) {
+                Swal.fire({
+                    icon: "warning",
+                    title: "Partidas duplicadas",
+                    text: "La partida de mano de obra y la de refacciones no pueden ser la misma.",
+                    confirmButtonColor: "#800705"
+                });
+
+                $(this).val("").trigger("change.select2");
+            }
+        });
+
+        // ============================================================
+        // ACTUALIZAR CONCEPTOS DISPONIBLES
+        // ============================================================
+        function actualizarConceptosDisponibles() {
+            const seleccionados = $(".conceptoServicio")
+                .map(function () { return $(this).val(); })
+                .get()
+                .filter(x => x);
+
+            $(".conceptoServicio").each(function () {
+                const $select =$(this);
+                const valorActual = $select.val();
+
+                $select.find("option").each(function () {
+                    const valor = $(this).val();
+                    if (!valor) return;
+
+                    if (seleccionados.includes(valor) && valor !== valorActual) {
+                        $(this).prop("disabled", true);
+                    } else {
+                        $(this).prop("disabled", false);
+                    }
+                });
+
+                $select.trigger("change.select2");
+            });
+        }
+
+        // ============================================================
+        // VALIDAR CONCEPTOS DUPLICADOS
+        // ============================================================
+        function validarConceptosDuplicados() {
+            const valores = $(".conceptoServicio")
+                .map(function () { return $(this).val(); })
+                .get()
+                .filter(x => x);
+
+            const duplicados = valores.filter((v, i) => valores.indexOf(v) !== i);
+
+            if (duplicados.length > 0) {
+                Swal.fire({
+                    icon: "warning",
+                    title: "Conceptos duplicados",
+                    text: "No se permite seleccionar el mismo concepto más de una vez.",
+                    confirmButtonColor: "#800705"
+                });
+                return false;
+            }
+            return true;
+        }
+
+        // ============================================================
+        // SUBMIT DEL FORMULARIO
+        // ============================================================
+        $("form").on("submit", async function (e) {
+            e.preventDefault();
+            const formulario = this;
+            const filas = $("#tablaServicios tbody tr");
+
+            // VALIDAR DUPLICADOS
+            if (!validarConceptosDuplicados()) {
+                return false;
+            }
+
+            // VALIDAR QUE EXISTAN SERVICIOS
+            if (filas.length === 0) {
+                await Swal.fire({
+                    icon: "warning",
+                    title: "Servicios requeridos",
+                    text: "Debe agregar al menos un servicio.",
+                    confirmButtonColor: "#800705"
+                });
+                return false;
+            }
+
+            const conceptos = [];
+            let conceptosValidos = true;
+
+            $(".conceptoServicio").each(function () {
+                const valor = $(this).val();
+                if (!valor) {
+                    conceptosValidos = false;
+                    return false;
+                }
+                conceptos.push(parseInt(valor));
+            });
+
+            if (!conceptosValidos) {
+                await Swal.fire({
+                    icon: "warning",
+                    title: "Conceptos incompletos",
+                    text: "Existen servicios sin concepto seleccionado.",
+                    confirmButtonColor: "#800705"
+                });
+                return false;
+            }
+
+            // DATOS PARA VALIDACIÓN HISTÓRICA
+            const unidadVehicularId = $("#unidadVehicularSelect").val();
+            const tipoMantenimientoId = $("#TipoMantenimientoId").val();
+
+            if (!unidadVehicularId || !tipoMantenimientoId) {
+                formulario.submit();
+                return;
+            }
+
+            try {
+                const response = await $.ajax({
+                    url: "@Url.Action("ValidarServiciosHistoricos", "SolicitudMantenimiento", new { area = "Maquinaria" })",
+                    type: "POST",
+                    traditional: true,
+                    data: {
+                        unidadVehicularId: unidadVehicularId,
+                        tipoMantenimientoId: tipoMantenimientoId,
+                        conceptos: conceptos
+                    }
+                });
+
+                if (response.tieneDuplicadosActivos) {
+                    await Swal.fire({
+                        icon: "error",
+                        title: "No es posible registrar la solicitud",
+                        html: response.mensajes.join("<br><br>"),
+                        confirmButtonColor: "#800705"
+                    });
+                    return false;
+                }
+
+                if (response.tieneRecurrencia) {
+                    let html = `<div class="text-start">`;
+                    html += `<p><strong>Nivel de riesgo:</strong> ${response.nivelRiesgo}</p><hr>`;
+
+                    response.mensajes.forEach(function (m) {
+                        html += `• ${m}<br>`;
+                    });
+
+                    if (response.recomendaciones && response.recomendaciones.length > 0) {
+                        html += "<hr><strong>Recomendaciones</strong><br>";
+                        response.recomendaciones.forEach(function (r) {
+                            html += `✓ ${r}<br>`;
+                        });
+                    }
+                    html += "</div>";
+
+                    const continuar = await Swal.fire({
+                        icon: "warning",
+                        title: "Se detectaron antecedentes históricos",
+                        html: html,
+                        width: 700,
+                        showCancelButton: true,
+                        confirmButtonText: "Continuar",
+                        cancelButtonText: "Cancelar",
+                        confirmButtonColor: "#800705"
+                    });
+
+                    if (!continuar.isConfirmed) {
+                        return false;
+                    }
+                }
+
+                formulario.submit();
+            } catch {
+                await Swal.fire({
+                    icon: "error",
+                    title: "Error",
+                    text: "No fue posible validar el histórico de servicios.",
+                    confirmButtonColor: "#800705"
+                });
+                return false;
+            }
+        });
+    </script>
 
-    .input-validation-obligatorio {
 
-        border: 2px solid #dc3545 !important;
 
-        background-color: #fff8f8;
-    }
 
 
-
-
-
-
-
-
-
-		/* =========================================
-		   TABLA SERVICIOS
-		========================================= */
-
-		#tablaServicios {
-			table-layout: fixed;
-			width: 100%;
-		}
-
-			#tablaServicios .col-concepto {
-				width: 28%;
-			}
-
-			#tablaServicios .col-cantidad {
-				width: 6%;
-			}
-
-			#tablaServicios .col-manoobra {
-				width: 10%;
-			}
-
-			#tablaServicios .col-partida-mo {
-				width: 15%;
-			}
-
-			#tablaServicios .col-refacciones {
-				width: 10%;
-			}
-
-			#tablaServicios .col-partida-ref {
-				width: 15%;
-			}
-
-			#tablaServicios .col-observaciones {
-				width: 12%;
-			}
-
-			#tablaServicios .col-acciones {
-				width: 4%;
-			}
-
-		/* =========================================
-		   SELECT2
-		========================================= */
-
-		.select2-container {
-			width: 100% !important;
-		}
-
-		/* =========================================
-		   CONCEPTO SERVICIO
-		========================================= */
-
-		.columnaConceptoServicio {
-			min-width: 350px;
-		}
-
-		.contenedorConceptoServicio {
-			min-width: 320px;
-		}
-
-
-
-		.select2-container--default .select2-selection--single {
-	display: flex !important;
-	align-items: center !important;
-	min-height: 70px;
-	height: auto !important;
-	padding-top: 6px;
-	padding-bottom: 6px;
-}
-
-.select2-selection__rendered {
-	white-space: normal !important;
-	word-break: break-word;
-	line-height: 1.3rem !important;
-	padding-top: 6px !important;
-	padding-bottom: 6px !important;
-	padding-left: 12px !important;
-	padding-right: 28px !important;
-	display: flex !important;
-	align-items: center !important;
-	min-height: 58px;
-}
-
-.select2-selection__arrow {
-	height: 100% !important;
-	top: 0 !important;
-	right: 6px !important;
-}
-
-	</style>
-
-
-
-
-
-
-
-
-
-
-	<!-- SELECT2 -->
-
-	<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-	<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-	<script>
-
-		const serviciosExistentes = @Html.Raw(
-					System.Text.Json.JsonSerializer.Serialize(
-						Model.Servicios ??
-						new List<SIGEMAV.Models.ViewModels.Maquinaria.SolicitudMantenimientoServicioViewModel>()
-					)
-				);
-
-	</script>
-
-
-
-	<script>
-
-		function formatoMoneda(valor) {
-
-		const numero =
-		parseFloat(valor || 0);
-
-		return numero.toLocaleString('es-MX', {
-
-		minimumFractionDigits: 2,
-		maximumFractionDigits: 2
-
-		});
-		}
-
-		function validarCamposObligatorios() {
-
-		const alerta =
-		$("#alertaCamposObligatorios");
-
-		const fechaSolicitud =
-		$("#FechaSolicitud").val();
-
-		const numeroOficio =
-		$("#NumeroOficio").val();
-
-		const unidadVehicular =
-		$("#unidadVehicularSelect").val();
-
-		const tipoMantenimiento =
-		$("#TipoMantenimientoId").val();
-
-		const kilometraje =
-		$("#KilometrajeActual").val();
-
-		const taller =
-		$("#TallerId").val();
-
-		const importe =
-		$("#ImporteCotizacion").val();
-
-		const area =
-		$("#AreaSolicitanteId").val();
-
-		const diagnostico =
-		$("#DiagnosticoInicial").val();
-
-		const archivos =
-		$("#archivosInput")[0].files.length;
-
-		const valido =
-
-		fechaSolicitud
-		&& numeroOficio
-		&& unidadVehicular
-		&& tipoMantenimiento
-		&& kilometraje
-		&& taller
-		&& area
-		&& diagnostico
-		&& archivos > 0;
-
-		if (!valido) {
-
-		alerta.removeClass("d-none");
-
-		Swal.fire({
-
-		icon: 'warning',
-
-		title: 'Campos obligatorios',
-
-		html: `
-		Debe completar todos los campos
-		obligatorios antes de agregar servicios.
-		`,
-
-		confirmButtonColor: '#800705'
-		});
-
-		return false;
-		}
-
-		alerta.addClass("d-none");
-
-		return true;
-		}
-
-		$(document).ready(function () {
-
-		$('#unidadVehicularSelect').select2({
-
-		placeholder: 'Buscar unidad vehicular',
-
-		allowClear: true,
-
-		width: '100%',
-
-		minimumInputLength: 0,
-
-		ajax: {
-
-		url: '@Url.Action("BuscarUnidadesVehiculares", "SolicitudMantenimiento", new { area = "Maquinaria" })',
-
-		dataType: 'json',
-
-		delay: 300,
-
-		data: function (params) {
-
-		return {
-		term: params.term || ''
-		};
-
-		},
-
-		processResults: function (data) {
-
-		return {
-		results: data
-		};
-
-		},
-
-		cache: true
-		}
-
-		});
-
-		// ====================================================
-		// AL SELECCIONAR UNA UNIDAD CARGAR ÁREA AUTOMÁTICAMENTE
-		// ====================================================
-
-		$('#unidadVehicularSelect').on('select2:select', function (e) {
-
-		const unidadVehicularId = e.params.data.id;
-
-		$.ajax({
-
-		url: '@Url.Action("ObtenerAreaUnidad", "SolicitudMantenimiento", new { area = "Maquinaria" })',
-
-		type: 'GET',
-
-		data: {
-		unidadVehicularId: unidadVehicularId
-		},
-
-		success: function (data) {
-
-		$("#AreaSolicitanteId")
-		.val(data.areaId);
-
-		$("#AreaSolicitanteIdDisplay")
-		.val(data.areaId);
-		},
-
-		error: function () {
-
-		Swal.fire({
-
-		icon: 'error',
-
-		title: 'Error',
-
-		text: 'No fue posible obtener el área de la unidad.',
-
-		confirmButtonColor: '#800705'
-		});
-		}
-		});
-		});
-
-		// ====================================================
-		// SI LIMPIAN LA UNIDAD, LIMPIAR ÁREA
-		// ====================================================
-
-		$('#unidadVehicularSelect').on('select2:clear', function () {
-
-		$("#AreaSolicitanteId")
-		.val('')
-		.trigger('change');
-
-		});
-
-		});
-
-	</script>
-
-
-
-
-
-	<script>
-		// VALIDACIÓN DE ARCHIVOS
-		(() => {
-
-			const input =
-				document.getElementById("archivosInput");
-
-			const errorDiv =
-				document.getElementById("errorArchivos");
-
-			const maxArchivos = 5;
-
-			const maxSize =
-				2 * 1024 * 1024;
-
-			const extensionesPermitidas = [
-				".pdf",
-				".jpg",
-				".jpeg",
-				".png"
-			];
-
-			input.addEventListener("change", function () {
-
-				errorDiv.innerHTML = "";
-
-				const archivos =
-					Array.from(input.files);
-
-				// =====================================
-				// VALIDAR CANTIDAD
-				// =====================================
-
-				if (archivos.length > maxArchivos) {
-
-					errorDiv.innerHTML =
-						`Solo se permiten ${maxArchivos} archivos.`;
-
-					input.value = "";
-
-					return;
-				}
-
-				// =====================================
-				// VALIDAR ARCHIVOS
-				// =====================================
-
-				for (const archivo of archivos) {
-
-					// VALIDAR TAMAÑO
-
-					if (archivo.size > maxSize) {
-
-						errorDiv.innerHTML =
-							`El archivo '${archivo.name}' excede 2 MB.`;
-
-						input.value = "";
-
-						return;
-					}
-
-					// VALIDAR EXTENSION
-
-					const extension =
-						archivo.name
-							.substring(
-								archivo.name.lastIndexOf("."))
-							.toLowerCase();
-
-					if (!extensionesPermitidas.includes(extension)) {
-
-						errorDiv.innerHTML =
-							`El archivo '${archivo.name}' no tiene una extensión permitida.`;
-
-						input.value = "";
-
-						return;
-					}
-
-					// VALIDAR NOMBRE
-
-					if (archivo.name.length > 150) {
-
-						errorDiv.innerHTML =
-							`El nombre del archivo '${archivo.name}' es demasiado largo.`;
-
-						input.value = "";
-
-						return;
-					}
-				}
-
-			});
-
-		})();
-
-	</script>
-
-
-	<script>
-
-		let indiceServicio = 0;
-		
-		$(document).ready(function () {
-
-		// ============================================
-		// RECONSTRUIR SERVICIOS POSTBACK
-		// ============================================
-
-		if (serviciosExistentes.length > 0) {
-
-		serviciosExistentes.forEach(function (detalle) {
-
-		agregarFilaServicio(false);
-
-		const fila =
-		$("#tablaServicios tbody tr:last");
-
-		// ==========================
-		// CONCEPTO
-		// ==========================
-
-		fila.data(
-		"partida-manoobra",
-		detalle.IdObjetoGastoManoObra);
-
-		fila.data(
-		"partida-refacciones",
-		detalle.IdObjetoGastoRefacciones);
-
-		fila.find(".conceptoServicio")
-		.val(detalle.ConceptoServicioId)
-		.trigger("change");
-
-
-
-
-
-
-
-		// ==========================
-		// CANTIDAD
-		// ==========================
-
-		fila.find(
-		`input[name="Servicios[${indiceServicio - 1}].Cantidad"]`
-		).val(detalle.Cantidad);
-
-		// ==========================
-		// COSTOS
-		// ==========================
-
-		fila.find(".costoManoObra")
-		.val(detalle.CostoEstimadoManoObra);
-
-		fila.find(".costoManoObraVisual")
-		.val(formatoMoneda(
-		detalle.CostoEstimadoManoObra || 0
-		));
-
-		fila.find(".costoRefacciones")
-		.val(detalle.CostoEstimadoRefacciones);
-
-		fila.find(".costoRefaccionesVisual")
-		.val(formatoMoneda(
-		detalle.CostoEstimadoRefacciones || 0
-		));
-
-		// ==========================
-		// PARTIDAS
-		// ==========================
-
-		fila.find(".objetoGastoManoObra")
-		.val(detalle.IdObjetoGastoManoObra);
-
-		fila.find(".objetoGastoRefacciones")
-		.val(detalle.IdObjetoGastoRefacciones);
-
-		// ==========================
-		// OBSERVACIONES
-		// ==========================
-
-		fila.find("textarea")
-		.val(detalle.Observaciones);
-
-		});
-
-		recalcularImporteCotizacion();
-
-		}
-
-		// ============================================
-		// BOTÓN AGREGAR SERVICIO
-		// ============================================
-
-		$("#btnAgregarServicio").click(async function () {
-
-		await agregarFilaServicio(true);
-
-		});
-
-		// ============================================
-		// CARGAR CONCEPTOS POR UNIDAD
-		// ============================================
-
-		async function cargarConceptosUnidad(select) {
-
-		const unidadVehicularId =
-		$("#unidadVehicularSelect").val();
-
-		if (!unidadVehicularId) {
-
-		select.html(`
-		<option value="">
-		Seleccione unidad primero
-		</option>`);
-
-		return;
-		}
-
-		try {
-
-		const conceptos =
-		await $.get(
-		"/Maquinaria/SolicitudMantenimiento/ObtenerConceptosServicioPorUnidad",
-		{
-		unidadVehicularId
-		});
-
-		let html =
-		`<option value="">
-		Seleccione concepto
-		</option>`;
-
-		conceptos.forEach(x => {
-
-		html += `
-		<option value="${x.value}">
-		${x.text}
-		</option>`;
-		});
-
-		select.html(html);
-
-		}
-		catch {
-
-		Swal.fire({
-		icon: 'error',
-		title: 'Error',
-		text: 'No fue posible cargar conceptos.'
-		});
-		}
-		}
-
-		// ============================================
-		// AGREGAR FILA
-		// ============================================
-
-		async function agregarFilaServicio(validar = true) {
-
-		if (validar && !validarCamposObligatorios()) {
-		return;
-		}
-
-		let opcionesObjetoGasto = '';
-
-		@foreach (var item in Model.ObjetosGasto)
-		{
-			<text>
-				opcionesObjetoGasto += `
-				<option value="@item.Value">
-					@item.Text
-				</option>`;
-			</text>
-		}
-
-		const selectId =
-		`Servicios_${indiceServicio}__ConceptoServicioId`;
-
-		const fila = `
-		<tr>
-
-		<td>
-
-		<select
-		name="Servicios[${indiceServicio}].ConceptoServicioId"
-		id="${selectId}"
-		class="form-select conceptoServicio"
-		required>
-
-		<option value="">
-		Cargando...
-		</option>
-
-		</select>
-
-		</td>
-
-		<td>
-
-		<input
-		type="number"
-		name="Servicios[${indiceServicio}].Cantidad"
-		class="form-control"
-		value="1"
-		min="1"
-		required/>
-
-		</td>
-
-		<td>
-
-		<input
-		type="text"
-		class="form-control costoManoObraVisual text-end bg-light"
-		readonly/>
-
-		<input
-		type="hidden"
-		name="Servicios[${indiceServicio}].CostoEstimadoManoObra"
-		class="costoManoObra"/>
-
-		</td>
-
-		<td>
-
-		<select
-		name="Servicios[${indiceServicio}].IdObjetoGastoManoObra"
-		class="form-select objetoGastoManoObra">
-
-		<option value="">
-		No aplica
-		</option>
-
-		${opcionesObjetoGasto}
-
-		</select>
-
-		<small class="text-muted d-block mt-1 ayudaManoObra">
-
-		Solo requerido si existe mano de obra
-
-		</small>
-
-		</td>
-
-		<td>
-
-		<input
-		type="text"
-		class="form-control costoRefaccionesVisual text-end bg-light"
-		readonly/>
-
-		<input
-		type="hidden"
-		name="Servicios[${indiceServicio}].CostoEstimadoRefacciones"
-		class="costoRefacciones"/>
-
-		</td>
-
-		<td>
-
-		<select
-		name="Servicios[${indiceServicio}].IdObjetoGastoRefacciones"
-		class="form-select objetoGastoRefacciones">
-
-		<option value="">
-		No aplica
-		</option>
-
-		${opcionesObjetoGasto}
-
-		</select>
-
-		<small class="text-muted d-block mt-1 ayudaRefacciones">
-
-		Solo requerido si existen refacciones
-
-		</small>
-
-		</td>
-
-		<td>
-
-		<textarea
-		name="Servicios[${indiceServicio}].Observaciones"
-		rows="1"
-		class="form-control"></textarea>
-
-		</td>
-
-		<td class="text-center">
-
-		<button
-		type="button"
-		class="btn btn-danger btn-sm btnEliminarFila">
-
-		<i class="bi bi-trash"></i>
-
-		</button>
-
-		</td>
-
-		</tr>
-		`;
-
-		// INSERTAR FILA
-		$("#tablaServicios tbody")
-		.append(fila);
-
-		const selectConcepto =
-		$(`#${selectId}`);
-
-		selectConcepto.select2({
-
-		placeholder:
-		'Buscar concepto',
-
-		allowClear:
-		true,
-
-		width:
-		'100%',
-
-		dropdownParent:
-		$("#tablaServicios")
-
-		});
-
-		// CARGAR CONCEPTOS FILTRADOS
-		const tipoId = $("#TipoCatalogoServicioId").val();
-
-		// await cargarConceptosPorTipo(tipoId, selectConcepto);
-		await cargarConceptosPorUnidad(selectConcepto);
-
-		indiceServicio++;
-
-		recalcularImporteCotizacion();
-		}
-
-		// ============================================
-		// CAMBIO DE UNIDAD
-		// ============================================
-
-		$("#unidadVehicularSelect").change(function () {
-		$("#tablaServicios tbody").empty();
-		indiceServicio = 0;
-		recalcularImporteCotizacion();
-
-		
-		
-		$("#unidadVehicularSelect").change(function () {
-		$("#tablaServicios tbody").empty();
-		indiceServicio = 0;
-		// limpiar selects dependientes
-		$(".conceptoServicio").val(null).trigger("change");
-		recalcularImporteCotizacion();
-		});
-		
-		
-		
-		Swal.fire({
-
-		icon:
-		'info',
-
-		title:
-		'Unidad actualizada',
-
-		text:
-		'Agregue nuevamente los servicios para cargar conceptos compatibles.'
-
-		});
-
-		});
-
-
-
-
-
-		
-		$(document).on(
-		"click",
-		".btnEliminarFila",
-		function () {
-
-		const fila =
-		$(this).closest("tr");
-
-		fila.find(".conceptoServicio").each(function () {
-
-		if ($(this).hasClass("select2-hidden-accessible")) {
-
-		$(this).select2('destroy');
-
-		}
-
-		});
-
-		fila.remove();
-
-		renumerarServicios();
-
-		});
-
-		// ============================================
-		// CAMBIO CONCEPTO
-		// ============================================
-
-		$(document).on(
-		"change",
-		".conceptoServicio",
-		function () {
-
-		const selectActual =
-		$(this);
-
-		const conceptoServicioId =
-		selectActual.val();
-
-		const unidadVehicularId =
-		$("#unidadVehicularSelect").val();
-
-		if (!conceptoServicioId) {
-		return;
-		}
-
-		// ============================================
-		// VALIDAR DUPLICADOS
-		// ============================================
-
-		let repetido = false;
-
-		$(".conceptoServicio")
-		.not(this)
-		.each(function () {
-
-		if ($(this).val() === conceptoServicioId) {
-
-		repetido = true;
-		}
-		});
-
-		if (repetido) {
-
-		Swal.fire({
-
-		icon: 'warning',
-
-		title: 'Concepto duplicado',
-
-		text: 'El concepto ya fue agregado.',
-
-		confirmButtonColor: '#800705'
-		});
-
-		selectActual.val(null).trigger('change');
-
-		return;
-		}
-
-		const fila =
-		selectActual.closest("tr");
-
-		// ============================================
-		// AJAX COSTOS
-		// ============================================
-
-		$.ajax({
-
-		url: '/Maquinaria/SolicitudMantenimiento/ObtenerCostoConceptoCreate',
-
-		type: 'GET',
-
-		data: {
-
-		unidadVehicularId: unidadVehicularId,
-
-		conceptoServicioId: conceptoServicioId
-		},
-
-		success: function (data) {
-
-		// ============================================
-		// REFERENCIAS
-		// ============================================
-
-		const costoMO =
-		parseFloat(data.costoManoObra || 0);
-
-		const costoRef =
-		parseFloat(data.costoRefacciones || 0);
-
-		const selectMO =
-		fila.find(".objetoGastoManoObra");
-
-		const selectRef =
-		fila.find(".objetoGastoRefacciones");
-
-		const ayudaMO =
-		fila.find(".ayudaManoObra");
-
-		const ayudaRef =
-		fila.find(".ayudaRefacciones");
-
-		// ============================================
-		// MANO DE OBRA
-		// ============================================
-
-		fila.find(".costoManoObra")
-		.val(costoMO);
-
-		fila.find(".costoManoObraVisual")
-		.val(formatoMoneda(costoMO));
-
-		// ============================================
-		// REFACCIONES
-		// ============================================
-
-		fila.find(".costoRefacciones")
-		.val(costoRef);
-
-		fila.find(".costoRefaccionesVisual")
-		.val(formatoMoneda(costoRef));
-
-
-
-
-		// ============================================
-		// VALIDAR MANO DE OBRA
-		// ============================================
-
-		recalcularImporteCotizacion();
-
-		if (costoMO > 0) {
-
-		selectMO.prop("required", true);
-
-		ayudaMO
-		.removeClass("text-muted text-success")
-		.addClass("text-danger fw-bold")
-		.text("Requerido");
-
-		}
-		else {
-
-		selectMO.prop("required", false);
-
-		selectMO.val("");
-
-		ayudaMO
-		.removeClass("text-danger text-success fw-bold")
-		.addClass("text-muted")
-		.text("No aplica");
-		}
-
-		// ============================================
-		// VALIDAR REFACCIONES
-		// ============================================
-
-		if (costoRef > 0) {
-
-		selectRef.prop("required", true);
-
-		ayudaRef
-		.removeClass("text-muted text-success")
-		.addClass("text-danger fw-bold")
-		.text("Requerido");
-
-		}
-		else {
-
-		selectRef.prop("required", false);
-
-		selectRef.val("");
-
-		ayudaRef
-		.removeClass("text-danger text-success fw-bold")
-		.addClass("text-muted")
-		.text("No aplica");
-		}
-
-		// ============================================
-		// CAMBIO VISUAL MANO DE OBRA
-		// ============================================
-
-		selectMO.off("change").on("change", function () {
-
-		if ($(this).val()) {
-
-		ayudaMO
-		.removeClass("text-danger")
-		.addClass("text-success fw-bold")
-		.text("Objeto seleccionado");
-		}
-		else if (costoMO > 0) {
-
-		ayudaMO
-		.removeClass("text-success")
-		.addClass("text-danger fw-bold")
-		.text("Requerido");
-		}
-
-
-
-
-
-
-
-
-
-		const partidaMO =
-		fila.data("partida-manoobra");
-
-		const partidaRef =
-		fila.data("partida-refacciones");
-
-		if (partidaMO) {
-		selectMO.val(partidaMO);
-		}
-
-		if (partidaRef) {
-		selectRef.val(partidaRef);
-		}
-
-
-
-
-
-
-
-
-
-
-
-
-
-		});
-
-		// ============================================
-		// CAMBIO VISUAL REFACCIONES
-		// ============================================
-
-		selectRef.off("change").on("change", function () {
-
-		if ($(this).val()) {
-
-		ayudaRef
-		.removeClass("text-danger")
-		.addClass("text-success fw-bold")
-		.text("Objeto seleccionado");
-		}
-		else if (costoRef > 0) {
-
-		ayudaRef
-		.removeClass("text-success")
-		.addClass("text-danger fw-bold")
-		.text("Requerido");
-		}
-		});
-		},
-
-		error: function () {
-
-		Swal.fire({
-
-		icon: 'error',
-
-		title: 'Error',
-
-		text: 'No fue posible obtener los costos.',
-
-		confirmButtonColor: '#800705'
-		});
-		}
-		});
-		});
-
-		// ============================================
-		// VALIDAR FORM + HISTÓRICO
-		// ============================================
-
-		$("form").submit(async function (e) {
-
-		e.preventDefault();
-
-		const filas =
-		$("#tablaServicios tbody tr");
-
-		//-------------------------------------
-		// VALIDAR EXISTEN SERVICIOS
-		//-------------------------------------
-
-		if (filas.length === 0) {
-
-		Swal.fire({
-
-		icon: 'warning',
-
-		title: 'Servicios requeridos',
-
-		text:
-		'Debe agregar al menos un servicio.',
-
-		confirmButtonColor:
-		'#800705'
-		});
-
-		return false;
-		}
-
-		//-------------------------------------
-		// VALIDAR CONCEPTOS
-		//-------------------------------------
-
-		const conceptos = [];
-
-		let valido = true;
-
-		$(".conceptoServicio").each(function () {
-
-		const valor =
-		$(this).val();
-
-		if (!valor) {
-
-		valido = false;
-
-		return false;
-		}
-
-		conceptos.push(
-		parseInt(valor));
-
-		});
-
-		if (!valido) {
-
-		Swal.fire({
-
-		icon:
-		'warning',
-
-		title:
-		'Conceptos incompletos',
-
-		text:
-		'Existen servicios sin concepto seleccionado.',
-
-		confirmButtonColor:
-		'#800705'
-		});
-
-		return false;
-		}
-
-		//-------------------------------------
-		// OBTENER DATOS
-		//-------------------------------------
-
-		const unidadVehicularId =
-		$("#unidadVehicularSelect").val();
-
-		const tipoMantenimientoId =
-		$("#TipoMantenimientoId").val();
-
-		if (
-		!unidadVehicularId
-		||
-		!tipoMantenimientoId
-		) {
-
-		this.submit();
-
-		return;
-		}
-
-		//-------------------------------------
-		// VALIDAR HISTÓRICO
-		//-------------------------------------
-
-		try {
-
-		const response = await $.ajax({
-		url: '@Url.Action("ValidarServiciosHistoricos", "SolicitudMantenimiento", new { area = "Maquinaria" })',
-		type: 'POST',
-		traditional: true,
-		data: {
-			unidadVehicularId: unidadVehicularId,
-			tipoMantenimientoId: tipoMantenimientoId,
-			conceptos: conceptos
-		}
-		});
-
-		//-------------------------------------
-		// BLOQUEAR DUPLICADOS ABIERTOS
-		//-------------------------------------
-
-		if (
-		response.tieneDuplicadosActivos
-		) {
-
-		Swal.fire({
-
-		icon:
-		'error',
-
-		title:
-		'Servicios ya solicitados',
-
-		html:
-		response.mensajes.join("<br>"),
-
-		confirmButtonColor:
-		'#800705'
-		});
-
-		return false;
-		}
-
-		//-------------------------------------
-		// ALERTA HISTÓRICO
-		//-------------------------------------
-
-		if (
-		response.tieneRecurrencia
-		) {
-
-		const continuar =
-		await Swal.fire({
-
-		icon:
-		'warning',
-
-		title:
-		'Servicio recurrente',
-
-		html:
-		response.mensajes.join("<br><br>")
-		+
-		"¿Desea continuar?",
-
-		showCancelButton:
-		true,
-
-		confirmButtonText:
-		'Continuar',
-
-		cancelButtonText:
-		'Cancelar',
-
-		confirmButtonColor:
-		'#800705'
-		});
-
-		if (
-		!continuar.isConfirmed
-		) {
-
-		return false;
-		}
-		}
-
-		//-------------------------------------
-		// ENVIAR FORM
-		//-------------------------------------
-
-		this.submit();
-
-		}
-		catch {
-
-		Swal.fire({
-
-		icon:
-		'error',
-
-		title:
-		'Error',
-
-		text:
-		'No fue posible validar el histórico.',
-
-		confirmButtonColor:
-		'#800705'
-		});
-
-		return false;
-		}
-
-		});
-
-		let valido = true;
-
-		servicios.each(function () {
-
-		if (!$(this).val()) {
-
-		valido = false;
-		}
-		});
-
-		if (!valido) {
-
-		e.preventDefault();
-
-		Swal.fire({
-
-		icon: 'warning',
-
-		title: 'Conceptos incompletos',
-
-		text: 'Existen servicios sin concepto seleccionado.',
-
-		confirmButtonColor: '#800705'
-		});
-
-		return;
-		}
-		});
-
-	
-
-	</script>
-
-
-
-	<script>
-		async function cargarConceptosPorUnidad(select) {
-
-				const unidadVehicularId =
-					$("#unidadVehicularSelect").val();
-
-				console.log("unidadVehicularId:", unidadVehicularId);
-
-				if (!unidadVehicularId || unidadVehicularId === "0") {
-
-					select.html(`
-						<option value="">
-							Seleccione unidad primero
-						</option>`);
-
-					return;
-				}
-
-				try {
-
-					const conceptos =
-						await $.get(
-							"/Maquinaria/SolicitudMantenimiento/ObtenerConceptosServicioPorUnidad",
-							{ unidadVehicularId });
-
-					console.log("conceptos:", conceptos);
-
-					let html = `<option value="">Seleccione concepto</option>`;
-
-					conceptos.forEach(x => {
-						html += `<option value="${x.value}">${x.text}</option>`;
-					});
-
-					select.html(html);
-
-				} catch (e) {
-
-					console.error(e);
-
-					Swal.fire({
-						icon: 'error',
-						title: 'Error',
-						text: 'No fue posible cargar conceptos.'
-					});
-				}
-			}
-	</script>
-
-
-
-	<script>
-		async function cargarConceptosPorTipo(tipoCatalogoServicioId, select) {
-
-		if (!tipoCatalogoServicioId) {
-
-		select.html(`
-		<option value="">
-		Seleccione tipo primero
-		</option>`);
-
-		return;
-		}
-
-		try {
-
-		const conceptos =
-		await $.get(
-		"/Maquinaria/SolicitudMantenimiento/ObtenerConceptosServicioPorTipo",
-		{
-		tipoCatalogoServicioId
-		});
-
-		let html =
-		`<option value="">
-		Seleccione concepto
-		</option>`;
-
-		conceptos.forEach(x => {
-
-		html += `
-		<option value="${x.value}">
-		${x.text}
-		</option>`;
-		});
-
-		select.html(html);
-
-		}
-		catch {
-
-		Swal.fire({
-		icon: 'error',
-		title: 'Error',
-		text: 'No fue posible cargar conceptos.'
-		});
-		}
-		}
-	</script>
-
-	<script>
-		$("#TipoCatalogoServicioId").change(function () {
-
-		const tipoId = $(this).val();
-
-		// limpiar conceptos actuales si ya existen filas
-		$("#tablaServicios tbody").empty();
-		indiceServicio = 0;
-
-		// opcional: recalcular
-		recalcularImporteCotizacion();
-
-		});
-
-	</script>
-
-
-
-	<script>
-		$(document).on(
-		"change",
-		".objetoGastoManoObra, .objetoGastoRefacciones",
-		function () {
-
-		const fila =
-		$(this).closest("tr");
-
-		const partidaManoObra =
-		fila.find(".objetoGastoManoObra").val();
-
-		const partidaRefacciones =
-		fila.find(".objetoGastoRefacciones").val();
-
-		if (
-		partidaManoObra &&
-		partidaRefacciones &&
-		partidaManoObra === partidaRefacciones
-		) {
-
-		Swal.fire({
-		icon: 'warning',
-		title: 'Partidas duplicadas',
-		text: 'La partida de Mano de Obra y la de Refacciones no pueden ser la misma.',
-		confirmButtonColor: '#800705'
-		});
-
-		$(this)
-		.val('')
-		.trigger('change');
-
-		return;
-		}
-		});
-	</script>
-
-
-	<script>
-		function recalcularImporteCotizacion() {
-
-		let total = 0;
-
-		
-
-		$("#tablaServicios tbody tr").each(function () {
-
-		const cantidad =
-		parseFloat(
-		$(this)
-		.find('input[name$=".Cantidad"]')
-		.val() || 0);
-
-		const manoObra =
-		parseFloat(
-		$(this)
-		.find(".costoManoObra")
-		.val() || 0);
-
-		const refacciones =
-		parseFloat(
-		$(this)
-		.find(".costoRefacciones")
-		.val() || 0);
-
-		total += cantidad * (manoObra + refacciones);
-		});
-
-		total = Number(total.toFixed(2));
-
-		const totalRedondeado = Math.round(total * 100) / 100;
-
-		$("#ImporteCotizacionVisual")
-		.val(formatoMoneda(totalRedondeado));
-
-		$("#ImporteCotizacion")
-		.val(totalRedondeado);
-		}
-	</script>
-
-
-	<script>
-		$(document).on(
-		"input",
-		'input[name$=".Cantidad"]',
-		function () {
-
-		recalcularImporteCotizacion();
-		});
-	</script>
 	
 
 
 
-	<script>
-		function renumerarServicios() {
 
-		const filas =
-		$("#tablaServicios tbody tr");
+    <script>
+        // ============================================================
+        // CREATE 05 - CARGAR CONCEPTOS POR UNIDAD
+        // ============================================================
+        async function cargarConceptosPorUnidad(select, valorSeleccionado = null) {
+            const unidadVehicularId = $("#unidadVehicularSelect").val();
 
-		filas.each(function (index) {
+            // VALIDAR UNIDAD VEHICULAR
+            if (!unidadVehicularId) {
+                select.html('<option value="">Seleccione unidad primero</option>');
+                return false;
+            }
 
-		const fila =
-		$(this);
+            try {
+                const data = await $.get(
+                    "@Url.Action("ObtenerConceptosPorUnidad", "SolicitudMantenimiento", new { area = "Maquinaria" })",
+                    { unidadVehicularId: unidadVehicularId }
+                );
 
-		// ==========================
-		// DESTRUIR SELECT2
-		// ==========================
-		fila.find(".conceptoServicio").each(function () {
+                let html = '<option value="">Seleccione concepto</option>';
 
-		if ($(this).hasClass("select2-hidden-accessible")) {
+                data.forEach(function (x) {
+                    const seleccionado = String(x.value) === String(valorSeleccionado) ? " selected" : "";
+                    html += `<option value="${x.value}"${seleccionado}>${x.text}</option>`;
+                });
 
-		$(this).select2('destroy');
-		}
+                select.html(html);
 
-		});
+                // RESTAURAR CONCEPTO DEL POSTBACK / RECONSTRUCCIÓN
+                if (valorSeleccionado !== null && valorSeleccionado !== undefined && valorSeleccionado !== "") {
+                    select.val(String(valorSeleccionado)).trigger("change.select2");
+                }
 
-		// ==========================
-		// RENOMBRAR name
-		// ==========================
-		fila.find("[name]").each(function () {
+                return true;
+            }
+            catch {
+                Swal.fire({
+                    icon: "error",
+                    title: "Error",
+                    text: "No fue posible cargar los conceptos de la unidad.",
+                    confirmButtonColor: "#800705"
+                });
 
-		const elemento =
-		$(this);
-
-		const name =
-		elemento.attr("name");
-
-		if (!name)
-		return;
-
-		elemento.attr(
-		"name",
-		name.replace(
-		/Servicios\[\d+\]/,
-		`Servicios[${index}]`
-		)
-		);
-
-		});
-
-		// ==========================
-		// RENOMBRAR id
-		// ==========================
-		fila.find("[id]").each(function () {
-
-		const elemento =
-		$(this);
-
-		const id =
-		elemento.attr("id");
-
-		if (!id)
-		return;
-
-		elemento.attr(
-		"id",
-		id.replace(
-		/Servicios_\d+__/,
-		`Servicios_${index}__`
-		)
-		);
-
-		});
-
-		// ==========================
-		// REINICIALIZAR SELECT2
-		// ==========================
-		fila.find(".conceptoServicio").select2({
-
-		placeholder:
-		'Buscar concepto',
-
-		allowClear:
-		true,
-		
-		width:
-		'100%',
-
-		dropdownParent:
-		$("#tablaServicios")
-
-		});
-
-		});
-
-		indiceServicio =
-		filas.length;
-
-		recalcularImporteCotizacion();
-		}
-	</script>
+                return false;
+            }
+        }
+    </script>
 
 
 
+    <script>
+        // ============================================================
+        // CREATE 06 - VALIDAR PARTIDAS DE GASTO DUPLICADAS
+        // ============================================================
+        $(document).on("change", ".objetoGastoManoObra, .objetoGastoRefacciones", function () {
+            const fila = $(this).closest("tr");
 
-	@* <script>
+            const partidaManoObra = fila.find(".objetoGastoManoObra").val();
+            const partidaRefacciones = fila.find(".objetoGastoRefacciones").val();
 
-	//pintar de rojo
-		$(document).ready(function () {
+            if (partidaManoObra && partidaRefacciones && String(partidaManoObra) === String(partidaRefacciones)) {
+                Swal.fire({
+                    icon: "warning",
+                    title: "Partidas duplicadas",
+                    text: "Las partidas de Mano de Obra y Refacciones no pueden ser la misma.",
+                    confirmButtonColor: "#800705"
+                });
 
-		const camposObligatorios = [
+                // LIMPIAR SOLAMENTE LA PARTIDA SELECCIONADA ACTUALMENTE
+                $(this).val("").trigger("change.select2");
+            }
+        });
+    </script>
 
-		"#FechaSolicitud",
 
-		"#NumeroOficio",
 
-		"#unidadVehicularSelect",
+    <script>
+        // ============================================================
+        // CREATE 07 - RECALCULAR IMPORTE DE COTIZACIÓN
+        // ============================================================
+        function recalcularImporteCotizacion() {
+            let total = 0;
 
-		"#TipoMantenimientoId",
+            $("#tablaServicios tbody tr").each(function () {
+                const fila = $(this);
 
-		"#KilometrajeActual",
+                const cantidad = parseFloat(fila.find(".cantidadServicio").val() || 0);
+                const manoObra = parseFloat(fila.find(".costoManoObra").val() || 0);
+                const refacciones = parseFloat(fila.find(".costoRefacciones").val() || 0);
 
-		"#TallerId",
+                total += cantidad * (manoObra + refacciones);
+            });
 
-		"#ImporteCotizacion",
+            // REDONDEO A 2 DECIMALES
+            total = Math.round((total + Number.EPSILON) * 100) / 100;
 
-		"#AreaSolicitanteId",
+            // ACTUALIZAR VALORES EN VISTA Y FORMULARIO
+            if (typeof formatoMoneda === "function") {
+                $("#ImporteCotizacionVisual").val(formatoMoneda(total));
+            } else {
+                $("#ImporteCotizacionVisual").val(total.toFixed(2));
+            }
 
-		"#DiagnosticoInicial"
-		];
+            $("#ImporteCotizacion").val(total);
+        }
 
-		function validarVisual() {
+        // RECALCULAR AUTOMÁTICAMENTE AL CAMBIAR CANTIDAD
+        $(document).on("input change", ".cantidadServicio", function () {
+            recalcularImporteCotizacion();
+        });
+    </script>
 
-		camposObligatorios.forEach(function (selector) {
+	
 
-		const campo = $(selector);
 
-		if (!campo.val()) {
 
-		campo.addClass(
-		"input-validation-obligatorio");
-		}
-		else {
 
-		campo.removeClass(
-		"input-validation-obligatorio");
-		}
 
-		});
 
-		}
 
-		validarVisual();
 
-		$(document).on(
-		"change keyup",
-		camposObligatorios.join(","),
-		function () {
 
-		validarVisual();
-		});
-		});
-	</script> *@
+
+
+
+
+
+
+
+
+
+    <script>
+        // ============================================================
+        // CREATE 08 - RENUMERAR SERVICIOS
+        // ============================================================
+        function renumerarServicios() {
+            const filas = $("#tablaServicios tbody tr");
+
+            filas.each(function (index) {
+                const fila = $(this);
+
+                // RESPALDAR VALORES SELECCIONADOS ANTES DE DESTRUIR SELECT2
+                const valConcepto = fila.find(".conceptoServicio").val();
+                const valMO = fila.find(".objetoGastoManoObra").val();
+                const valRef = fila.find(".objetoGastoRefacciones").val();
+
+                // DESTRUIR INSTANCIAS DE SELECT2
+                fila.find(".conceptoServicio, .objetoGastoManoObra, .objetoGastoRefacciones").each(function () {
+                    if ($(this).hasClass("select2-hidden-accessible")) {
+                        $(this).select2("destroy");
+                    }
+                });
+
+                // RENOMBRAR ATRIBUTOS 'NAME'
+                fila.find("[name]").each(function () {
+                    const elemento = $(this);
+                    const name = elemento.attr("name");
+                    if (name) {
+                        elemento.attr("name", name.replace(/Servicios\[\d+\]/, `Servicios[${index}]`));
+                    }
+                });
+
+                // RENOMBRAR ATRIBUTOS 'ID'
+                fila.find("[id]").each(function () {
+                    const elemento = $(this);
+                    const id = elemento.attr("id");
+                    if (id) {
+                        elemento.attr("id", id.replace(/Servicios_\d+__/, `Servicios_${index}__`));
+                    }
+                });
+
+                // REINICIALIZAR SELECT2 EN CONCEPTO
+                const $concepto = fila.find(".conceptoServicio");
+                $concepto.select2({
+                    placeholder: "Buscar concepto",
+                    allowClear: true,
+                    width: "100%",
+                    dropdownParent: $("#tablaServicios")
+                }).val(valConcepto);
+
+                // REINICIALIZAR SELECT2 EN MANO DE OBRA
+                const $mo = fila.find(".objetoGastoManoObra");
+                $mo.select2({
+                    placeholder: "Seleccione...",
+                    allowClear: true,
+                    width: "100%",
+                    dropdownParent: $("#tablaServicios")
+                }).val(valMO);
+
+                // REINICIALIZAR SELECT2 EN REFACCIONES
+                const $ref = fila.find(".objetoGastoRefacciones");
+                $ref.select2({
+                    placeholder: "Seleccione...",
+                    allowClear: true,
+                    width: "100%",
+                    dropdownParent: $("#tablaServicios")
+                }).val(valRef);
+            });
+
+            // ACTUALIZAR ÍNDICE GLOBAL
+            indiceServicio = filas.length;
+
+            // ACTUALIZAR CONCEPTOS DISPONIBLES Y RECALCULAR TOTAL
+            if (typeof actualizarConceptosDisponibles === "function") {
+                actualizarConceptosDisponibles();
+            }
+
+            if (typeof recalcularImporteCotizacion === "function") {
+                recalcularImporteCotizacion();
+            }
+        }
+    </script>
+
+
+
+    <script>
+        // ============================================================
+        // CREATE 09 - ESTADO VISUAL DE PARTIDAS
+        // ============================================================
+        function setAyuda($el, requerido, tieneValor) {
+            if (!$el \vert{}\vert{}$el.length === 0) return;
+
+            // NO APLICA
+            if (!requerido) {
+                $el.removeClass("text-danger text-success fw-bold")
+                   .addClass("text-muted")
+                   .text("No aplica");
+                return;
+            }
+
+            // REQUERIDO SIN VALOR
+            if (requerido && !tieneValor) {
+                $el.removeClass("text-muted text-success")
+                   .addClass("text-danger fw-bold")
+                   .text("Requerido");
+                return;
+            }
+
+            // VALOR SELECCIONADO
+            if (requerido && tieneValor) {
+                $el.removeClass("text-danger text-muted")
+                   .addClass("text-success fw-bold")
+                   .text("Seleccionado");
+            }
+        }
+    </script>
+
+
+
+
+
+
+
+
+
+
+    <script>
+        // ============================================================
+        // CREATE 10 - APLICAR REGLA DE PARTIDA
+        // ============================================================
+        function aplicarRegla($select,$ayuda, requerido) {
+            if (!$select \vert{}\vert{}$select.length === 0 || !$ayuda \vert{}\vert{}$ayuda.length === 0) return;
+
+            const tieneValor = !!$select.val();
+
+            // ESTABLECER OBLIGATORIEDAD
+            $select.prop("required", requerido);
+
+            // SI NO ES REQUERIDO, LIMPIAR VALOR Y CAMBIAR ETIQUETA
+            if (!requerido) {
+                $select.val("").trigger("change.select2");
+                $ayuda.removeClass("text-danger text-success fw-bold")
+                      .addClass("text-muted")
+                      .text("No aplica");
+                return;
+            }
+
+            // SI ES REQUERIDO, ACTUALIZAR ESTADO VISUAL
+            setAyuda($ayuda, requerido, tieneValor);
+        }
+
+        // ============================================================
+        // CAMBIO DE PARTIDA (DELEGACIÓN DINÁMICA)
+        // ============================================================
+        $(document).on("change", ".objetoGastoManoObra, .objetoGastoRefacciones", function () {
+            const $select =$(this);
+            const fila = $select.closest("tr");
+            const tieneValor = !!$select.val();
+            const requerido = $select.prop("required");
+
+            if ($select.hasClass("objetoGastoManoObra")) {
+                const $ayuda = fila.find(".ayudaManoObra");
+                setAyuda($ayuda, requerido, tieneValor);
+            }
+
+            if ($select.hasClass("objetoGastoRefacciones")) {
+                const $ayuda = fila.find(".ayudaRefacciones");
+                setAyuda($ayuda, requerido, tieneValor);
+            }
+        });
+    </script>
+
+
+
+
+   @*  <script>
+            $(function () {
+            inicializarUnidadVehicular();
+            inicializarEventosTaller(); // <--- AGREGADO
+            inicializarEventosGlobales();
+            inicializarFormulario();
+
+            setTimeout(function () {
+                inicializandoUnidadVehicular = false;
+            }, 0);
+        });
+
+                // ============================================================
+        // INICIALIZAR EVENTOS DEL TALLER Y SUS CONTRATOS
+        // ============================================================
+        function inicializarEventosTaller() {
+            // Detecta el elemento sin importar si usa la convención TagHelper (TallerId) o ID personalizado (tallerSelect)
+            const $taller = $("#TallerId").length ? $("#TallerId") : $("#tallerSelect");
+            const $configSelect = $("#TallerConfiguracionPresupuestalId").length ? $("#TallerConfiguracionPresupuestalId") : $("#tallerConfiguracionSelect");
+
+            // Asignación directa del evento change
+            $taller.off("change").on("change", function () {
+                const tallerId = $(this).val();
+                const $mensaje = $("#mensajeConfiguracionTaller");
+
+                // Limpiar opciones previas
+                $configSelect.empty().append('<option value="">Seleccione contrato / recurso</option>');
+
+                if (!tallerId) {
+                    $configSelect.prop("disabled", true);
+                    if ($mensaje.length) {
+                        $mensaje.removeClass("text-danger text-success").addClass("text-muted")
+                                .text("Seleccione un taller para cargar sus contratos vigentes.");
+                    }
+                    return;
+                }
+
+                // Petición AJAX al backend
+                $.get("@Url.Action("ObtenerConfiguracionesPorTaller", "SolicitudMantenimiento", new { area = "Maquinaria" })", { tallerId: tallerId })
+                    .done(function (data) {
+                        if (!data || data.length === 0) {
+                            $configSelect.prop("disabled", true);
+                            if ($mensaje.length) {
+                                $mensaje.removeClass("text-muted text-success").addClass("text-danger")
+                                        .text("El taller seleccionado no cuenta con una configuración presupuestal activa.");
+                            }
+
+                            Swal.fire({
+                                icon: "warning",
+                                title: "Sin Contrato Activo",
+                                text: "El taller seleccionado no cuenta con contratos presupuestales activos registrados.",
+                                confirmButtonColor: "#800705"
+                            });
+                            return;
+                        }
+
+                        // Cargar opciones devueltas por el controlador
+                        $.each(data, function (index, item) {
+                            $configSelect.append(new Option(item.text, item.value));
+                        });
+
+                        // HABILITAR EL SELECTOR
+                        $configSelect.prop("disabled", false);
+
+                        // Si solo existe 1 contrato activo, lo selecciona de forma automática
+                        if (data.length === 1) {
+                            $configSelect.val(data[0].value).trigger("change");
+                            if ($mensaje.length) {
+                                $mensaje.removeClass("text-muted text-danger").addClass("text-success")
+                                        .text("Contrato seleccionado automáticamente.");
+                            }
+                        } else {
+                            if ($mensaje.length) {
+                                $mensaje.removeClass("text-muted text-danger").addClass("text-muted")
+                                        .text("Seleccione la fuente de recurso o contrato aplicable.");
+                            }
+                        }
+                    })
+                    .fail(function () {
+                        $configSelect.prop("disabled", true);
+                        if ($mensaje.length) {
+                            $mensaje.removeClass("text-muted text-success").addClass("text-danger")
+                                    .text("Error al consultar los contratos del taller.");
+                        }
+
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: "No fue posible obtener los contratos presupuestales del taller.",
+                            confirmButtonColor: "#800705"
+                        });
+                    });
+            });
+
+            // Si la pantalla ya carga con un Taller preseleccionado, ejecuta el evento
+            if ($taller.val()) {
+                $taller.trigger("change");
+            }
+        }
+    </script> *@
+
 
 }
+
 
 
 

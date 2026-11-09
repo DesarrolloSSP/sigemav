@@ -1,0 +1,337 @@
+﻿@using SIGEMAV.Models.ViewModels.Maquinaria
+@model FacturaDetalleViewModel
+
+@* @{
+	ViewData["Title"] = "Detalle de factura";
+} *@
+
+<div class="card shadow-sm border-0">
+
+	<div class="card-header bg-white">
+
+		<div class="d-flex justify-content-between align-items-center">
+
+			<div>
+
+				<h4 class="fw-bold mb-0">
+					Factura registrada
+				</h4>
+
+				<small class="text-muted">
+
+					Expediente administrativo del mantenimiento
+
+				</small>
+
+			</div>
+
+			<div>
+
+				<a asp-action="Index"
+				   class="btn btn-outline-secondary">
+
+					<i class="bi bi-arrow-left me-1"></i>
+
+					Regresar
+
+				</a>
+
+			</div>
+
+		</div>
+
+	</div>
+
+
+	<div class="card border-0 shadow-sm rounded-3 overflow-hidden mb-4">
+    <div class="card-body p-4">
+
+        <!-- ============================================== -->
+        <!-- RESUMEN PRINCIPAL (UUID, SERIE, FOLIO, TALLER) -->
+        <!-- ============================================== -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                <div class="card border-0 bg-light rounded-3 h-100">
+                    <div class="card-body py-3 px-3">
+                        <small class="text-uppercase text-muted extra-small fw-bold d-block mb-1">
+                            UUID Fiscal
+                        </small>
+                        <div class="fw-semibold text-dark text-truncate small" title="@Model.UUID">
+                            @Model.UUID
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-2">
+                <div class="card border-0 bg-light rounded-3 h-100">
+                    <div class="card-body py-3 px-3">
+                        <small class="text-uppercase text-muted extra-small fw-bold d-block mb-1">
+                            Serie
+                        </small>
+                        <div class="fw-semibold text-dark">
+                            @(string.IsNullOrWhiteSpace(Model.Serie) ? "-" : Model.Serie)
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-2">
+                <div class="card border-0 bg-light rounded-3 h-100">
+                    <div class="card-body py-3 px-3">
+                        <small class="text-uppercase text-muted extra-small fw-bold d-block mb-1">
+                            Folio
+                        </small>
+                        <div class="fw-semibold text-dark">
+                            @Model.Folio
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-5">
+                <div class="card border-0 bg-light rounded-3 h-100">
+                    <div class="card-body py-3 px-3">
+                        <small class="text-uppercase text-muted extra-small fw-bold d-block mb-1">
+                            Taller Asociado
+                        </small>
+                        <div class="fw-semibold text-dark text-truncate" title="@Model.Taller">
+                            @Model.Taller
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- INFORMACIÓN FISCAL -->
+        <!-- ============================================== -->
+        <div class="card border-0 shadow-sm rounded-3 mb-4 overflow-hidden">
+            <div class="card-header bg-light border-bottom d-flex align-items-center py-3 px-4">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-receipt text-primary fs-5"></i>
+                    <h6 class="fw-bold mb-0 text-dark">
+                        Información fiscal del CFDI
+                    </h6>
+                </div>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <small class="text-uppercase text-muted extra-small fw-bold d-block mb-1">
+                            RFC Emisor
+                        </small>
+                        <div class="fw-semibold text-dark">
+                            @Model.RFCEmisor
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <small class="text-uppercase text-muted extra-small fw-bold d-block mb-1">
+                            RFC Receptor
+                        </small>
+                        <div class="fw-semibold text-dark">
+                            @Model.RFCReceptor
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <small class="text-uppercase text-muted extra-small fw-bold d-block mb-1">
+                            Razón Social
+                        </small>
+                        <div class="fw-semibold text-dark text-truncate" title="@Model.RazonSocial">
+                            @Model.RazonSocial
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <small class="text-uppercase text-muted extra-small fw-bold d-block mb-1">
+                            Método de Pago
+                        </small>
+                        <div class="text-dark small fw-medium">
+                            @Model.MetodoPago
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <small class="text-uppercase text-muted extra-small fw-bold d-block mb-1">
+                            Forma de Pago
+                        </small>
+                        <div class="text-dark small fw-medium">
+                            @Model.FormaPago
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <small class="text-uppercase text-muted extra-small fw-bold d-block mb-1">
+                            Uso CFDI
+                        </small>
+                        <div class="text-dark small fw-medium">
+                            @Model.UsoCFDI
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <small class="text-uppercase text-muted extra-small fw-bold d-block mb-1">
+                            Moneda
+                        </small>
+                        <div class="text-dark small fw-medium">
+                            @Model.Moneda
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- MONTOS (DESGLOSE FINANCIERO CON IVA 16%) -->
+        <!-- ============================================== -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                <div class="card border-0 bg-light rounded-3 h-100">
+                    <div class="card-body py-3 px-3">
+                        <small class="text-uppercase text-muted extra-small fw-bold d-block mb-1">
+                            Subtotal Base
+                        </small>
+                        <div class="fs-5 fw-bold text-dark">
+                            @Model.Subtotal.ToString("C")
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="card border-0 bg-light rounded-3 h-100">
+                    <div class="card-body py-3 px-3">
+                        <small class="text-uppercase text-muted extra-small fw-bold d-block mb-1">
+                            IVA (16%)
+                        </small>
+                        <div class="fs-5 fw-semibold text-secondary">
+                            @Model.IVA.ToString("C")
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="card border-0 bg-light rounded-3 h-100">
+                    <div class="card-body py-3 px-3">
+                        <small class="text-uppercase text-muted extra-small fw-bold d-block mb-1">
+                            Retención
+                        </small>
+                        <div class="fs-5 fw-semibold text-secondary">
+                            @Model.Retencion.ToString("C")
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="card border-0 bg-success-subtle border border-success-subtle rounded-3 h-100">
+                    <div class="card-body py-3 px-3">
+                        <small class="text-uppercase text-success extra-small fw-bold d-block mb-1">
+                            Total Facturado
+                        </small>
+                        <div class="fs-5 fw-bold text-success">
+                            @Model.Total.ToString("C")
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- CONCEPTOS (SERVICIOS FACTURADOS) -->
+        <!-- ============================================== -->
+        <div class="card border-0 shadow-sm rounded-3 mb-4 overflow-hidden">
+            <div class="card-header bg-light border-bottom d-flex justify-content-between align-items-center py-3 px-4">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-list-check text-primary fs-5"></i>
+                    <h6 class="fw-bold mb-0 text-dark">
+                        Servicios y conceptos facturados
+                    </h6>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light border-bottom text-uppercase extra-small text-muted fw-bold">
+                            <tr>
+                                <th class="ps-4 py-3">Concepto / Servicio</th>
+                                <th class="text-center py-3" style="width: 100px;">Cantidad</th>
+                                <th class="text-end pe-4 py-3" style="width: 150px;">Total Línea</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.Conceptos)
+                            {
+                                <tr>
+                                    <td class="ps-4 py-3">
+                                        <div class="fw-semibold text-dark">
+                                            @item.Concepto
+                                        </div>
+                                    </td>
+                                    <td class="text-center py-3">
+                                        <span class="badge bg-light text-dark border px-2 py-1">
+                                            @item.Cantidad
+                                        </span>
+                                    </td>
+                                    <td class="text-end pe-4 py-3 fw-bold text-dark">
+                                        @item.TotalLinea.ToString("C")
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- DOCUMENTOS ANEXOS (XML / PDF) -->
+        <!-- ============================================== -->
+        <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
+            <div class="card-header bg-light border-bottom d-flex align-items-center py-3 px-4">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-folder2-open text-primary fs-5"></i>
+                    <h6 class="fw-bold mb-0 text-dark">
+                        Documentos anexos (XML y PDF)
+                    </h6>
+                </div>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-3">
+                    @foreach (var doc in Model.Documentos)
+                    {
+                        <div class="col-md-4">
+                            <a asp-action="VerDocumento"
+                               asp-route-id="@doc.FacturaDocumentoId"
+                               target="_blank"
+                               class="card text-decoration-none border shadow-sm rounded-3 h-100 transition-hover">
+                                <div class="card-body text-center py-4">
+                                    @if (doc.TipoDocumento == "PDF")
+                                    {
+                                        <i class="bi bi-file-earmark-pdf fs-1 text-danger mb-2 d-block"></i>
+                                    }
+                                    else
+                                    {
+                                        <i class="bi bi-filetype-xml fs-1 text-primary mb-2 d-block"></i>
+                                    }
+
+                                    <div class="fw-semibold text-dark text-truncate px-2 mb-1" title="@doc.NombreArchivo">
+                                        @doc.NombreArchivo
+                                    </div>
+
+                                    <span class="badge bg-light text-muted border px-2 py-1 extra-small">
+                                        @doc.TipoDocumento
+                                    </span>
+                                </div>
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>

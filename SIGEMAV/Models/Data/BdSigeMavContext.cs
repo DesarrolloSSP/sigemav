@@ -40,13 +40,25 @@ public partial class BdSigeMavContext : DbContext
 
     public virtual DbSet<Dsp> Dsps { get; set; }
 
+    public virtual DbSet<EstadoOdometro> EstadoOdometros { get; set; }
+
+    public virtual DbSet<EstatusFacturaMantenimiento> EstatusFacturaMantenimientos { get; set; }
+
     public virtual DbSet<EstatusMantenimiento> EstatusMantenimientos { get; set; }
 
     public virtual DbSet<EstatusSolicitudMantenimiento> EstatusSolicitudMantenimientos { get; set; }
 
     public virtual DbSet<EstatusTransferenciaUnidad> EstatusTransferenciaUnidads { get; set; }
 
+    public virtual DbSet<FacturaMantenimiento> FacturaMantenimientos { get; set; }
+
+    public virtual DbSet<FacturaMantenimientoDetalle> FacturaMantenimientoDetalles { get; set; }
+
+    public virtual DbSet<FacturaMantenimientoDocumento> FacturaMantenimientoDocumentos { get; set; }
+
     public virtual DbSet<Fianza> Fianzas { get; set; }
+
+    public virtual DbSet<Firmante> Firmantes { get; set; }
 
     public virtual DbSet<Mantenimiento> Mantenimientos { get; set; }
 
@@ -63,6 +75,8 @@ public partial class BdSigeMavContext : DbContext
     public virtual DbSet<MovimientoPresupuestal> MovimientoPresupuestals { get; set; }
 
     public virtual DbSet<Municipio> Municipios { get; set; }
+
+    public virtual DbSet<ObjetivoMantenimiento> ObjetivoMantenimientos { get; set; }
 
     public virtual DbSet<ObjetoGasto> ObjetoGastos { get; set; }
 
@@ -90,6 +104,10 @@ public partial class BdSigeMavContext : DbContext
 
     public virtual DbSet<Taller> Tallers { get; set; }
 
+    public virtual DbSet<TallerConfiguracion> TallerConfiguracions { get; set; }
+
+    public virtual DbSet<TallerConfiguracionPresupuestal> TallerConfiguracionPresupuestals { get; set; }
+
     public virtual DbSet<TallerControlPresupuestal> TallerControlPresupuestals { get; set; }
 
     public virtual DbSet<TallerMovimientoPresupuesto> TallerMovimientoPresupuestos { get; set; }
@@ -108,14 +126,17 @@ public partial class BdSigeMavContext : DbContext
 
     public virtual DbSet<UnidadVehicular> UnidadVehiculars { get; set; }
 
+    public virtual DbSet<VwControlFinancieroMantenimiento> VwControlFinancieroMantenimientos { get; set; }
+
     public virtual DbSet<OrdenDePagoResult> OrdenDePagoResults { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
 
     }
-//#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-//        => optionsBuilder.UseSqlServer("Server=10.8.3.115;Database=DBSigemav;User Id=sassp;Password=s4$5pBr2025;TrustServerCertificate=True;");
+
+    //#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
+    //        => optionsBuilder.UseSqlServer("Server=10.8.3.115;Database=DBSigemav;User Id=sassp;Password=s4$5pBr2025;TrustServerCertificate=True;");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -156,11 +177,6 @@ public partial class BdSigeMavContext : DbContext
 
             entity.Property(e => e.Activo).HasDefaultValue(true);
             entity.Property(e => e.Nombre).HasMaxLength(20);
-
-            entity.HasOne(d => d.Fianza).WithMany(p => p.Bancos)
-                .HasForeignKey(d => d.FianzaId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Banco_Fianza");
         });
 
         modelBuilder.Entity<Cilindro>(entity =>
@@ -233,14 +249,6 @@ public partial class BdSigeMavContext : DbContext
             entity.HasIndex(e => e.ConceptoServicioId, "IX_ConceptoServicioCosto_ConceptoServicio");
 
             entity.HasIndex(e => e.ConceptoServicioId, "IX_ConceptoServicioCosto_ConceptoServicioId");
-
-            entity.HasIndex(e => new { e.FechaInicioVigencia, e.FechaFinVigencia }, "IX_ConceptoServicioCosto_Vigencia");
-
-            entity.HasIndex(e => new { e.MarcaId, e.ModeloId, e.AnioId, e.TransmisionId, e.CilindroId, e.ConceptoServicioId, e.FechaInicioVigencia }, "UX_ConceptoServicioCosto").IsUnique();
-
-            entity.HasIndex(e => new { e.MarcaId, e.ModeloId, e.AnioId, e.TransmisionId, e.CilindroId, e.ConceptoServicioId }, "UX_ConceptoServicioCosto_Regla")
-                .IsUnique()
-                .HasFilter("([Activo]=(1))");
 
             entity.Property(e => e.Activo).HasDefaultValue(true);
             entity.Property(e => e.CostoManoObra).HasColumnType("decimal(18, 2)");
@@ -379,6 +387,29 @@ public partial class BdSigeMavContext : DbContext
             entity.Property(e => e.RutaArchivo).HasMaxLength(200);
         });
 
+        modelBuilder.Entity<EstadoOdometro>(entity =>
+        {
+            entity.HasKey(e => e.EstadoOdometroId).HasName("PK__EstadoOd__E6281610B6D0D231");
+
+            entity.ToTable("EstadoOdometro");
+
+            entity.Property(e => e.Activo).HasDefaultValue(true);
+            entity.Property(e => e.Descripcion).HasMaxLength(50);
+        });
+
+        modelBuilder.Entity<EstatusFacturaMantenimiento>(entity =>
+        {
+            entity.ToTable("EstatusFacturaMantenimiento");
+
+            entity.Property(e => e.EstatusFacturaMantenimientoId).ValueGeneratedNever();
+            entity.Property(e => e.Color)
+                .HasMaxLength(30)
+                .IsUnicode(false);
+            entity.Property(e => e.Nombre)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+        });
+
         modelBuilder.Entity<EstatusMantenimiento>(entity =>
         {
             entity.ToTable("EstatusMantenimiento");
@@ -410,6 +441,149 @@ public partial class BdSigeMavContext : DbContext
             entity.Property(e => e.Nombre).HasMaxLength(100);
         });
 
+        modelBuilder.Entity<FacturaMantenimiento>(entity =>
+        {
+            entity.ToTable("FacturaMantenimiento");
+
+            entity.HasIndex(e => e.FechaFactura, "IX_Factura_Fecha");
+
+            entity.HasIndex(e => e.MantenimientoId, "UX_Factura_Mantenimiento")
+                .IsUnique()
+                .HasFilter("([Activo]=(1))");
+
+            entity.HasIndex(e => e.Uuid, "UX_Factura_UUID")
+                .IsUnique()
+                .HasFilter("([Activo]=(1))");
+
+            entity.Property(e => e.CodigoEstatusSat)
+                .HasMaxLength(500)
+                .IsUnicode(false)
+                .HasColumnName("CodigoEstatusSAT");
+            entity.Property(e => e.CodigoPostalEmision)
+                .HasMaxLength(10)
+                .IsUnicode(false);
+            entity.Property(e => e.EstadoSat)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("EstadoSAT");
+            entity.Property(e => e.FechaRecepcion).HasColumnType("datetime");
+            entity.Property(e => e.FechaRegistro).HasColumnType("datetime");
+            entity.Property(e => e.FechaTimbrado).HasColumnType("datetime");
+            entity.Property(e => e.FechaValidacionSat)
+                .HasColumnType("datetime")
+                .HasColumnName("FechaValidacionSAT");
+            entity.Property(e => e.Folio)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.FormaPago)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.Iva)
+                .HasColumnType("decimal(18, 2)")
+                .HasColumnName("IVA");
+            entity.Property(e => e.MetodoPago)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.Moneda)
+                .HasMaxLength(10)
+                .IsUnicode(false);
+            entity.Property(e => e.NoCertificado)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.NoCertificadoSat)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("NoCertificadoSAT");
+            entity.Property(e => e.Observaciones).IsUnicode(false);
+            entity.Property(e => e.RazonSocial)
+                .HasMaxLength(300)
+                .IsUnicode(false);
+            entity.Property(e => e.Retencion).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.Rfcemisor)
+                .HasMaxLength(13)
+                .IsUnicode(false)
+                .HasColumnName("RFCEmisor");
+            entity.Property(e => e.Rfcreceptor)
+                .HasMaxLength(13)
+                .IsUnicode(false)
+                .HasColumnName("RFCReceptor");
+            entity.Property(e => e.Serie)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.Subtotal).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.TipoComprobante)
+                .HasMaxLength(10)
+                .IsUnicode(false);
+            entity.Property(e => e.Total).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.UsoCfdi)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasColumnName("UsoCFDI");
+            entity.Property(e => e.Uuid)
+                .HasMaxLength(36)
+                .IsUnicode(false)
+                .HasColumnName("UUID");
+
+            entity.HasOne(d => d.EstatusFacturaMantenimiento).WithMany(p => p.FacturaMantenimientos)
+                .HasForeignKey(d => d.EstatusFacturaMantenimientoId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Factura_Estatus");
+
+            entity.HasOne(d => d.Mantenimiento).WithOne(p => p.FacturaMantenimiento)
+                .HasForeignKey<FacturaMantenimiento>(d => d.MantenimientoId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Factura_Mantenimiento");
+
+            entity.HasOne(d => d.Taller).WithMany(p => p.FacturaMantenimientos)
+                .HasForeignKey(d => d.TallerId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Factura_Taller");
+        });
+
+        modelBuilder.Entity<FacturaMantenimientoDetalle>(entity =>
+        {
+            entity.HasKey(e => e.FacturaDetalleId).HasName("PK__FacturaM__A9674AFAF9B2D086");
+
+            entity.ToTable("FacturaMantenimientoDetalle");
+
+            entity.Property(e => e.CostoManoObra).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.CostoRefacciones).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.Iva)
+                .HasColumnType("decimal(18, 2)")
+                .HasColumnName("IVA");
+            entity.Property(e => e.Subtotal).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.TotalLinea).HasColumnType("decimal(18, 2)");
+
+            entity.HasOne(d => d.FacturaMantenimiento).WithMany(p => p.FacturaMantenimientoDetalles)
+                .HasForeignKey(d => d.FacturaMantenimientoId)
+                .HasConstraintName("FK__FacturaMa__Factu__5DB5E0CB");
+        });
+
+        modelBuilder.Entity<FacturaMantenimientoDocumento>(entity =>
+        {
+            entity.HasKey(e => e.FacturaDocumentoId).HasName("PK__FacturaM__B8C00BB5018CAE06");
+
+            entity.ToTable("FacturaMantenimientoDocumento");
+
+            entity.Property(e => e.FechaCarga).HasColumnType("datetime");
+            entity.Property(e => e.HashArchivo)
+                .HasMaxLength(300)
+                .IsUnicode(false);
+            entity.Property(e => e.NombreArchivo)
+                .HasMaxLength(300)
+                .IsUnicode(false);
+            entity.Property(e => e.RutaArchivo)
+                .HasMaxLength(1000)
+                .IsUnicode(false);
+            entity.Property(e => e.TipoDocumento)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+
+            entity.HasOne(d => d.FacturaMantenimiento).WithMany(p => p.FacturaMantenimientoDocumentos)
+                .HasForeignKey(d => d.FacturaMantenimientoId)
+                .HasConstraintName("FK__FacturaMa__Factu__60924D76");
+        });
+
         modelBuilder.Entity<Fianza>(entity =>
         {
             entity.HasKey(e => e.FianzaId).HasName("PK__Fianza__335F7C01A94684C2");
@@ -417,10 +591,35 @@ public partial class BdSigeMavContext : DbContext
             entity.ToTable("Fianza");
 
             entity.Property(e => e.Activo).HasDefaultValue(true);
-            entity.Property(e => e.Clabe).HasMaxLength(18);
             entity.Property(e => e.Fianza1)
                 .HasMaxLength(25)
                 .HasColumnName("Fianza");
+        });
+
+        modelBuilder.Entity<Firmante>(entity =>
+        {
+            entity.ToTable("Firmante");
+
+            entity.HasIndex(e => new { e.ClavePuesto, e.AreaId }, "IX_Firmante_Puesto_Area");
+
+            entity.Property(e => e.Activo).HasDefaultValue(true);
+            entity.Property(e => e.Cargo)
+                .HasMaxLength(200)
+                .IsUnicode(false);
+            entity.Property(e => e.ClavePuesto)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.FechaCreacion)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.NombreCompleto)
+                .HasMaxLength(150)
+                .IsUnicode(false);
+
+            entity.HasOne(d => d.Area).WithMany(p => p.Firmantes)
+                .HasForeignKey(d => d.AreaId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("FK_Firmante_Area");
         });
 
         modelBuilder.Entity<Mantenimiento>(entity =>
@@ -446,6 +645,9 @@ public partial class BdSigeMavContext : DbContext
             entity.Property(e => e.FechaEjecucion).HasColumnType("datetime");
             entity.Property(e => e.FechaFinTrabajo).HasColumnType("datetime");
             entity.Property(e => e.FechaInicioTrabajo).HasColumnType("datetime");
+            entity.Property(e => e.Folio)
+                .HasMaxLength(20)
+                .IsUnicode(false);
             entity.Property(e => e.MotivoMantenimiento).HasMaxLength(1000);
             entity.Property(e => e.Observaciones).HasMaxLength(2000);
             entity.Property(e => e.TrabajoRealizado).HasMaxLength(4000);
@@ -609,9 +811,10 @@ public partial class BdSigeMavContext : DbContext
             entity.Property(e => e.TipoMovimiento)
                 .HasMaxLength(50)
                 .IsUnicode(false);
-            entity.Property(e => e.UsuarioCaptura)
-                .HasMaxLength(100)
-                .IsUnicode(false);
+
+            entity.HasOne(d => d.FacturaMantenimiento).WithMany(p => p.MovimientoPresupuestals)
+                .HasForeignKey(d => d.FacturaMantenimientoId)
+                .HasConstraintName("FK_Movimiento_Factura");
 
             entity.HasOne(d => d.IdDispPresupuestalNavigation).WithMany(p => p.MovimientoPresupuestals)
                 .HasForeignKey(d => d.IdDispPresupuestal)
@@ -646,10 +849,17 @@ public partial class BdSigeMavContext : DbContext
                 .HasMaxLength(40)
                 .IsUnicode(false)
                 .HasColumnName("tcmunicipioRegion");
-            entity.Property(e => e.UnidadVehicularId).ValueGeneratedOnAdd();
             entity.Property(e => e.Zona)
                 .HasMaxLength(50)
                 .HasColumnName("ZONA");
+        });
+
+        modelBuilder.Entity<ObjetivoMantenimiento>(entity =>
+        {
+            entity.ToTable("ObjetivoMantenimiento");
+
+            entity.Property(e => e.Activo).HasDefaultValue(true);
+            entity.Property(e => e.Nombre).HasMaxLength(50);
         });
 
         modelBuilder.Entity<ObjetoGasto>(entity =>
@@ -794,8 +1004,11 @@ public partial class BdSigeMavContext : DbContext
 
             entity.ToTable("SolicitudMantenimiento");
 
+            entity.HasIndex(e => e.Folio, "UQ_SolicitudMantenimiento_Folio").IsUnique();
+
             entity.Property(e => e.Activo).HasDefaultValue(true);
             entity.Property(e => e.DiagnosticoInicial).HasMaxLength(3000);
+            entity.Property(e => e.EstadoOdometroId).HasDefaultValue((byte)1);
             entity.Property(e => e.FacturaFolio)
                 .HasMaxLength(10)
                 .IsUnicode(false);
@@ -817,10 +1030,19 @@ public partial class BdSigeMavContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_SolicitudMantenimiento_Area");
 
+            entity.HasOne(d => d.EstadoOdometro).WithMany(p => p.SolicitudMantenimientos)
+                .HasForeignKey(d => d.EstadoOdometroId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_SolicitudMantenimiento_EstadoOdometro");
+
             entity.HasOne(d => d.EstatusSolicitudMantenimiento).WithMany(p => p.SolicitudMantenimientos)
                 .HasForeignKey(d => d.EstatusSolicitudMantenimientoId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_SolicitudMantenimiento_Estatus");
+
+            entity.HasOne(d => d.TallerConfiguracionPresupuestal).WithMany(p => p.SolicitudMantenimientos)
+                .HasForeignKey(d => d.TallerConfiguracionPresupuestalId)
+                .HasConstraintName("FK_SolicitudMantenimiento_TallerConfiguracionPresupuestal");
 
             entity.HasOne(d => d.Taller).WithMany(p => p.SolicitudMantenimientos)
                 .HasForeignKey(d => d.TallerId)
@@ -949,9 +1171,8 @@ public partial class BdSigeMavContext : DbContext
             entity.ToTable("Taller");
 
             entity.Property(e => e.Activo).HasDefaultValue(true);
-            entity.Property(e => e.Contrato).HasMaxLength(15);
-            entity.Property(e => e.MontoMaximo).HasColumnType("decimal(18, 2)");
-            entity.Property(e => e.MontoMinimo).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.Clabe).HasMaxLength(18);
+            entity.Property(e => e.Fianza).HasMaxLength(25);
             entity.Property(e => e.RazonSocial).HasMaxLength(100);
             entity.Property(e => e.Rfc)
                 .HasMaxLength(13)
@@ -964,10 +1185,53 @@ public partial class BdSigeMavContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Taller_Banco");
 
-            entity.HasOne(d => d.Recurso).WithMany(p => p.Tallers)
+            entity.HasOne(d => d.ObjetivoMantenimiento).WithMany(p => p.Tallers)
+                .HasForeignKey(d => d.ObjetivoMantenimientoId)
+                .HasConstraintName("FK_Taller_ObjetivoMantenimiento");
+        });
+
+        modelBuilder.Entity<TallerConfiguracion>(entity =>
+        {
+            entity.HasKey(e => new { e.TallerId, e.TallerConfiguracionPresupuestalId });
+
+            entity.ToTable("TallerConfiguracion");
+
+            entity.Property(e => e.Activo).HasDefaultValue(true);
+            entity.Property(e => e.FechaCreacion).HasDefaultValueSql("(getdate())");
+
+            entity.HasOne(d => d.TallerConfiguracionPresupuestal).WithMany(p => p.TallerConfiguracions)
+                .HasForeignKey(d => d.TallerConfiguracionPresupuestalId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TallerConfiguracion_Configuracion");
+
+            entity.HasOne(d => d.Taller).WithMany(p => p.TallerConfiguracions)
+                .HasForeignKey(d => d.TallerId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TallerConfiguracion_Taller");
+        });
+
+        modelBuilder.Entity<TallerConfiguracionPresupuestal>(entity =>
+        {
+            entity.ToTable("TallerConfiguracionPresupuestal");
+
+            entity.HasIndex(e => new { e.Contrato, e.RecursoId }, "UX_TallerConfiguracionPresupuestal_Contrato_Recurso")
+                .IsUnique()
+                .HasFilter("([Activo]=(1))");
+
+            entity.Property(e => e.Activo).HasDefaultValue(true);
+            entity.Property(e => e.Contrato).HasMaxLength(100);
+            entity.Property(e => e.FechaCreacion).HasDefaultValueSql("(getdate())");
+            entity.Property(e => e.MontoAlerta).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.MontoCritico).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.MontoMaximo).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.MontoMinimo).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.PorcentajeAlerta).HasColumnType("decimal(5, 2)");
+            entity.Property(e => e.PorcentajeCritico).HasColumnType("decimal(5, 2)");
+
+            entity.HasOne(d => d.Recurso).WithMany(p => p.TallerConfiguracionPresupuestals)
                 .HasForeignKey(d => d.RecursoId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Taller_Recurso");
+                .HasConstraintName("FK_TallerConfiguracionPresupuestal_Recurso");
         });
 
         modelBuilder.Entity<TallerControlPresupuestal>(entity =>
@@ -976,6 +1240,8 @@ public partial class BdSigeMavContext : DbContext
 
             entity.ToTable("TallerControlPresupuestal");
 
+            entity.HasIndex(e => new { e.TallerConfiguracionPresupuestalId, e.Ejercicio }, "UX_TallerControlPresupuestal_Configuracion_Ejercicio").IsUnique();
+
             entity.Property(e => e.Activo).HasDefaultValue(true);
             entity.Property(e => e.FechaActualizacion).HasColumnType("datetime");
             entity.Property(e => e.PresupuestoAsignado).HasColumnType("decimal(18, 2)");
@@ -983,10 +1249,10 @@ public partial class BdSigeMavContext : DbContext
             entity.Property(e => e.PresupuestoDisponible).HasColumnType("decimal(19, 2)");
             entity.Property(e => e.PresupuestoEjercido).HasColumnType("decimal(18, 2)");
 
-            entity.HasOne(d => d.Taller).WithMany(p => p.TallerControlPresupuestals)
-                .HasForeignKey(d => d.TallerId)
+            entity.HasOne(d => d.TallerConfiguracionPresupuestal).WithMany(p => p.TallerControlPresupuestals)
+                .HasForeignKey(d => d.TallerConfiguracionPresupuestalId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_TallerControlPresupuestal_Taller");
+                .HasConstraintName("FK_TallerControlPresupuestal_Configuracion");
         });
 
         modelBuilder.Entity<TallerMovimientoPresupuesto>(entity =>
@@ -994,6 +1260,8 @@ public partial class BdSigeMavContext : DbContext
             entity.HasKey(e => e.IdMovimientoTaller).HasName("PK__TallerMo__54D165C3AC3329DB");
 
             entity.ToTable("TallerMovimientoPresupuesto");
+
+            entity.HasIndex(e => e.IdControlTaller, "IX_TallerMovimientoPresupuesto_IdControlTaller");
 
             entity.Property(e => e.Activo).HasDefaultValue(true);
             entity.Property(e => e.FechaMovimiento)
@@ -1003,9 +1271,11 @@ public partial class BdSigeMavContext : DbContext
             entity.Property(e => e.TipoMovimiento)
                 .HasMaxLength(30)
                 .IsUnicode(false);
-            entity.Property(e => e.UsuarioCaptura)
-                .HasMaxLength(100)
-                .IsUnicode(false);
+
+            entity.HasOne(d => d.IdControlTallerNavigation).WithMany(p => p.TallerMovimientoPresupuestos)
+                .HasForeignKey(d => d.IdControlTaller)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TallerMovimientoPresupuesto_Control");
 
             entity.HasOne(d => d.SolicitudMantenimiento).WithMany(p => p.TallerMovimientoPresupuestos)
                 .HasForeignKey(d => d.SolicitudMantenimientoId)
@@ -1081,6 +1351,10 @@ public partial class BdSigeMavContext : DbContext
             entity.Property(e => e.Observaciones).HasMaxLength(1000);
             entity.Property(e => e.ObservacionesEntrega).HasMaxLength(1000);
             entity.Property(e => e.ObservacionesRecepcion).HasMaxLength(1000);
+            entity.Property(e => e.UsuarioAutorizaId).HasMaxLength(450);
+            entity.Property(e => e.UsuarioEntregaId).HasMaxLength(450);
+            entity.Property(e => e.UsuarioRecibeId).HasMaxLength(450);
+            entity.Property(e => e.UsuarioSolicitaId).HasMaxLength(450);
 
             entity.HasOne(d => d.AreaDestino).WithMany(p => p.TransferenciaUnidadAreaDestinos)
                 .HasForeignKey(d => d.AreaDestinoId)
@@ -1123,6 +1397,7 @@ public partial class BdSigeMavContext : DbContext
             entity.Property(e => e.IpRegistro).HasMaxLength(50);
             entity.Property(e => e.Observaciones).HasMaxLength(1000);
             entity.Property(e => e.TipoMovimiento).HasMaxLength(100);
+            entity.Property(e => e.UsuarioId).HasMaxLength(450);
 
             entity.HasOne(d => d.EstatusTransferenciaUnidad).WithMany(p => p.TransferenciaUnidadSeguimientos)
                 .HasForeignKey(d => d.EstatusTransferenciaUnidadId)
@@ -1158,9 +1433,11 @@ public partial class BdSigeMavContext : DbContext
 
             entity.HasIndex(e => e.NumeroEconomico, "IX_UnidadVehicular_NumeroEconomico");
 
-            entity.HasIndex(e => e.PlacaActual, "IX_UnidadVehicular_Placa");
-
             entity.HasIndex(e => e.NumeroSerie, "UX_UnidadVehicular_NumeroSerie").IsUnique();
+
+            entity.HasIndex(e => e.PlacaActual, "UX_UnidadVehicular_PlacaActual")
+                .IsUnique()
+                .HasFilter("([PlacaActual]<>'ALTA')");
 
             entity.Property(e => e.Activo).HasDefaultValue(true);
             entity.Property(e => e.FechaCreacion).HasDefaultValueSql("(sysdatetime())");
@@ -1205,6 +1482,23 @@ public partial class BdSigeMavContext : DbContext
             entity.HasOne(d => d.Transmision).WithMany(p => p.UnidadVehiculars)
                 .HasForeignKey(d => d.TransmisionId)
                 .HasConstraintName("FK_UnidadVehicular_Transmision");
+        });
+
+        modelBuilder.Entity<VwControlFinancieroMantenimiento>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToView("VW_ControlFinancieroMantenimiento");
+
+            entity.Property(e => e.Comprometido).HasColumnType("decimal(38, 2)");
+            entity.Property(e => e.Devengado).HasColumnType("decimal(38, 2)");
+            entity.Property(e => e.Folio).HasMaxLength(20);
+            entity.Property(e => e.Pagado).HasColumnType("decimal(38, 2)");
+            entity.Property(e => e.Total).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.Uuid)
+                .HasMaxLength(36)
+                .IsUnicode(false)
+                .HasColumnName("UUID");
         });
 
         OnModelCreatingPartial(modelBuilder);

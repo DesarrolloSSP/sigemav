@@ -1,0 +1,480 @@
+﻿@using SIGEMAV.Areas.Maquinaria.DTOs
+
+@model IEnumerable<SIGEMAV.Areas.Maquinaria.DTOs.TallerConfiguracionPresupuestalDto>
+
+@* @{
+    // ViewData["Title"] = "Configuración presupuestal";
+
+    var busqueda = ViewBag.Busqueda as string;
+    bool? activo = ViewBag.Activo as bool?;
+} *@
+
+
+
+@{
+    // Obtener los valores enviados en la URL / QueryString
+    string? busqueda = Context.Request.Query["busqueda"];
+    bool? activo = null;
+
+    if (bool.TryParse(Context.Request.Query["activo"], out bool activoResult))
+    {
+        activo = activoResult;
+    }
+}
+
+
+
+
+<div class="card shadow-sm">
+
+    <!-- ===================================================== -->
+    <!-- HEADER -->
+    <!-- ===================================================== -->
+
+    <div class="card-header bg-light">
+
+        <div class="d-flex
+                    flex-column
+                    flex-md-row
+                    justify-content-between
+                    align-items-md-center
+                    gap-3">
+
+            <div>
+
+                <div class="d-flex align-items-center gap-2">
+
+                    <div class="text-primary">
+                        <i class="bi bi-wallet2 fs-4"></i>
+                    </div>
+
+                    <div>
+
+                        <h4 class="mb-0">
+                            Configuración presupuestal
+                        </h4>
+
+                        <small class="text-muted">
+                            Contratos, recursos y límites presupuestales
+                        </small>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div>
+
+                <a asp-action="CrearConfiguracionPresupuestal"
+                   class="btn btn-primary">
+
+                    <i class="bi bi-plus-circle me-1"></i>
+
+                    Nueva configuración
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ===================================================== -->
+<!-- FILTROS DE BÚSQUEDA -->
+<!-- ===================================================== -->
+<div class="card-body border-bottom">
+    <form asp-action="ConfiguracionPresupuestal" method="get">
+        <div class="row g-2">
+
+            <!-- BÚSQUEDA POR TEXTO -->
+            <div class="col-md-6">
+                <div class="input-group">
+                    <span class="input-group-text">
+                        <i class="bi bi-search"></i>
+                    </span>
+                    <input type="text"
+                           name="busqueda"
+                           value="@busqueda"
+                           class="form-control"
+                           placeholder="Buscar por contrato o recurso..." />
+                </div>
+            </div>
+
+            <!-- FILTRO ESTADO -->
+            <div class="col-md-3">
+                <select name="activo" class="form-select">
+                    <option value="" selected="@(activo == null)">Todos los estados</option>
+                    <option value="true" selected="@(activo == true)">Activos</option>
+                    <option value="false" selected="@(activo == false)">Inactivos</option>
+                </select>
+            </div>
+
+            <!-- BOTONES -->
+            <div class="col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-search me-1"></i> Buscar
+                </button>
+
+                <a asp-action="ConfiguracionPresupuestal" class="btn btn-outline-secondary w-100">
+                    <i class="bi bi-x-circle me-1"></i> Limpiar
+                </a>
+            </div>
+
+        </div>
+    </form>
+</div>
+
+    <!-- ===================================================== -->
+    <!-- INFORMACIÓN -->
+    <!-- ===================================================== -->
+
+    <div class="card-body pb-0">
+
+        <div class="d-flex
+                    justify-content-between
+                    align-items-center
+                    flex-wrap
+                    gap-2">
+
+            <div class="text-muted">
+
+                <i class="bi bi-info-circle me-1"></i>
+
+                Mostrando
+                <strong>@Model.Count()</strong>
+                configuración(es)
+
+            </div>
+
+            <div>
+
+                <span class="badge bg-light-primary text-primary">
+
+                    Total:
+                    @Model.Count()
+
+                </span>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ===================================================== -->
+    <!-- TABLA -->
+    <!-- ===================================================== -->
+
+    <div class="card-body">
+
+        <div class="table-responsive">
+
+            <table class="table table-hover align-middle">
+
+                <thead>
+
+                    <tr>
+
+                        <th>
+                            Contrato
+                        </th>
+
+                        <th>
+                            Recurso
+                        </th>
+
+                        <th class="text-end">
+                            Monto mínimo
+                        </th>
+
+                        <th class="text-end">
+                            Monto máximo
+                        </th>
+
+                        <th>
+                            Umbrales
+                        </th>
+
+                        <th class="text-center">
+                            Talleres
+                        </th>
+
+                        <th>
+                            Estado
+                        </th>
+
+                        <th class="text-end">
+                            Acciones
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    @if (!Model.Any())
+                    {
+                        <tr>
+
+                            <td colspan="8"
+                                class="text-center py-5">
+
+                                <div class="text-muted">
+
+                                    <i class="bi bi-wallet2 fs-1 d-block mb-3"></i>
+
+                                    <h5>
+                                        No existen configuraciones presupuestales
+                                    </h5>
+
+                                    <p class="mb-3">
+                                        Registra una configuración presupuestal
+                                        para comenzar a administrar los controles
+                                        anuales.
+                                    </p>
+
+                                    <a asp-action="CrearConfiguracionPresupuestal"
+                                       class="btn btn-primary">
+
+                                        <i class="bi bi-plus-circle me-1"></i>
+
+                                        Crear configuración
+
+                                    </a>
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+
+                                <!-- ================================= -->
+                                <!-- CONTRATO -->
+                                <!-- ================================= -->
+
+                                <td>
+
+                                    <div class="fw-semibold">
+                                        @item.Contrato
+                                    </div>
+
+                                </td>
+
+
+                                <!-- ================================= -->
+                                <!-- RECURSO -->
+                                <!-- ================================= -->
+
+                                <td>
+
+                                    <span class="badge bg-light-primary text-primary">
+
+                                        @item.RecursoNombre
+
+                                    </span>
+
+                                </td>
+
+
+                                <!-- ================================= -->
+                                <!-- MONTO MÍNIMO -->
+                                <!-- ================================= -->
+
+                                <td class="text-end">
+
+                                    @item.MontoMinimo.ToString("C")
+
+                                </td>
+
+
+                                <!-- ================================= -->
+                                <!-- MONTO MÁXIMO -->
+                                <!-- ================================= -->
+
+                                <td class="text-end">
+
+                                    <strong>
+                                        @item.MontoMaximo.ToString("C")
+                                    </strong>
+
+                                </td>
+
+
+                                <!-- ================================= -->
+                                <!-- UMBRALES -->
+                                <!-- ================================= -->
+
+                                <td>
+
+                                    @if (item.PorcentajeAlerta.HasValue)
+                                    {
+                                        <div class="small">
+
+                                            <span class="text-warning">
+
+                                                <i class="bi bi-exclamation-triangle me-1"></i>
+
+                                                Alerta:
+                                                @item.PorcentajeAlerta.Value.ToString("0.##")%
+
+                                            </span>
+
+                                            @if (item.MontoAlerta.HasValue)
+                                            {
+                                                <span class="text-muted">
+                                                    (@item.MontoAlerta.Value.ToString("C"))
+                                                </span>
+                                            }
+
+                                        </div>
+                                    }
+
+                                    @if (item.PorcentajeCritico.HasValue)
+                                    {
+                                        <div class="small">
+
+                                            <span class="text-danger">
+
+                                                <i class="bi bi-exclamation-octagon me-1"></i>
+
+                                                Crítico:
+                                                @item.PorcentajeCritico.Value.ToString("0.##")%
+
+                                            </span>
+
+                                            @if (item.MontoCritico.HasValue)
+                                            {
+                                                <span class="text-muted">
+                                                    (@item.MontoCritico.Value.ToString("C"))
+                                                </span>
+                                            }
+
+                                        </div>
+                                    }
+
+                                    @if (!item.PorcentajeAlerta.HasValue &&
+                                         !item.PorcentajeCritico.HasValue)
+                                    {
+                                        <span class="text-muted small">
+                                            Sin umbrales
+                                        </span>
+                                    }
+
+                                </td>
+
+
+                                <!-- ================================= -->
+                                <!-- TALLERES -->
+                                <!-- ================================= -->
+
+                                <td class="text-center">
+
+                                    <div class="d-flex
+                                                justify-content-center
+                                                flex-wrap
+                                                gap-1">
+
+                                        <span class="badge bg-light text-dark">
+
+                                            @item.CantidadTalleres
+
+                                            <span class="text-muted">
+                                                total
+                                            </span>
+
+                                        </span>
+
+                                        @if (item.CantidadTalleresActivos > 0)
+                                        {
+                                            <span class="badge bg-light-success text-success">
+
+                                                @item.CantidadTalleresActivos
+                                                activos
+
+                                            </span>
+                                        }
+
+                                    </div>
+
+                                </td>
+
+
+                                <!-- ================================= -->
+                                <!-- ESTADO -->
+                                <!-- ================================= -->
+
+                                <td>
+
+                                    @if (item.Activo)
+                                    {
+                                        <span class="badge bg-success">
+
+                                            <i class="bi bi-check-circle me-1"></i>
+
+                                            Activo
+
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">
+
+                                            <i class="bi bi-x-circle me-1"></i>
+
+                                            Inactivo
+
+                                        </span>
+                                    }
+
+                                </td>
+
+
+                                <!-- ================================= -->
+                                <!-- ACCIONES -->
+                                <!-- ================================= -->
+
+                                <td class="text-end">
+
+                                    <div class="d-flex
+                                                justify-content-end
+                                                gap-1">
+
+                                        <a asp-action="EditarConfiguracionPresupuestal"
+                                           asp-route-id="@item.TallerConfiguracionPresupuestalId"
+                                           class="btn btn-sm btn-outline-primary"
+                                           title="Editar">
+
+                                            <i class="bi bi-pencil"></i>
+
+                                        </a>
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+                        }
+                    }
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+

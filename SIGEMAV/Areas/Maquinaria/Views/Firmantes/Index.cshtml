@@ -1,0 +1,182 @@
+﻿
+
+@model SIGEMAV.Models.ViewModels.Maquinaria.FirmanteIndexViewModel
+
+
+<div class="container-fluid px-4 mt-3">
+    <!-- ENCABEZADO -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h3 class="fw-bold mb-0 text-dark">
+                <i class="fas fa-signature me-2"></i>Catálogo de firmantes
+            </h3>
+            <p class="text-muted small mb-0">Configuración dinámica de responsables y sellos para dictámenes técnicos.</p>
+        </div>
+        <a asp-action="Crear" class="btn btn-primary shadow-sm" style="background-color: #800705; border-color: #800705;">
+            <i class="fas fa-plus-circle me-1"></i> Registrar nuevo firmante
+        </a>
+    </div>
+
+    <!-- MENSAGED DE ALERTA -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+            <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>@TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- FILTRO POR ÁREA -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body bg-light rounded">
+            <form asp-action="Index" method="get" class="row g-3 align-items-end">
+                <div class="col-md-6">
+                    <label for="areaFiltroId" class="form-label fw-bold text-secondary">
+                        <i class="fas fa-filter me-1"></i>Filtrar por área solicitante:
+                    </label>
+                    <select id="areaFiltroId" name="areaFiltroId" asp-for="AreaFiltroId" asp-items="Model.Areas" class="form-select">
+                        <option value="">-- TODAS LAS ÁREAS (INCLUYE GLOBALES) --</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-dark w-100">
+                        <i class="fas fa-search me-1"></i> Filtrar
+                    </button>
+                </div>
+                <div class="col-md-3">
+                    <a asp-action="Index" class="btn btn-outline-secondary w-100">
+                        <i class="fas fa-undo me-1"></i> Limpiar Filtro
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- TABLA DE RESULTADOS -->
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr class="text-uppercase small text-muted">
+                            <th style="width: 18%;">Puesto / Clave</th>
+                            <th style="width: 25%;">Nombre Completo</th>
+                            <th style="width: 25%;">Cargo / Adscripción</th>
+                            <th style="width: 15%;">Ámbito / Área</th>
+                            <th style="width: 8%;" class="text-center">Estado</th>
+                            <th style="width: 9%;" class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Firmantes != null && Model.Firmantes.Any())
+                        {
+                            @foreach (var item in Model.Firmantes)
+                            {
+                                <tr>
+                                    <td>
+                                        <span class="badge bg-secondary font-monospace" style="font-size: 8pt;">@item.ClavePuesto</span>
+                                    </td>
+                                    <td class="fw-bold text-uppercase text-dark">
+                                        @item.NombreCompleto
+                                    </td>
+                                    <td class="small text-muted text-uppercase">
+                                        @item.Cargo
+                                    </td>
+                                    <td>
+                                        @if (item.AreaId.HasValue)
+                                        {
+                                            <span class="badge bg-info text-dark">
+                                                <i class="fas fa-building me-1"></i>@item.AreaNombre
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-globe me-1"></i>GLOBAL (INSTITUCIONAL)
+                                            </span>
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="form-check form-switch d-flex justify-content-center">
+                                            <input class="form-check-input switch-estatus" type="checkbox" role="switch"
+                                                   data-id="@item.FirmanteId" @(item.Activo ? "checked" : "") style="cursor: pointer;">
+                                        </div>
+                                    </td>
+                                  
+                                    <td class="text-center">
+                                        <a asp-action="Editar" asp-route-id="@item.FirmanteId"
+                                           class="btn btn-sm btn-outline-primary" title="Editar Firmante">
+                                            <i class="bi bi-pencil-fill"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="6" class="text-center py-4 text-muted">
+                                    <i class="fas fa-folder-open fa-2x mb-2 d-block"></i>
+                                    No se encontraron firmantes registrados para los criterios seleccionados.
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script type="text/javascript">
+        document.addEventListener("DOMContentLoaded", function () {
+            // Manejo dinámico de cambio de estatus vía AJAX
+            const switches = document.querySelectorAll(".switch-estatus");
+
+            switches.forEach(sw => {
+                sw.addEventListener("change", function () {
+                    const id = this.getAttribute("data-id");
+                    const switchElement = this;
+
+                    fetch(`@Url.Action("CambiarEstatus", "Firmantes")?id=${id}`, {
+                        method: "POST",
+                        headers: {
+                            "X-Requested-With": "XMLHttpRequest"
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            if (typeof Swal !== 'undefined') {
+                                Swal.fire({
+                                    toast: true,
+                                    position: 'top-end',
+                                    icon: 'success',
+                                    title: data.message,
+                                    showConfirmButton: false,
+                                    timer: 2000
+                                });
+                            }
+                        } else {
+                            switchElement.checked = !switchElement.checked; // Revertir en caso de falla
+                            alert(data.message || "Error al actualizar estatus.");
+                        }
+                    })
+                    .catch(err => {
+                        switchElement.checked = !switchElement.checked;
+                        console.error(err);
+                    });
+                });
+            });
+        });
+    </script>
+}
+

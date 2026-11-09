@@ -1,0 +1,109 @@
+﻿@model SIGEMAV.Models.ViewModels.Maquinaria.FirmanteFormViewModel
+
+@{
+    bool esEdicion = Model.Firmante.FirmanteId > 0;
+    ViewData["Title"] = esEdicion ? "Editar Firmante" : "Registrar Firmante";
+}
+
+<div class="container-fluid px-4 mt-3" style="max-width: 900px;">
+    <!-- ENCABEZADO Y REGRESO -->
+    <div class="d-flex align-items-center mb-3">
+        @* <a asp-action="Index" class="btn btn-outline-secondary me-3">
+            <i class="fas fa-arrow-left"></i>
+        </a> *@
+        <div>
+            <h3 class="fw-bold mb-0 text-dark">
+                @(esEdicion ? "Editar registro de firmante" : "Registrar nuevo firmante")
+            </h3>
+            <p class="text-muted small mb-0">Capture los datos del funcionario y asigne su rol en el dictamen.</p>
+        </div>
+    </div>
+
+    <!-- TARJETA DEL FORMULARIO -->
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-dark text-white fw-bold">
+            <i class="fas fa-user-tie me-2"></i>Información general del firmante
+        </div>
+        <div class="card-body p-4">
+            <form asp-action="Guardar" method="post" autocomplete="off">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="Firmante.FirmanteId" />
+
+                <div class="row g-3">
+                    <!-- CLAVE DEL PUESTO -->
+                    <div class="col-md-6">
+                        <label asp-for="Firmante.ClavePuesto" class="form-label fw-bold text-dark">
+                            Puesto en el dictamen <span class="text-danger">*</span>
+                        </label>
+                        <select asp-for="Firmante.ClavePuesto" asp-items="Model.ClavesPuesto" class="form-select">
+                            <option value="">-- SELECCIONE PUESTO --</option>
+                        </select>
+                        <span asp-validation-for="Firmante.ClavePuesto" class="text-danger small"></span>
+                        <div class="form-text small">Determina la casilla de firma en el documento PDF.</div>
+                    </div>
+
+                    <!-- ÁREA (ASIGNACIÓN O GLOBAL) -->
+                    <div class="col-md-6">
+                        <label asp-for="Firmante.AreaId" class="form-label fw-bold text-dark">Área solicitante asignada</label>
+                        <select asp-for="Firmante.AreaId" asp-items="Model.Areas" class="form-select">
+                            <option value="">-- GLOBAL / TODAS LAS ÁREAS --</option>
+                        </select>
+                        <span asp-validation-for="Firmante.AreaId" class="text-danger small"></span>
+                        <div class="form-text small">Dejar en blanco para firmante institucional (Global).</div>
+                    </div>
+
+                    <!-- NOMBRE COMPLETO -->
+                    <div class="col-md-12">
+                        <label asp-for="Firmante.NombreCompleto" class="form-label fw-bold text-dark">
+                            Nombre completo <span class="text-danger">*</span>
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-user"></i></span>
+                            <input asp-for="Firmante.NombreCompleto" class="form-text-input form-control text-uppercase" 
+                                   placeholder="EJ: LIC. RADEK GRABOWSKI VILLAMUR" />
+                        </div>
+                        <span asp-validation-for="Firmante.NombreCompleto" class="text-danger small"></span>
+                    </div>
+
+                    <!-- CARGO PÚBLICO / ADSCRIPCIÓN -->
+                    <div class="col-md-12">
+                        <label asp-for="Firmante.Cargo" class="form-label fw-bold text-dark">
+                            Cargo oficial o titularidad <span class="text-danger">*</span>
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-briefcase"></i></span>
+                            <input asp-for="Firmante.Cargo" class="form-control text-uppercase" 
+                                   placeholder="EJ: ENLACE ADMINISTRATIVO DE RECURSOS MATERIALES" />
+                        </div>
+                        <span asp-validation-for="Firmante.Cargo" class="text-danger small"></span>
+                    </div>
+
+                    <!-- ESTATUS ACTIVO -->
+                    <div class="col-md-12">
+                        <div class="form-check form-switch mt-2">
+                            <input asp-for="Firmante.Activo" class="form-check-input" type="checkbox" id="chkActivo" role="switch">
+                            <label class="form-check-label fw-bold text-dark" for="chkActivo">Firmante Activo</label>
+                        </div>
+                        <div class="form-text small">Solo los firmantes activos serán contemplados en la impresión del dictamen.</div>
+                    </div>
+                </div>
+
+                <hr class="my-4" />
+
+                <!-- BOTONES DE ACCIÓN -->
+                <div class="d-flex justify-content-end gap-2">
+                    <a asp-action="Index" class="btn btn-secondary px-4">
+                        <i class="fas fa-times me-1"></i> Cancelar
+                    </a>
+                    <button type="submit" class="btn btn-primary px-4 shadow-sm" style="background-color: #800705; border-color: #800705;">
+                        <i class="fas fa-save me-1"></i> Guardar Firmante
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -17,9 +17,13 @@ public partial class TallerMovimientoPresupuesto
 
     public DateTime FechaMovimiento { get; set; }
 
-    public string? UsuarioCaptura { get; set; }
-
     public bool Activo { get; set; }
+
+    public Guid? UsuarioCaptura { get; set; }
+
+    public int IdControlTaller { get; set; }
+
+    public virtual TallerControlPresupuestal IdControlTallerNavigation { get; set; } = null!;
 
     public virtual SolicitudMantenimiento SolicitudMantenimiento { get; set; } = null!;
 

@@ -7,23 +7,26 @@ using SIGEMAV.Models.Entities;
 using SIGEMAV.Models.ViewModels.Maquinaria;
 using SIGEMAV.Services.Implementations.Maquinaria;
 using System.Drawing;
+using System.Security.Claims;
 using static SIGEMAV.Areas.Maquinaria.DTOs.DTOs;
 
 namespace SIGEMAV.Areas.Maquinaria.Controllers
 {
     //nuevos cambios
     [Area("Maquinaria")]
-    [Authorize(Roles = "AdminMaquinaria,Sysadmin")]
+    [Authorize(Roles = "AdminMaquinaria,Sysadmin,AreaOperativa")]
     public class UnidadVehicularController : Controller
     {
 
         private readonly MaquinariaService _maquinariaService;
         private readonly BdSigeMavContext _context;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public UnidadVehicularController(MaquinariaService maquinariaService, BdSigeMavContext context)
+        public UnidadVehicularController(MaquinariaService maquinariaService, BdSigeMavContext context, IHttpContextAccessor httpContextAccessor)
         {
             _maquinariaService = maquinariaService;
             _context = context;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         //public async Task<IActionResult> Index(int pagina = 1)
@@ -39,51 +42,79 @@ namespace SIGEMAV.Areas.Maquinaria.Controllers
 
 
 
-        public async Task<IActionResult> Index(
-       string? busqueda,
-       int? marcaId,
-       int? modeloId,
-       int? areaId,
-       int? municipioId,
-       int pagina = 1)
+        public async Task<IActionResult> Index(string? busqueda,int? marcaId,int? modeloId,int? anioDesde,int? anioHasta,int? areaId,int? municipioId,int pagina = 1)
         {
-            var modelo =await _maquinariaService.ObtenerVehiculos(pagina: pagina,busqueda: busqueda,marcaId: marcaId,modeloId: modeloId,areaId: areaId,municipioId:municipioId);
+            //=====================================================
+            // VALIDACIÓN DEL RANGO DE AÑOS
+            //=====================================================
 
-            ViewBag.Busqueda =
-                busqueda;
+            if (anioDesde.HasValue &&
+                anioHasta.HasValue &&
+                anioDesde > anioHasta)
+            {
+                TempData["Error"] =
+                    "El año inicial no puede ser mayor al año final.";
 
-            ViewBag.MarcaId =
-                marcaId;
+                // intercambiamos los valores para no romper la búsqueda
+                (anioDesde, anioHasta) = (anioHasta, anioDesde);
+            }
 
-            ViewBag.ModeloId =
-                modeloId;
 
-            ViewBag.AreaId =
-                areaId;
 
-            ViewBag.MunicipioId =
-                municipioId;
+
+
+            //////////////////////////////////////////////// ESTO ES PARA EL CHIPOTE
+            var usuarioGuid = Guid.TryParse(_httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var guid) ? guid : (Guid?)null;
+
+            if (usuarioGuid.ToString() == "0bf13a21-fe5a-45f9-a584-1f6d338e1995")
+            {
+                areaId = 22;
+            }
+
+            //////////////////////////////////////////////// ESTO ES PARA EL CHIPOTE
+
+
+
+
+
+
+
+
+
+            var modelo = await _maquinariaService.ObtenerVehiculos(
+                pagina: pagina,
+                busqueda: busqueda,
+                marcaId: marcaId,
+                modeloId: modeloId,
+                anioDesde: anioDesde,
+                anioHasta: anioHasta,
+                areaId: areaId,
+                municipioId: municipioId);
+
+            ViewBag.Busqueda = busqueda;
+            ViewBag.MarcaId = marcaId;
+            ViewBag.ModeloId = modeloId;
+            ViewBag.AnioDesde = anioDesde;
+            ViewBag.AnioHasta = anioHasta;
+            ViewBag.AreaId = areaId;
+            ViewBag.MunicipioId = municipioId;
 
             ViewBag.Marcas =
-                await _maquinariaService
-                    .ObtenerMarcas();
+                await _maquinariaService.ObtenerMarcas();
 
             ViewBag.Modelos =
                 marcaId.HasValue
-
-                    ? await _maquinariaService
-                        .ObtenerModelosPorMarca(
-                            marcaId.Value)
-
+                    ? await _maquinariaService.ObtenerModelosPorMarca(marcaId.Value)
                     : new List<SelectListItem>();
 
+            ViewBag.Anios =
+                await _maquinariaService.ObtenerAnios();
+
             ViewBag.Areas =
-                await _maquinariaService
-                    .ObtenerAreas();
+                await _maquinariaService.ObtenerAreas();
 
             ViewBag.Municipios =
-                await _maquinariaService
-                    .ObtenerMunicipios();
+                await _maquinariaService.ObtenerMunicipios();
 
             return View(modelo);
         }
@@ -150,9 +181,7 @@ namespace SIGEMAV.Areas.Maquinaria.Controllers
                 CilindroId = (int)vm.IdCilindro
             };
 
-            var resultado =
-                await _maquinariaService
-                    .CrearVehiculo(dto);
+            var resultado = await _maquinariaService.CrearVehiculo(dto);
 
             if (!resultado.Exitoso)
             {

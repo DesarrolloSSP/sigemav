@@ -3,9 +3,9 @@
 
 @model ConceptoServicioCostoEditViewModel
 
-@{
+@* @{
 	ViewData["Title"] = "Editar Costo Servicio";
-}
+} *@
 
 <div class="container-fluid">
 
@@ -18,7 +18,7 @@
 				<div>
 
 					<h4 class="fw-bold mb-0">
-						Editar Configuración de Costos
+						Editar conceptos y costos
 					</h4>
 
 					<small class="text-muted">
@@ -233,7 +233,7 @@
 							</label>
 
 							<input asp-for="CostoManoObra"
-								   class="form-control" required />
+								   class="form-control"  />
 
 						</div>
 
@@ -244,7 +244,7 @@
 							</label>
 
 							<input asp-for="CostoRefacciones"
-								   class="form-control" required />
+								   class="form-control" />
 
 						</div>
 

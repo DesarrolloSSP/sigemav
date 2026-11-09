@@ -36,11 +36,21 @@ namespace SIGEMAV.Models.ViewModels.Maquinaria
 
         public string Vehiculo { get; set; }
 
+        public string Marca { get; set; } = null!;
+
+        public string Modelo { get; set; } = null!;
+
+        public string NumeroSerie { get; set; } = null!;
+
+        public string PlacaActual { get; set; } = null!;
+
+        public string NumeroEconomico { get; set; } = null!;
+
         public string Taller { get; set; }
 
         public decimal ImporteCotizacion { get; set; }
 
-        public string Observaciones { get; set; }
+        public string? Observaciones { get; set; }
 
         public int? TipoRechazoSolicitudId { get; set; }
 
@@ -63,6 +73,10 @@ namespace SIGEMAV.Models.ViewModels.Maquinaria
         public List<HistorialTecnicoUnidadViewModel> HistorialTecnicoUnidad { get; set; } = new();
 
         public int Kilometraje { get; set; }
+
+        public byte EstadoOdometroId { get; set; }
+
+        public string EstadoOdometroDescripcion { get; set; } = string.Empty;
 
     }
 

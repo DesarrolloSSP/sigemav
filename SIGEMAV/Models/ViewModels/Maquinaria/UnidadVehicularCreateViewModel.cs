@@ -15,9 +15,9 @@ namespace SIGEMAV.Models.ViewModels.Maquinaria
         [StringLength(10)]
         public string PlacaActual { get; set; } = null!;
 
-        [Required(ErrorMessage = "El número económico es obligatorio.")]
+        //[Required(ErrorMessage = "El número económico es obligatorio.")]
         [StringLength(15)]
-        public string NumeroEconomico { get; set; } = null!;
+        public string? NumeroEconomico { get; set; } = null!;
 
         [Required(ErrorMessage = "Seleccione una marca.")]
         public int? IdMarca { get; set; }

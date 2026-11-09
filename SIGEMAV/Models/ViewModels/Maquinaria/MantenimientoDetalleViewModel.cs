@@ -37,16 +37,14 @@
 
         public string? Observaciones { get; set; }
 
-        public List<MantenimientoDetalleViewModel> Servicios
-        {
-            get;
-            set;
-        } = new();
-
         public decimal CostoTotalServicio => TotalLinea;
 
 
         public decimal CostoCalculado => Cantidad * (CostoUnitarioManoObra + CostoUnitarioRefacciones);
+
+
+    
+
 
     }
 

@@ -35,8 +35,6 @@ public partial class Mantenimiento
 
     public DateTime FechaCreacion { get; set; }
 
-    public int? UsuarioCreacionId { get; set; }
-
     public int? SolicitudMantenimientoId { get; set; }
 
     public int? EstatusMantenimientoId { get; set; }
@@ -47,15 +45,21 @@ public partial class Mantenimiento
 
     public decimal? CostoRealTotal { get; set; }
 
-    public int? UsuarioCierreId { get; set; }
-
     public DateTime? FechaCierre { get; set; }
 
     public DateTime? FechaEjecucion { get; set; }
 
     public int? KilometrajeEjecucion { get; set; }
 
+    public string? Folio { get; set; }
+
+    public Guid? UsuarioCreacionId { get; set; }
+
+    public Guid? UsuarioCierreId { get; set; }
+
     public virtual EstatusMantenimiento? EstatusMantenimiento { get; set; }
+
+    public virtual FacturaMantenimiento? FacturaMantenimiento { get; set; }
 
     public virtual ICollection<MantenimientoDetalle> MantenimientoDetalles { get; set; } = new List<MantenimientoDetalle>();
 

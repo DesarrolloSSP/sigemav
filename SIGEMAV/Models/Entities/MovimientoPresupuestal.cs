@@ -19,11 +19,15 @@ public partial class MovimientoPresupuestal
 
     public DateTime? FechaCaptura { get; set; }
 
-    public string? UsuarioCaptura { get; set; }
-
     public bool? Activo { get; set; }
 
     public int? SolicitudMantenimientoId { get; set; }
+
+    public int? FacturaMantenimientoId { get; set; }
+
+    public Guid? UsuarioCaptura { get; set; }
+
+    public virtual FacturaMantenimiento? FacturaMantenimiento { get; set; }
 
     public virtual DispPresupuestal? IdDispPresupuestalNavigation { get; set; }
 

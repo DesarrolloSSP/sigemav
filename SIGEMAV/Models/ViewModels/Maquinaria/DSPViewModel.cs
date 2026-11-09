@@ -83,6 +83,29 @@ namespace SIGEMAV.Models.ViewModels.Maquinaria
 
         public decimal TallerEjercido { get; set; }
 
+        // =====================================================
+        // UMBRALES PRESUPUESTALES DEL TALLER
+        // =====================================================
+
+        public decimal? PorcentajeAlertaTaller { get; set; }
+
+        public decimal? MontoAlertaTaller { get; set; }
+
+        public decimal? PorcentajeCriticoTaller { get; set; }
+
+        public decimal? MontoCriticoTaller { get; set; }
+
+        // =====================================================
+        // DISPONIBILIDAD DESPUÉS DE LA SOLICITUD
+        // =====================================================
+
+        public decimal DisponibleTallerPosterior { get; set; }
+
+
+        public bool TallerEnAlerta { get; set; }
+
+        public bool TallerEnCritico { get; set; }
+
 
     }
 }

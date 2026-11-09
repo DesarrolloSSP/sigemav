@@ -29,9 +29,9 @@ public partial class TransferenciaUnidad
 
     public string DocumentoNombreOriginal { get; set; } = null!;
 
-    public int UsuarioEntregaId { get; set; }
+    public string? UsuarioEntregaId { get; set; }
 
-    public int? UsuarioRecibeId { get; set; }
+    public string? UsuarioRecibeId { get; set; }
 
     public bool Activo { get; set; }
 
@@ -47,9 +47,9 @@ public partial class TransferenciaUnidad
 
     public DateTime? FechaCancelacion { get; set; }
 
-    public int? UsuarioSolicitaId { get; set; }
+    public string? UsuarioSolicitaId { get; set; }
 
-    public int? UsuarioAutorizaId { get; set; }
+    public string? UsuarioAutorizaId { get; set; }
 
     public DateTime? FechaTransferencia { get; set; }
 

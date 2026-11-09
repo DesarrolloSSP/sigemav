@@ -2,20 +2,27 @@
 
 @{
 	var roles = User.Claims
-		.Where(x => x.Type == ClaimTypes.Role)
-		.Select(x => x.Value.Trim())
-		.ToList();
+	 .Where(x => x.Type == ClaimTypes.Role)
+	 .Select(x => x.Value.Trim())
+	 .ToList();
 
 	bool esSysadmin = roles.Any(x =>
-		x.Equals("Sysadmin", StringComparison.OrdinalIgnoreCase));
+	 x.Equals("Sysadmin", StringComparison.OrdinalIgnoreCase));
 
 	bool esAdminFinancieros = roles.Any(x =>
-		x.Equals("AdminFinancieros", StringComparison.OrdinalIgnoreCase));
+	 x.Equals("AdminFinancieros", StringComparison.OrdinalIgnoreCase));
 
 	bool esAdminMaquinaria = roles.Any(x =>
-		x.Equals("AdminMaquinaria", StringComparison.OrdinalIgnoreCase));
+	 x.Equals("AdminMaquinaria", StringComparison.OrdinalIgnoreCase));
+
+	 bool esAreaOperativa = roles.Any(x =>
+	 x.Equals("AreaOperativa", StringComparison.OrdinalIgnoreCase));
 
 }
+
+
+
+
 
 
 
@@ -38,6 +45,7 @@
 
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
+	
 </head>
 
 <body>
@@ -71,7 +79,7 @@
 
 				</div>
 
-
+				
 				@if (esAdminFinancieros || esSysadmin)
 				{
 					<div class="menu-section">
@@ -185,6 +193,7 @@
 					</div>
 				}
 
+				
 				@if (esAdminMaquinaria || esSysadmin)
 				{
 					<div class="menu-section">
@@ -223,14 +232,14 @@
 
 							</a>
 
-							<a asp-area="Maquinaria" asp-controller="Mantenimiento"
+						@* 	<a asp-area="Maquinaria" asp-controller="Mantenimiento"
 							   asp-action="Index">
 
 								<i class="bi bi-folder"></i>
 
 								<span>Mantenimiento</span>
 
-							</a>
+							</a> *@
 
 							<a asp-area="Maquinaria" asp-controller="Transferencia"
 							   asp-action="Index">
@@ -238,6 +247,16 @@
 								<i class="bi bi-folder"></i>
 
 								<span>Transferencias</span>
+
+							</a>
+
+
+							<a asp-area="Maquinaria" asp-controller="Facturacion"
+							   asp-action="Index">
+
+								<i class="bi bi-folder"></i>
+
+								<span>Facturacion</span>
 
 							</a>
 
@@ -289,7 +308,7 @@
 
 							</a>
 
-							<a asp-area="Maquinaria" asp-controller="ConfiguracionValidacionTecnica" asp-action="index">
+							<a asp-area="Maquinaria" asp-controller="ConfiguracionValidacionTecnica" asp-action="Index">
 
 								<i class="bi bi-folder"></i>
 
@@ -297,12 +316,137 @@
 
 							</a>
 
-						</div>
+							<a asp-area="Maquinaria" asp-controller="Taller" asp-action="Index">
 
+								<i class="bi bi-folder"></i>
+
+								<span>Talleres</span>
+
+							</a>
+
+							<a asp-area="Maquinaria" asp-controller="Taller" asp-action="ConfiguracionPresupuestal">
+								<i class="bi bi-folder"></i>
+								<span>Configuración Presupuestal</span>
+							</a>
+
+
+
+							<a asp-area="Maquinaria" asp-controller="TallerConfiguracion" asp-action="Index">
+								<i class="bi bi-folder"></i>
+								<span>Configuración de asignación</span>
+							</a>
+
+
+
+							
+
+							<a asp-area="Maquinaria" asp-controller="Taller" asp-action="ControlPresupuestal">
+								<i class="bi bi-folder"></i>
+								<span>Taller Control Presupuestal</span>
+							</a>
+
+							
+							
+							<a asp-area="Maquinaria" asp-controller="Firmantes" asp-action="Index">
+								<i class="bi bi-folder"></i>
+								<span>Firmantes</span>
+							</a>
+
+
+
+						</div>
 					</div>
 
 
 				}
+
+
+				@if (esAreaOperativa || esSysadmin)
+				{
+					<div class="menu-section">
+						<button type="button" class="menu-parent">
+							<div>
+								<i class="bi bi-folder2-open"></i>
+								<span>GESTIÓN DE VEHÍCULOS</span>
+							</div>
+							<i class="bi bi-chevron-down"></i>
+						</button>
+						<div class="submenu">
+							<a asp-area="Maquinaria" asp-controller="UnidadVehicular" asp-action="Index">
+								<i class="bi bi-folder"></i>
+								<span>Plantilla vehicular</span>
+							</a>
+							<a asp-area="Maquinaria" asp-controller="SolicitudMantenimiento" asp-action="Index">
+								<i class="bi bi-folder"></i>
+								<span>Solicitudes de Mantenimiento</span>
+							</a>
+						@* 	<a asp-area="Maquinaria" asp-controller="Mantenimiento"
+							   asp-action="Index">
+								<i class="bi bi-folder"></i>
+								<span>Mantenimiento</span>
+							</a> *@
+							@* <a asp-area="Maquinaria" asp-controller="Transferencia"
+							   asp-action="Index">
+								<i class="bi bi-folder"></i>
+								<span>Transferencias</span>
+							</a>
+							<a asp-area="Maquinaria" asp-controller="Facturacion"
+							   asp-action="Index">
+								<i class="bi bi-folder"></i>
+								<span>Facturacion</span>
+							</a> *@
+
+								<a asp-area="Maquinaria" asp-controller="Facturacion"
+							   asp-action="Index">
+
+								<i class="bi bi-folder"></i>
+
+								<span>Facturacion</span>
+
+							</a>
+
+						</div>
+					</div>
+
+
+
+
+					<div class="menu-section">
+
+						<button type="button" class="menu-parent">
+
+							<div>
+
+								<i class="bi bi-folder2-open"></i>
+
+								<span>CATÁLOGOS</span>
+
+							</div>
+
+							<i class="bi bi-chevron-down"></i>
+
+						</button>
+
+						<div class="submenu">
+
+							
+
+							
+							
+							<a asp-area="Maquinaria" asp-controller="Firmantes" asp-action="Index">
+								<i class="bi bi-folder"></i>
+								<span>Firmantes</span>
+							</a>
+
+
+
+						</div>
+					</div>
+
+
+				}
+
+
 
 			</nav>
 

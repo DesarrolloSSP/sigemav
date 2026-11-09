@@ -7,7 +7,7 @@ using static SIGEMAV.Areas.Maquinaria.DTOs.DTOs;
 namespace SIGEMAV.Areas.Maquinaria.Controllers
 {
     [Area("Maquinaria")]
-    [Authorize(Roles = "AdminMaquinaria,Sysadmin")]
+    [Authorize(Roles = "AdminMaquinaria,Sysadmin,AreaOperativa")]
     public class MantenimientoController : Controller
     {
         private readonly IMaquinariaService _maquinariaService;
@@ -66,22 +66,22 @@ namespace SIGEMAV.Areas.Maquinaria.Controllers
 
 
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(MantenimientoEditDto dto)
-        {
-            if (!ModelState.IsValid)
-            {
-                return View(dto);
-            }
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        //public async Task<IActionResult> Edit(MantenimientoEditDto dto)
+        //{
+        //    if (!ModelState.IsValid)
+        //    {
+        //        return View(dto);
+        //    }
 
-            await _maquinariaService.EditarMantenimiento(dto);
+        //    await _maquinariaService.EditarMantenimiento(dto);
 
-            TempData["Success"] =
-                "Mantenimiento actualizado correctamente.";
+        //    TempData["Success"] =
+        //        "Mantenimiento actualizado correctamente.";
 
-            return RedirectToAction(nameof(Index));
-        }
+        //    return RedirectToAction(nameof(Index));
+        //}
 
 
 
@@ -94,27 +94,22 @@ namespace SIGEMAV.Areas.Maquinaria.Controllers
         {
             try
             {
-                // 1. Guardar cambios de la pantalla
                 await _maquinariaService.EditarMantenimiento(dto);
 
-                // 2. Finalizar
-                await _maquinariaService
-                    .FinalizarMantenimiento(dto.MantenimientoId);
+                await _maquinariaService.FinalizarMantenimiento(dto.MantenimientoId,dto.Servicios);
 
-                TempData["Success"] =
-                    "El mantenimiento fue finalizado correctamente.";
+                TempData["Success"] = "El mantenimiento fue finalizado correctamente.";
 
-                return RedirectToAction(nameof(Index));
+                //return RedirectToAction(nameof(Index));
+                return RedirectToAction("Index","SolicitudMantenimiento");
             }
             catch (Exception ex)
             {
                 TempData["Error"] =
                     ex.Message.Replace("WARNING|", "");
 
-                return RedirectToAction(
-                    nameof(Edit),
-                    new
-                    {
+                return RedirectToAction(nameof(Edit),
+                    new                    {
                         solicitudId = dto.SolicitudMantenimientoId
                     });
             }

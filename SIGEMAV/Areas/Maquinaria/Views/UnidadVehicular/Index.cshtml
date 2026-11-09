@@ -35,9 +35,7 @@
 
 			<!-- FILTROS -->
 
-			<form method="get"
-				  asp-action="Index"
-				  class="mb-4">
+			<form method="get" asp-action="Index" class="mb-4">
 
 				<div class="row g-3">
 
@@ -57,7 +55,6 @@
 
 					</div>
 
-					<!-- MARCA -->
 					<!-- MARCA -->
 
 					<div class="col-md-3">
@@ -133,6 +130,7 @@
 
 					</div>
 
+
 					<!-- AREA -->
 
 					<div class="col-md-2">
@@ -179,8 +177,7 @@
 
 							@foreach (var item in ViewBag.Municipios)
 							{
-								<option value="@item.Value"
-										selected="@(ViewBag.MunicipioId?.ToString() == item.Value)">
+								<option value="@item.Value" selected="@(ViewBag.MunicipioId?.ToString() == item.Value)">
 
 									@item.Text
 
@@ -190,6 +187,79 @@
 						</select>
 
 					</div>
+
+
+					<!-- AÑO DESDE -->
+					<div class="col-md-2">
+
+						<label class="form-label fw-semibold">
+							Año desde
+						</label>
+
+						<select name="anioDesde"
+								class="form-select form-select-sm">
+
+							<option value="">
+								Desde...
+							</option>
+
+							@foreach (var item in (List<SelectListItem>)ViewBag.Anios)
+							{
+								if (ViewBag.AnioDesde?.ToString() == item.Value)
+								{
+									<option value="@item.Value" selected>
+										@item.Text
+									</option>
+								}
+								else
+								{
+									<option value="@item.Value">
+										@item.Text
+									</option>
+								}
+							}
+
+						</select>
+
+					</div>
+
+					<!-- AÑO HASTA -->
+					<div class="col-md-2">
+
+						<label class="form-label fw-semibold">
+							Año hasta
+						</label>
+
+						<select name="anioHasta"
+								class="form-select form-select-sm">
+
+							<option value="">
+								Hasta...
+							</option>
+
+							@foreach (var item in (List<SelectListItem>)ViewBag.Anios)
+							{
+								if (ViewBag.AnioHasta?.ToString() == item.Value)
+								{
+									<option value="@item.Value" selected>
+										@item.Text
+									</option>
+								}
+								else
+								{
+									<option value="@item.Value">
+										@item.Text
+									</option>
+								}
+							}
+
+						</select>
+
+					</div>
+
+
+
+
 
 					<!-- BOTONES -->
 
@@ -203,8 +273,7 @@
 
 						</button>
 
-						<a asp-action="Index"
-						   class="btn btn-sm btn-outline-secondary w-100">
+						<a asp-action="Index" class="btn btn-sm btn-outline-secondary w-100">
 
 							<i class="bi bi-arrow-clockwise"></i>
 
@@ -354,6 +423,8 @@
 									   asp-route-busqueda="@ViewBag.Busqueda"
 									   asp-route-marcaId="@ViewBag.MarcaId"
 									   asp-route-modeloId="@ViewBag.ModeloId"
+									   asp-route-anioDesde="@ViewBag.AnioDesde"
+									   asp-route-anioHasta="@ViewBag.AnioHasta"
 									   asp-route-areaId="@ViewBag.AreaId"
 									   asp-route-municipioId="@ViewBag.MunicipioId">
 
@@ -372,6 +443,8 @@
 									   asp-route-busqueda="@ViewBag.Busqueda"
 									   asp-route-marcaId="@ViewBag.MarcaId"
 									   asp-route-modeloId="@ViewBag.ModeloId"
+									   asp-route-anioDesde="@ViewBag.AnioDesde"
+									   asp-route-anioHasta="@ViewBag.AnioHasta"
 									   asp-route-areaId="@ViewBag.AreaId"
 									   asp-route-municipioId="@ViewBag.MunicipioId">
 
@@ -382,15 +455,8 @@
 								</li>
 
 								@{
-									int inicio =
-										Math.Max(
-											1,
-											Model.PaginaActual - 2);
-
-									int fin =
-										Math.Min(
-											Model.TotalPaginas,
-											Model.PaginaActual + 2);
+									int inicio = Math.Max(1, Model.PaginaActual - 2);
+									int fin = Math.Min(Model.TotalPaginas, Model.PaginaActual + 2);
 								}
 
 								@for (int i = inicio; i <= fin; i++)
@@ -402,6 +468,8 @@
 										   asp-route-busqueda="@ViewBag.Busqueda"
 										   asp-route-marcaId="@ViewBag.MarcaId"
 										   asp-route-modeloId="@ViewBag.ModeloId"
+										   asp-route-anioDesde="@ViewBag.AnioDesde"
+										   asp-route-anioHasta="@ViewBag.AnioHasta"
 										   asp-route-areaId="@ViewBag.AreaId"
 										   asp-route-municipioId="@ViewBag.MunicipioId">
 
@@ -421,6 +489,8 @@
 									   asp-route-busqueda="@ViewBag.Busqueda"
 									   asp-route-marcaId="@ViewBag.MarcaId"
 									   asp-route-modeloId="@ViewBag.ModeloId"
+									   asp-route-anioDesde="@ViewBag.AnioDesde"
+									   asp-route-anioHasta="@ViewBag.AnioHasta"
 									   asp-route-areaId="@ViewBag.AreaId"
 									   asp-route-municipioId="@ViewBag.MunicipioId">
 
@@ -439,15 +509,21 @@
 									   asp-route-busqueda="@ViewBag.Busqueda"
 									   asp-route-marcaId="@ViewBag.MarcaId"
 									   asp-route-modeloId="@ViewBag.ModeloId"
+									   asp-route-anioDesde="@ViewBag.AnioDesde"
+									   asp-route-anioHasta="@ViewBag.AnioHasta"
 									   asp-route-areaId="@ViewBag.AreaId"
 									   asp-route-municipioId="@ViewBag.MunicipioId">
 
 										<i class="bi bi-chevron-double-right"></i>
 
 									</a>
+
 								</li>
+
 							</ul>
+
 						</nav>
+
 					</div>
 
 

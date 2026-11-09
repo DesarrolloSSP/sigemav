@@ -25,7 +25,6 @@
 		</div>
 	</div>
 
-
 	@if (ViewBag.Error != null)
 	{
 		<div class="alert alert-danger alert-dismissible fade show"
@@ -60,536 +59,813 @@
 
 					<input asp-for="SolicitudMantenimientoId" type="hidden" />
 
-					<input asp-for="TipoRechazoSolicitudId"
-						   id="hiddenTipoRechazo"
-						   type="hidden" />
-
-					<input asp-for="Observaciones"
-						   id="hiddenObservaciones"
-						   type="hidden" />
-
 					<input type="hidden"
 						   id="aprobadaInput"
 						   name="aprobada" />
 
 
-					<!-- DATOS -->
-					<div class="card border mb-4">
+					<!-- DATOS GENERALES DE LA SOLICITUD -->
+						<div class="card border-0 shadow-sm rounded-3 mb-4">
 
-						@* <div class="card-header border-bottom bg-white"> *@
-						<div class="card-header"
-							 style="background:#EEF2F7;
-							border-bottom:1px solid #D6DCE5;">
-
-							<h6 class="fw-bold mb-0">
-
-								<i class="bi bi-file-earmark-text me-2 text-primary"></i>
-
-								Datos generales de la solicitud
-
-							</h6>
-
-						</div>
-
-						<div class="card-body">
-
-							<div class="row g-4">
-
-								<div class="col-md-3">
-									<label class="text-muted small">Folio</label>
-									<div class="fw-semibold">@Model.Folio</div>
-								</div>
-
-								<div class="col-md-3">
-									<label class="text-muted small">Área</label>
-									<div>@Model.AreaSolicitante</div>
-								</div>
-
-								<div class="col-md-3">
-									<label class="text-muted small">Vehículo</label>
-									<div>@Model.Vehiculo</div>
-								</div>
-
-								<div class="col-md-3">
-									<label class="text-muted small">Taller</label>
-									<div>@Model.Taller</div>
-								</div>
-
-							</div>
-
-						</div>
-
-					</div>
-
-
-					<!-- CONCEPTOS -->
-
-					<div class="card border mb-4">
-
-						<div class="card-header"
-							 style="background:#EEF2F7;
-							border-bottom:1px solid #D6DCE5;">
-
-							<div class="d-flex justify-content-between">
-
-								<h6 class="fw-bold mb-0">
-
-									<i class="bi bi-tools me-2 text-success"></i>
-
-									Servicios solicitados
-
-								</h6>
-
-								<span class="badge bg-light text-dark">
-
-									@Model.Conceptos.Count concepto(s)
-
-								</span>
-
-							</div>
-
-						</div>
-
-						<div class="card-body p-0">
-
-							<table class="table table-hover mb-0">
-
-								<thead style="background:#F8FAFC;">
-
-									<tr>
-
-										<th>Servicio</th>
-
-										<th class="text-center">
-											Cantidad
-										</th>
-
-										<th class="text-end">
-											Mano de obra
-										</th>
-
-										<th class="text-end">
-											Refacciones
-										</th>
-
-									</tr>
-
-								</thead>
-
-								<tbody>
-
-									@foreach (var item in Model.Conceptos)
-									{
-										<tr>
-
-											<td>@item.ConceptoServicioNombre</td>
-
-											<td>@item.Cantidad</td>
-
-											<td>
-												@item.CostoEstimadoManoObra.ToString("C")
-											</td>
-
-											<td>
-												@item.CostoEstimadoRefacciones.ToString("C")
-											</td>
-
-										</tr>
-									}
-
-								</tbody>
-
-							</table>
-
-						</div>
-
-					</div>
-
-
-					<!-- HISTORICO -->
-
-					<div class="card border mb-4">
-
-						<div class="card-header"
-							 style="background:#EEF2F7;
-							border-bottom:1px solid #D6DCE5;">
-
-							<div class="d-flex justify-content-between">
-
-								<div>
-
-									<h6 class="fw-bold mb-0">
-
-										<i class="bi bi-clock-history me-2 text-warning"></i>
-
-										Historial de mantenimientos ejecutados
-
+							<!-- ENCABEZADO -->
+							<div class="card-header bg-light border-bottom d-flex justify-content-between align-items-center py-3 px-4">
+								<div class="d-flex align-items-center gap-2">
+									<i class="bi bi-file-earmark-text text-primary fs-5"></i>
+									<h6 class="fw-bold mb-0 text-dark">
+										Datos generales de la solicitud
 									</h6>
-
-									<small class="text-muted">
-
-										Base histórica para validación técnica
-
-									</small>
-
 								</div>
-
+								<div class="text-end">
+									<span class="badge bg-primary-subtle text-primary border border-primary-subtle fs-6 px-3 py-2 rounded-pill">
+										<i class="bi bi-hash me-1"></i>Folio: <strong>@Model.Folio</strong>
+									</span>
+								</div>
 							</div>
 
-						</div>
+							<!-- CUERPO DEL CARD -->
+							<div class="card-body p-4">
+								<div class="row g-4 align-items-center">
 
-						<div class="card-body">
+									<!-- UNIDAD VEHICULAR -->
+									<div class="col-lg-7 border-end-lg pe-lg-4">
+                
+										<div class="d-flex align-items-center gap-2 text-muted small fw-bold text-uppercase tracking-wide mb-1">
+											<i class="bi bi-car-front text-secondary"></i>
+											Unidad Vehicular
+										</div>
 
-							@if (Model.HistorialTecnicoUnidad.Any())
-							{
+										<!-- MARCA / MODELO -->
+										<h3 class="fw-bold text-dark mb-3">
+											@Model.Marca <span class="fw-normal text-secondary">@Model.Modelo</span>
+										</h3>
 
-								<div class="table-responsive">
+										<!-- IDENTIFICADORES Y FICHAS -->
+										<div class="row g-2 text-center">
 
-									<table class="table table-sm">
+											<!-- NÚMERO DE SERIE -->
+											<div class="col-md-4">
+												<div class="p-2 rounded bg-light border">
+													<div class="text-uppercase text-muted extra-small fw-bold mb-1">
+														No. de Serie
+													</div>
+													<div class="fw-semibold text-dark text-truncate" title="@Model.NumeroSerie">
+														@(string.IsNullOrWhiteSpace(Model.NumeroSerie) ? "N/A" : Model.NumeroSerie)
+													</div>
+												</div>
+											</div>
 
-										<thead>
+											<!-- PLACA -->
+											<div class="col-md-4">
+												<div class="p-2 rounded bg-light border">
+													<div class="text-uppercase text-muted extra-small fw-bold mb-1">
+														Placa
+													</div>
+													<div class="fw-semibold text-dark">
+														@(string.IsNullOrWhiteSpace(Model.PlacaActual) ? "Sin placa" : Model.PlacaActual)
+													</div>
+												</div>
+											</div>
 
-											<tr>
+											<!-- NÚMERO ECONÓMICO -->
+											<div class="col-md-4">
+												<div class="p-2 rounded bg-light border">
+													<div class="text-uppercase text-muted extra-small fw-bold mb-1">
+														No. Económico
+													</div>
+													<div class="fw-semibold text-dark">
+														@(string.IsNullOrWhiteSpace(Model.NumeroEconomico) ? "N/A" : Model.NumeroEconomico)
+													</div>
+												</div>
+											</div>
 
-												<th>Fecha</th>
-												<th>Servicio</th>
-												<th>KM</th>
-												<th>Costo</th>
-												<th>Días</th>
-												<th></th>
+										</div>
 
-											</tr>
+									</div>
 
-										</thead>
+									<!-- LECTURA DEL ODÓMETRO -->
+									<div class="col-lg-5 ps-lg-4">
 
-										<tbody>
+										<div class="d-flex align-items-center gap-2 text-muted small fw-bold text-uppercase tracking-wide mb-2">
+											<i class="bi bi-speedometer2 text-secondary"></i>
+											Lectura del Odómetro
+										</div>
 
-											@foreach (var h in Model.HistorialTecnicoUnidad)
+										<div class="p-3 rounded-3 bg-light border">
+											@if (Model.EstadoOdometroId == 1)
 											{
+												<div class="d-flex align-items-baseline gap-2">
+													<span class="display-6 fw-bold text-dark">
+														@Model.Kilometraje.ToString("N0")
+													</span>
+													<span class="fs-5 fw-semibold text-muted">km</span>
+												</div>
 
-												<tr>
-
-													<td>
-														@h.Fecha.ToString("dd/MM/yyyy")
-													</td>
-
-													<td>
-														@h.Concepto
-													</td>
-
-													<td>
-														@h.Kilometraje
-													</td>
-
-													<td>
-														@h.Costo.ToString("C")
-													</td>
-
-													<td>
-														@h.DiasDesdeUltimo
-													</td>
-
-													<td>
-
-														@if (h.EsRecurrencia)
-														{
-															<span class="badge bg-danger">
-																Recurrente
-															</span>
-														}
-
-													</td>
-
-												</tr>
-
+												<div class="d-flex align-items-center gap-1 small text-success mt-1">
+													<i class="bi bi-check-circle-fill"></i>
+													<span>Lectura registrada correctamente</span>
+												</div>
 											}
+											else
+											{
+												<div class="d-flex align-items-center gap-2 text-warning-emphasis fw-bold fs-5">
+													<i class="bi bi-exclamation-triangle-fill text-warning"></i>
+													<span>@Model.EstadoOdometroDescripcion</span>
+												</div>
 
-										</tbody>
+												<div class="small text-muted mt-2">
+													@switch (Model.EstadoOdometroId)
+													{
+														case 2:
+															<text>El odómetro presenta una falla y no fue posible obtener una lectura confiable.</text>
+															break;
+														case 3:
+															<text>No se registró la lectura del kilometraje durante la recepción.</text>
+															break;
+														case 4:
+															<text>No fue posible verificar el estado del odómetro durante la recepción.</text>
+															break;
+														default:
+															<text>Sin información disponible del odómetro.</text>
+															break;
+													}
+												</div>
+											}
+										</div>
 
-									</table>
+									</div>
+
+								</div>
+							</div>
+
+							<!-- PIE DE PÁGINA (ÁREA Y TALLER) -->
+							<div class="card-footer bg-light border-top py-3 px-4">
+								<div class="row g-3">
+
+									<div class="col-md-6 border-end-md">
+										<div class="d-flex align-items-start gap-2">
+											<i class="bi bi-building text-primary mt-1"></i>
+											<div>
+												<div class="text-uppercase text-muted extra-small fw-bold">
+													Área Solicitante
+												</div>
+												<div class="fw-semibold text-dark">
+													@Model.AreaSolicitante
+												</div>
+											</div>
+										</div>
+									</div>
+
+									<div class="col-md-6 ps-md-4">
+										<div class="d-flex align-items-start gap-2">
+											<i class="bi bi-tools text-primary mt-1"></i>
+											<div>
+												<div class="text-uppercase text-muted extra-small fw-bold">
+													Taller Asignado
+												</div>
+												<div class="fw-semibold text-dark">
+													@Model.Taller
+												</div>
+											</div>
+										</div>
+									</div>
+
+								</div>
+							</div>
+
+						</div>
+
+
+							<!-- SERVICIOS SOLICITADOS (CONCEPTOS) -->
+								<div class="card border-0 shadow-sm rounded-3 mb-4 overflow-hidden">
+
+									<!-- ENCABEZADO -->
+									<div class="card-header bg-light border-bottom d-flex justify-content-between align-items-center py-3 px-4">
+										<div class="d-flex align-items-center gap-2">
+											<i class="bi bi-tools text-primary fs-5"></i>
+											<h6 class="fw-bold mb-0 text-dark">
+												Servicios solicitados (Con IVA 16% Desglosado)
+											</h6>
+										</div>
+										<div>
+											<span class="badge bg-primary-subtle text-primary border border-primary-subtle fs-6 px-3 py-1 rounded-pill">
+												@Model.Conceptos.Count concepto(s)
+											</span>
+										</div>
+									</div>
+
+									<!-- TABLA DE CONCEPTOS -->
+									<div class="card-body p-0">
+										@if (Model.Conceptos != null && Model.Conceptos.Any())
+										{
+											<div class="table-responsive">
+												<table class="table table-hover align-middle mb-0">
+													<thead class="bg-light border-bottom text-uppercase extra-small text-muted fw-bold">
+														<tr>
+															<th class="ps-4 py-3" style="min-width: 220px;">
+																<i class="bi bi-wrench-adjustable me-1 text-secondary"></i> Servicio / Concepto
+															</th>
+															<th class="text-center py-3" style="width: 70px;">
+																Cant.
+															</th>
+															<th class="text-end py-3" style="width: 140px;">
+																Mano de Obra
+															</th>
+															<th class="text-end py-3" style="width: 140px;">
+																Refacciones
+															</th>
+															<th class="text-end py-3" style="width: 130px;">
+																IVA (16%)
+															</th>
+															<th class="text-end pe-4 py-3" style="width: 150px;">
+																Total
+															</th>
+														</tr>
+													</thead>
+													<tbody>
+														@foreach (var item in Model.Conceptos)
+														{
+															var subtotalManoObraBase = item.CostoEstimadoManoObra * item.Cantidad;
+															var subtotalRefaccionesBase = item.CostoEstimadoRefacciones * item.Cantidad;
+                            
+															// Cálculo seguro del IVA y Total por renglón usando las propiedades del backend
+															var subtotalFila = subtotalManoObraBase + subtotalRefaccionesBase;
+															var ivaFila = subtotalFila * 0.16m;
+															var totalFila = subtotalFila + ivaFila;
+
+															<tr>
+																<td class="ps-4 py-3 fw-semibold text-dark">
+																	@item.ConceptoServicioNombre
+																</td>
+																<td class="text-center py-3">
+																	<span class="badge bg-light text-dark border px-2 py-1 fs-6 fw-normal">
+																		@item.Cantidad
+																	</span>
+																</td>
+																<!-- Mano de Obra (Base) -->
+																<td class="text-end py-3 text-secondary">
+																	@subtotalManoObraBase.ToString("C")
+																</td>
+																<!-- Refacciones (Base) -->
+																<td class="text-end py-3 text-secondary">
+																	@subtotalRefaccionesBase.ToString("C")
+																</td>
+																<!-- IVA (16%) -->
+																<td class="text-end py-3 text-muted">
+																	@ivaFila.ToString("C")
+																</td>
+																<!-- Total con IVA -->
+																<td class="text-end pe-4 py-3 fw-bold text-dark">
+																	<span class="text-success">@totalFila.ToString("C")</span>
+																</td>
+															</tr>
+														}
+													</tbody>
+													<!-- PIE DE TABLA / TOTALES GENERALES -->
+													<tfoot class="bg-light border-top fw-bold text-dark">
+														@{
+															var totalManoObraBaseGeneral = Model.Conceptos.Sum(x => x.CostoEstimadoManoObra * x.Cantidad);
+															var totalRefaccionesBaseGeneral = Model.Conceptos.Sum(x => x.CostoEstimadoRefacciones * x.Cantidad);
+															var subtotalGeneral = totalManoObraBaseGeneral + totalRefaccionesBaseGeneral;
+															var ivaGeneral = subtotalGeneral * 0.16m;
+															var totalGeneralConIva = subtotalGeneral + ivaGeneral;
+														}
+														<tr>
+															<td colspan="2" class="ps-4 py-3 text-uppercase extra-small text-muted fw-bold">
+																Totales Generales
+															</td>
+															<td class="text-end py-3 text-dark">
+																@totalManoObraBaseGeneral.ToString("C")
+															</td>
+															<td class="text-end py-3 text-dark">
+																@totalRefaccionesBaseGeneral.ToString("C")
+															</td>
+															<td class="text-end py-3 text-muted">
+																@ivaGeneral.ToString("C")
+															</td>
+															<td class="text-end pe-4 py-3 fs-6 text-primary fw-bold">
+																@totalGeneralConIva.ToString("C")
+															</td>
+														</tr>
+													</tfoot>
+												</table>
+											</div>
+										}
+										else
+										{
+											<div class="text-center py-5 px-4">
+												<i class="bi bi-inbox text-muted display-6 d-block mb-3"></i>
+												<h6 class="fw-semibold text-secondary">No se han registrado conceptos o servicios en esta solicitud.</h6>
+												<p class="small text-muted mb-0">Verifique el detalle o contacte al área correspondiente.</p>
+											</div>
+										}
+									</div>
+								</div>
+
+
+
+
+												<!-- HISTORIAL DE MANTENIMIENTOS EJECUTADOS -->
+							<div class="card border-0 shadow-sm rounded-3 mb-4 overflow-hidden">
+
+								<!-- ENCABEZADO -->
+								<div class="card-header bg-light border-bottom d-flex justify-content-between align-items-center py-3 px-4">
+									<div class="d-flex align-items-center gap-2">
+										<i class="bi bi-clock-history text-primary fs-5"></i>
+										<div>
+											<h6 class="fw-bold mb-0 text-dark">
+												Historial de mantenimientos ejecutados
+											</h6>
+											<small class="text-muted extra-small">
+												Base de antecedentes para dictamen y validación técnica
+											</small>
+										</div>
+									</div>
+									<div class="d-flex align-items-center gap-2">
+										@{
+											var totalRecurrencias = Model.HistorialTecnicoUnidad?.Count(x => x.EsRecurrencia) ?? 0;
+										}
+										@if (totalRecurrencias > 0)
+										{
+											<span class="badge bg-danger-subtle text-danger border border-danger-subtle px-3 py-1 rounded-pill extra-small fw-bold">
+												<i class="bi bi-exclamation-triangle-fill me-1"></i>@totalRecurrencias Recurrencia(s)
+											</span>
+										}
+										<span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle fs-6 px-3 py-1 rounded-pill">
+											@(Model.HistorialTecnicoUnidad?.Count ?? 0) registro(s)
+										</span>
+									</div>
+								</div>
+
+								<!-- CUERPO DE TABLA -->
+								<div class="card-body p-0">
+									@if (Model.HistorialTecnicoUnidad != null && Model.HistorialTecnicoUnidad.Any())
+									{
+										<div class="table-responsive">
+											<table class="table table-hover align-middle mb-0">
+												<thead class="bg-light border-bottom text-uppercase extra-small text-muted fw-bold">
+													<tr>
+														<th class="ps-4 py-3" style="width: 130px;">
+															<i class="bi bi-calendar3 me-1 text-secondary"></i> Fecha
+														</th>
+														<th class="py-3" style="min-width: 200px;">
+															<i class="bi bi-wrench me-1 text-secondary"></i> Servicio / Concepto
+														</th>
+														<th class="text-center py-3" style="width: 120px;">
+															Kilometraje
+														</th>
+														<th class="text-end py-3" style="width: 140px;">
+															Costo
+														</th>
+														<th class="text-center py-3" style="width: 120px;">
+															Frecuencia
+														</th>
+														<th class="text-end pe-4 py-3" style="width: 140px;">
+															Estado
+														</th>
+													</tr>
+												</thead>
+												<tbody>
+													@foreach (var h in Model.HistorialTecnicoUnidad)
+													{
+														<tr class="@(h.EsRecurrencia ? "bg-danger-subtle bg-opacity-10" : "")">
+															<!-- FECHA -->
+															<td class="ps-4 py-3 fw-semibold text-dark text-nowrap">
+																@h.Fecha.ToString("dd/MM/yyyy")
+															</td>
+
+															<!-- SERVICIO -->
+															<td class="py-3 fw-semibold text-dark">
+																@h.Concepto
+															</td>
+
+															<!-- KILOMETRAJE -->
+															<td class="text-center py-3 text-secondary text-nowrap">
+																<span class="badge bg-light text-dark border fw-normal px-2 py-1">
+																	@h.Kilometraje.ToString("N0") km
+																</span>
+															</td>
+
+															<!-- COSTO -->
+															<td class="text-end py-3 fw-bold text-dark text-nowrap">
+																@h.Costo.ToString("C")
+															</td>
+
+														<!-- DÍAS DESDE ÚLTIMO -->
+														<td class="text-center py-3 text-nowrap">
+															@{
+																// Con el servicio corregido (now.Date - fecha.Date), h.DiasDesdeUltimo ya es exacto
+																int dias = h.DiasDesdeUltimo;
+
+																string textoHumano;
+
+																if (dias <= 0)
+																{
+																	textoHumano = "Hoy";
+																}
+																else if (dias == 1)
+																{
+																	textoHumano = "Ayer";
+																}
+																else
+																{
+																	textoHumano = $"Hace {dias} días";
+																}
+															}
+
+															@if (dias <= 30)
+															{
+																<span class="badge bg-warning text-warning-emphasis border border-warning-subtle px-2 py-1 rounded-2" 
+																	  title="Mantenimiento ejecutado en los últimos 30 días">
+																	@textoHumano
+																</span>
+															}
+															else
+															{
+																<span class="small text-muted">
+																	@textoHumano
+																</span>
+															}
+														</td>
+
+															<!-- ALERTA DE RECURRENCIA -->
+															<td class="text-end pe-4 py-3 text-nowrap">
+																@if (h.EsRecurrencia)
+																{
+																	<span class="badge bg-danger text-white px-2 py-1 shadow-sm">
+																		<i class="bi bi-arrow-repeat me-1"></i>Recurrente
+																	</span>
+																}
+																else
+																{
+																	<span class="badge bg-light text-muted border fw-normal px-2 py-1">
+																		Normal
+																	</span>
+																}
+															</td>
+														</tr>
+													}
+												</tbody>
+											</table>
+										</div>
+									}
+									else
+									{
+										<div class="text-center py-5 px-4">
+											<i class="bi bi-clock-history text-muted display-6 d-block mb-3"></i>
+											<h6 class="fw-semibold text-secondary">Sin historial de mantenimiento registrado</h6>
+											<p class="small text-muted mb-0">Esta unidad vehicular no cuenta con intervenciones previas en la base de datos.</p>
+										</div>
+									}
+								</div>
+
+								<!-- FOOTER INFORMATIVO -->
+								@if (Model.HistorialTecnicoUnidad != null && Model.HistorialTecnicoUnidad.Any())
+								{
+									<div class="card-footer bg-light border-top py-3 px-4">
+										<div class="d-flex justify-content-between align-items-center">
+											<small class="text-muted extra-small">
+												<i class="bi bi-info-circle me-1"></i> Registros ordenados cronológicamente desde la intervención más reciente.
+											</small>
+											<small class="text-muted extra-small">
+												Gasto acumulado visible en el panel de dictamen.
+											</small>
+										</div>
+									</div>
+								}
+
+							</div>
+
+
+												<!-- RESOLUCIÓN DE REVISIÓN TÉCNICA (DICTAMEN) -->
+							<div class="card border-0 shadow-sm rounded-3 mb-4 overflow-hidden">
+
+								<!-- ENCABEZADO -->
+								<div class="card-header bg-light border-bottom d-flex justify-content-between align-items-center py-3 px-4">
+									<div class="d-flex align-items-center gap-2">
+										<i class="bi bi-clipboard-check text-primary fs-5"></i>
+										<div>
+											<h6 class="fw-bold mb-0 text-dark">
+												Resolución de revisión técnica
+											</h6>
+											<small class="text-muted extra-small">
+												Ingrese el dictamen, observaciones y motivo de rechazo en caso de aplicar
+											</small>
+										</div>
+									</div>
+								</div>
+
+								<!-- CUERPO DEL FORMULARIO -->
+								<div class="card-body p-4">
+
+									<!-- CAMPO: OBSERVACIONES -->
+									<div class="mb-4">
+										<label asp-for="Observaciones" class="form-label fw-semibold text-dark d-flex align-items-center gap-1">
+											<i class="bi bi-chat-left-text text-secondary"></i>
+											Observaciones de la revisión
+											<span class="text-danger">*</span>
+										</label>
+
+										<textarea asp-for="Observaciones"
+												  id="Observaciones"
+												  rows="4"
+												  class="form-control rounded-2 p-3"
+												  placeholder="Escriba aquí los hallazgos técnicos, justificación o detalles sobre la decisión tomada..."></textarea>
+
+										<span asp-validation-for="Observaciones" class="text-danger small mt-1 d-block"></span>
+									</div>
+
+									<!-- CAMPO: TIPO DE RECHAZO -->
+									<div class="p-3 bg-light rounded-3 border">
+										<div class="mb-2">
+											<label asp-for="TipoRechazoSolicitudId" class="form-label fw-semibold text-dark d-flex align-items-center gap-1 mb-1">
+												<i class="bi bi-x-circle text-danger"></i>
+												Tipo de rechazo
+												<span class="text-muted extra-small fw-normal">(Requerido únicamente si la solicitud es rechazada)</span>
+											</label>
+
+											<select asp-for="TipoRechazoSolicitudId"
+													asp-items="Model.TiposRechazo"
+													class="form-select rounded-2"
+													id="tipoRechazoSelect">
+												<option value="">-- Seleccione el motivo de rechazo --</option>
+											</select>
+
+											<span asp-validation-for="TipoRechazoSolicitudId" class="text-danger small mt-1 d-block"></span>
+										</div>
+									</div>
 
 								</div>
 
-							}
-
-						</div>
-
-					</div>
-
-
-					<!-- DICTAMEN -->
-
-					<div class="card border">
-
-						<div class="card-header"
-							 style="background:#EEF2F7;
-							border-bottom:1px solid #D6DCE5;">
-
-							<h6 class="fw-bold mb-0">
-
-								<i class="bi bi-pencil-square me-2 text-danger"></i>
-
-								Resolución de revisión técnica
-
-							</h6>
-
-						</div>
-
-						<div class="card-body">
-
-							<textarea asp-for="Observaciones"
-									  rows="5"
-									  class="form-control">
-                    </textarea>
-
-							<div class="mt-3">
-
-								<select asp-for="TipoRechazoSolicitudId"
-										asp-items="Model.TiposRechazo"
-										class="form-select"
-										id="tipoRechazoSelect">
-
-									<option value="">
-										Seleccione tipo rechazo
-									</option>
-
-								</select>
+								<!-- PIE DEL CONTENEDOR CON NOTA INFORMATIVA -->
+								<div class="card-footer bg-light border-top py-3 px-4">
+									<small class="text-muted extra-small d-flex align-items-center gap-1">
+										<i class="bi bi-shield-check text-success fs-6"></i>
+										Las observaciones quedarán asentadas permanentemente en el expediente histórico de la solicitud.
+									</small>
+								</div>
 
 							</div>
 
-						</div>
-
-					</div>
 
 
 
+												<!-- BARRA DE ACCIONES Y RESOLUCIÓN -->
+							<div class="card border-0 shadow-sm rounded-3 mt-4">
+								<div class="card-body p-3 bg-light rounded-3 d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3">
+        
+									<!-- MENSAJE DE ESTADO INFORMATIVO -->
+									<div class="d-flex align-items-center gap-2 text-muted small">
+										@if (Model.EstatusSolicitudMantenimientoId >= 5 && Model.EstatusSolicitudMantenimientoId != 6)
+										{
+											<i class="bi bi-shield-lock-fill text-secondary fs-5"></i>
+											<span>Esta solicitud se encuentra en un estatus final o procesado y no admite modificaciones.</span>
+										}
+										else
+										{
+											<i class="bi bi-exclamation-circle text-primary fs-5"></i>
+											<span>Confirme su decisión para procesar y actualizar la solicitud.</span>
+										}
+									</div>
 
-					@if (Model.EstatusSolicitudMantenimientoId >= 5)
-					{
-						
-							@if (Model.EstatusSolicitudMantenimientoId == 6)
-							{
-							<div class="d-flex justify-content-end gap-2 mt-4">
+									<!-- BOTONES DE ACCIÓN -->
+									<div class="d-flex align-items-center gap-2 w-100 w-sm-auto justify-content-end">
+										@if (Model.EstatusSolicitudMantenimientoId >= 5)
+										{
+											if (Model.EstatusSolicitudMantenimientoId == 6)
+											{
+												<button id="btnAprobar"
+														type="button"
+														class="btn btn-success px-4 py-2 fw-semibold shadow-sm rounded-2 d-flex align-items-center gap-2">
+													<i class="bi bi-check-circle-fill"></i>
+													<span>Autorizar revisión</span>
+												</button>
+											}
+											else
+											{
+												<button type="button" 
+														class="btn btn-secondary px-4 py-2 fw-semibold rounded-2 d-flex align-items-center gap-2 opacity-75" 
+														disabled>
+													<i class="bi bi-lock-fill"></i>
+													<span>Solicitud procesada</span>
+												</button>
+											}
+										}
+										else
+										{
+											<button id="btnRechazar"
+													type="button"
+													class="btn btn-outline-danger px-4 py-2 fw-semibold rounded-2 d-flex align-items-center gap-2">
+												<i class="bi bi-x-lg"></i>
+												<span>Rechazar</span>
+											</button>
 
-								@* <button id="btnRechazar"
-										type="button"
-										class="btn btn-danger">
-									Rechazar
-								</button> *@
-								<button id="btnAprobar"
-										type="button"
-										class="btn btn-success">
-									Autorizar revisión
-								</button>
+											<button id="btnAprobar"
+													type="button"
+													class="btn btn-success px-4 py-2 fw-semibold shadow-sm rounded-2 d-flex align-items-center gap-2">
+												<i class="bi bi-check-circle-fill"></i>
+												<span>Autorizar revisión</span>
+											</button>
+										}
+									</div>
+
+								</div>
 							</div>
-							}
-							else
-							{
-							<div class="d-flex justify-content-end gap-2 mt-4">
-								<button type="button" class="btn btn-secondary" disabled>
-									<i class="bi bi-lock-fill me-1"></i>
-									Solicitud ya autorizada
-								</button>
-							</div>
-							}
-					}
-					else
-					{
-						<div class="d-flex justify-content-end gap-2 mt-4">
-
-							<button id="btnRechazar"
-									type="button"
-									class="btn btn-danger">
-								Rechazar
-							</button>
-							<button id="btnAprobar"
-									type="button"
-									class="btn btn-success">
-								Autorizar revisión
-							</button>
-						</div>
-					}
 
 
 
 
 
-                    
+							
 
 				</form>
 
 			</div>
 
 
-			<!-- PANEL DERECHO FLEET -->
-			<div class="col-lg-3">
+									<!-- PANEL DERECHO: SOPORTE DE DECISIÓN TÉCNICA -->
+						<div class="col-lg-4 col-xl-3">
 
-				<div class="sticky-top" style="top:20px;">
+							<div class="sticky-top" style="top: 1.5rem; z-index: 1020;">
 
-					<div class="card border shadow-sm">
+								<div class="card border-0 shadow-sm rounded-3 overflow-hidden">
 
-						<div class="card-header text-white" style="background:#243447;">
+									<!-- ENCABEZADO -->
+									<div class="card-header bg-dark text-white p-3 border-0">
+										<div class="d-flex align-items-center gap-2">
+											<!-- Contenedor con fondo blanco translúcido e ícono visible -->
+											<div class="p-2 bg-white bg-opacity-10 rounded-2 text-white d-flex align-items-center justify-content-center">
+												<i class="bi bi-cpu-fill fs-5 text-white"></i>
+											</div>
+											<div>
+												<h6 class="fw-bold mb-0 text-white">Dictamen de Apoyo</h6>
+												<small class="text-white-50 extra-small">Análisis técnico</small>
+											</div>
+										</div>
+									</div>
 
-							<div>
+									<!-- LÓGICA Y VARIABLES -->
+									@{
+										var tieneHistorial = Model.HistorialTecnicoUnidad != null && Model.HistorialTecnicoUnidad.Any();
+										var resumen = Model.ResumenHistorico;
 
-								<h5 class="mb-0">
-									<i class="bi bi-clipboard2-pulse me-2"></i>
-									Panel de apoyo para revisión técnica
-								</h5>
+										var serviciosConHistorial = resumen?.ServiciosSolicitadosConHistorial ?? 0;
+										var recurrencias = resumen?.TotalRecurrenciasSolicitadas ?? 0;
+										var serviciosRecientes = resumen?.ServiciosRecientes ?? 0;
+										var costoHistoricoConcepto = resumen?.CostoHistoricoConceptosSolicitados ?? 0m;
+										var costoAcumulado = resumen?.CostoAcumulado ?? 0m;
 
-								<small class="opacity-75">
-									Explicación automática para soporte de decisión de mantenimiento
-								</small>
+										// Configuración de Estados
+										var estado = "Estable";
+										var colorClass = "success";
+										var iconClass = "bi-check-circle-fill";
+										var mensaje = "No se identifican antecedentes para esta solicitud.";
+
+										if (!tieneHistorial)
+										{
+											estado = "Sin Antecedentes";
+											colorClass = "secondary";
+											iconClass = "bi-question-circle-fill";
+											mensaje = "La unidad no cuenta con historial de mantenimiento previo en el sistema.";
+										}
+										else if (recurrencias >= 2)
+										{
+											estado = "Riesgo Alto";
+											colorClass = "danger";
+											iconClass = "bi-exclamation-triangle-fill";
+											mensaje = "Se detectaron múltiples recurrencias. Evalúe una revisión de causa raíz antes de aprobar.";
+										}
+										else if (serviciosRecientes > 0)
+										{
+											estado = "Bajo Observación";
+											colorClass = "warning";
+											iconClass = "bi-exclamation-circle-fill";
+											mensaje = "Hay servicios solicitados con ejecución reciente (≤ 30 días). Verifique garantías o duplicidad.";
+										}
+										else if (serviciosConHistorial > 0)
+										{
+											estado = "Con Antecedentes";
+											colorClass = "info";
+											iconClass = "bi-info-circle-fill";
+											mensaje = "La unidad cuenta con mantenimientos previos de estos mismos conceptos.";
+										}
+									}
+
+									<div class="card-body p-3">
+										<!-- TARJETA DICTAMEN DE RIESGO -->
+										<div class="alert alert-@colorClass border-0 shadow-sm p-3 mb-3 rounded-3">
+											<div class="d-flex align-items-center justify-content-between mb-1">
+												<span class="badge bg-@colorClass text-white text-uppercase px-2 py-1 extra-small fw-bold">
+													Nivel de Riesgo
+												</span>
+												<i class="bi @iconClass fs-5 text-@colorClass"></i>
+											</div>
+											<div class="fw-bold fs-6 text-@colorClass mb-1">
+												@estado
+											</div>
+											<p class="small mb-0 opacity-90 leading-tight">
+												@mensaje
+											</p>
+										</div>
+
+										<!-- METRICAS / KPIS RÁPIDOS -->
+										<div class="text-uppercase text-muted extra-small fw-bold tracking-wide mb-2">
+											Indicadores de Operación
+										</div>
+
+										<div class="row g-2 mb-3">
+
+											<!-- KPIS 1: RECURRENCIAS -->
+											<div class="col-6">
+												<div class="p-2 rounded-2 border bg-light text-center h-100 d-flex flex-column justify-content-center">
+													<span class="extra-small text-muted fw-semibold d-block text-truncate">Recurrencias</span>
+													<span class="fs-5 fw-bold @(recurrencias > 0 ? "text-danger" : "text-dark")">
+														@recurrencias
+													</span>
+												</div>
+											</div>
+
+											<!-- KPIS 2: RECIENTES -->
+											<div class="col-6">
+												<div class="p-2 rounded-2 border bg-light text-center h-100 d-flex flex-column justify-content-center">
+													<span class="extra-small text-muted fw-semibold d-block text-truncate">Recientes (&le;30d)</span>
+													<span class="fs-5 fw-bold @(serviciosRecientes > 0 ? "text-warning-emphasis" : "text-dark")">
+														@serviciosRecientes
+													</span>
+												</div>
+											</div>
+
+										</div>
+
+										<hr class="my-3 text-muted opacity-25" />
+
+										<!-- DESGLOSE DE ANÁLISIS CRÍTICO -->
+										<div class="text-uppercase text-muted extra-small fw-bold tracking-wide mb-2">
+											Detalle del Diagnóstico
+										</div>
+
+										<div class="d-flex flex-column gap-2 mb-3 small">
+
+											<!-- ANTECEDENTES -->
+											<div class="p-2 rounded bg-light border-start border-3 @(serviciosConHistorial > 0 ? "border-info" : "border-secondary")">
+												<div class="d-flex justify-content-between align-items-center fw-semibold text-dark">
+													<span>Servicios con antecedente</span>
+													<span class="badge bg-white text-dark border px-2">@serviciosConHistorial</span>
+												</div>
+												<div class="extra-small text-muted mt-1">
+													@if (!tieneHistorial)
+													{
+														<span>Sin registros en sistema.</span>
+													}
+													else if (serviciosConHistorial == 0)
+													{
+														<span>Ningún concepto ha sido atendido previamente.</span>
+													}
+													else
+													{
+														<span>Conceptos: <strong class="text-dark">@string.Join(", ", resumen?.ConceptosConAntecedente ?? new List<string>())</strong></span>
+													}
+												</div>
+											</div>
+
+											<!-- COSTO HISTÓRICO CONCEPTO -->
+											<div class="p-2 rounded bg-light border-start border-3 border-primary">
+												<div class="d-flex justify-content-between align-items-center fw-semibold text-dark">
+													<span>Gasto histórico en conceptos</span>
+													<span class="fw-bold text-primary">@costoHistoricoConcepto.ToString("C")</span>
+												</div>
+												<div class="extra-small text-muted mt-1">
+													Inversión acumulada previa solo para las fallas/servicios de esta solicitud.
+												</div>
+											</div>
+
+											<!-- INVERSIÓN ACUMULADA TOTAL -->
+											<div class="p-2 rounded bg-light border-start border-3 border-dark">
+												<div class="d-flex justify-content-between align-items-center fw-semibold text-dark">
+													<span>Inversión total unidad</span>
+													<span class="fw-bold text-dark">@costoAcumulado.ToString("C")</span>
+												</div>
+												<div class="extra-small text-muted mt-1">
+													Gasto histórico total acumulado en mantenimientos.
+												</div>
+											</div>
+
+										</div>
+
+									</div>
+
+									<!-- PIE DE RECOMENDACIÓN / FOOTER -->
+									<div class="card-footer bg-light p-3 border-top text-center">
+										<small class="text-muted extra-small d-block">
+											<i class="bi bi-shield-lock me-1"></i>
+											Información generada automáticamente de apoyo no sustituye lo que debe hacerse.
+										</small>
+									</div>
+
+								</div>
 
 							</div>
 
 						</div>
-
-						<div class="card-body">
-
-							<!-- VARIABLES -->
-							@{
-
-								//viene de MantenimientoDetalle
-								var recurrencias = Model.HistorialTecnicoUnidad.Count(x => x.EsRecurrencia);
-
-								// viene de MantenimientoDetalle y mantenimiento registrado en <= 30 dias
-								var mantenimientoReciente = Model.ResumenHistorico?.UltimaFecha != null &&
-								(DateTime.Now - Model.ResumenHistorico.UltimaFecha.Value).TotalDays <= 30;
-
-								// Información descriptiva (todavía NO participa en la decisión)
-								var tieneInversionAcumulada =
-									Model.ResumenHistorico != null &&
-									Model.ResumenHistorico.CostoAcumulado > 0;
-
-								/*
-									Riesgo operativo:
-									- Alto → recurrencia repetitiva
-									- Medio → falta de mantenimiento reciente
-									- Bajo → comportamiento estable
-
-									Nota:
-									El costo acumulado se conserva como contexto
-									pero deja de determinar el riesgo automáticamente.
-								*/
-
-								//si servicios realizados iguales >= 3
-								var riesgoAlto = recurrencias >= 3;
-
-								//
-								var riesgoMedio = !riesgoAlto && !mantenimientoReciente;
-							}
-
-							<!-- ESTADO GLOBAL -->
-							<h6 class="text-black">🚨 Estado de la unidad</h6>
-
-							@if (riesgoAlto)
-							{
-								<div class="alert alert-danger py-2">
-									🔴 Requiere intervención
-								</div>
-							}
-							else if (riesgoMedio)
-							{
-								<div class="alert alert-warning py-2">
-									🟠 Requiere revisión preventiva
-								</div>
-							}
-							else
-							{
-								<div class="alert alert-success py-2">
-									🟢 Condición estable
-								</div>
-							}
-
-							<hr />
-
-							<!-- EXPLICACIÓN DE DECISIÓN -->
-							<h6>Explicación de decisión</h6>
-
-							<div class="small">
-
-								<ul class="list-unstyled mb-0">
-
-									<li class="mb-2">
-										<strong>Recurrencias:</strong>
-										@recurrencias
-										<div class="text-muted">
-											Indica repetición de fallas o servicios similares en la unidad.
-										</div>
-									</li>
-
-									<li class="mb-2">
-										<strong>Último mantenimiento:</strong>
-										@(Model.ResumenHistorico?.UltimaFecha?.ToString("dd/MM/yyyy") ?? "N/A")
-										<div class="text-muted">
-											@(mantenimientoReciente
-												? "La unidad ha recibido mantenimiento recientemente."
-												: "No hay mantenimiento reciente, lo que incrementa el riesgo operativo.")
-										</div>
-									</li>
-
-									<li class="mb-2">
-
-										<strong>Nivel de inversión acumulada:</strong>
-										@Model.ResumenHistorico?.CostoAcumulado.ToString("C")
-
-										<div class="text-muted">
-											@(tieneInversionAcumulada
-												? "Representa el gasto histórico registrado para la unidad y sirve como referencia durante la revisión técnica."
-												: "No existe historial de inversión registrado para esta unidad.")
-										</div>
-
-									</li>
-
-								</ul>
-
-							</div>
-
-							@*  <hr />
-
-                            <!-- INTERPRETACIÓN FINAL -->
-                            <h6 class="fw-bold">Conclusión operativa</h6>
-
-                            <div class="text-center">
-
-                                @if (riesgoAlto)
-                                {
-                                    <div class="badge bg-danger fs-6">
-                                        REVISIÓN OBLIGATORIA
-                                    </div>
-                                    <div class="small mt-2">
-                                        Se recomienda validar la viabilidad del mantenimiento antes de aprobar.
-                                    </div>
-                                }
-                                else if (riesgoMedio)
-                                {
-                                    <div class="badge bg-warning fs-6">
-                                        REVISIÓN PREVENTIVA
-                                    </div>
-                                    <div class="small mt-2">
-                                        Se sugiere inspección antes de autorizar nuevos trabajos.
-                                    </div>
-                                }
-                                else
-                                {
-                                    <div class="badge bg-success fs-6">
-                                        APROBACIÓN SEGURA
-                                    </div>
-                                    <div class="small mt-2">
-                                        La unidad presenta condiciones estables.
-                                    </div>
-                                }
-
-                            </div> *@
-
-						</div>
-
-					</div>
-
-				</div>
-
-			</div>
 
 
 
@@ -602,7 +878,7 @@
 
 
 
-
+@* 
 
 @section Scripts {
 	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -739,3 +1015,110 @@
 
 
 }
+ *@
+
+
+
+
+ 
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        $(function () {
+
+            const $form = $('#formRevision');
+
+            // ================================================
+            // APROBAR REVISIÓN
+            // ================================================
+
+            $('#btnAprobar').on('click', function () {
+
+                Swal.fire({
+                    title: '¿Aprobar revisión?',
+                    text: 'La solicitud será autorizada y quedará registrada para seguimiento.',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#800705',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Sí, autorizar',
+                    cancelButtonText: 'Cancelar'
+                }).then(function (result) {
+
+                    if (!result.isConfirmed) {
+                        return;
+                    }
+
+                    $('#aprobadaInput').val('true');
+
+                    // El rechazo no requiere datos cuando se aprueba.
+                    // Los valores existentes no se usan para autorizar.
+                    $form.trigger('submit');
+                });
+            });
+
+            // ================================================
+            // RECHAZAR SOLICITUD
+            // ================================================
+
+            $('#btnRechazar').on('click', function () {
+
+                const observaciones =
+                    ($('#Observaciones').val() || '').trim();
+
+                const tipoRechazo =
+                    $('#tipoRechazoSelect').val();
+
+                if (!observaciones) {
+
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Observaciones requeridas',
+                        text: 'Debe indicar el motivo del rechazo.',
+                        confirmButtonColor: '#800705'
+                    });
+
+                    $('#Observaciones').trigger('focus');
+                    return;
+                }
+
+                if (!tipoRechazo) {
+
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Tipo de rechazo requerido',
+                        text: 'Seleccione el tipo de rechazo.',
+                        confirmButtonColor: '#800705'
+                    });
+
+                    $('#tipoRechazoSelect').trigger('focus');
+                    return;
+                }
+
+                Swal.fire({
+                    title: '¿Rechazar solicitud?',
+                    text: 'La solicitud será rechazada y se procesará la liberación presupuestal que corresponda.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc3545',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Sí, rechazar',
+                    cancelButtonText: 'Cancelar'
+                }).then(function (result) {
+
+                    if (!result.isConfirmed) {
+                        return;
+                    }
+
+                    $('#aprobadaInput').val('false');
+
+                    $form.trigger('submit');
+                });
+            });
+        });
+    </script>
+}
+
