@@ -25,7 +25,7 @@ namespace SIGEMAV.Areas.AdminFinancieros.Controllers
         [HttpPost]
         public async Task<IActionResult> Index(OrdenDePagoConsultaVM model)
         {
-            model.Detalles = await _service.Obtener(model.Folio);
+            model.Detalles = await _service.Obtener(model.NumeroOficio);
 
             return View(model);
         }

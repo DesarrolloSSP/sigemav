@@ -128,8 +128,7 @@ public partial class BdSigeMavContext : DbContext
 
     public virtual DbSet<VwControlFinancieroMantenimiento> VwControlFinancieroMantenimientos { get; set; }
 
-    public virtual DbSet<OrdenDePagoResult> OrdenDePagoResults { get; set; }
-
+    
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
 
