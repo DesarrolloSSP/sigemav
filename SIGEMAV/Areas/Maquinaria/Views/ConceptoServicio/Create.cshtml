@@ -3,10 +3,6 @@
 
 @model ConceptoServicioCreateViewModel
 
-@{
-    ViewData["Title"] = "Registrar Concepto Servicio";
-}
-
 <div class="container-fluid">
 
     <div class="card shadow-sm border-0">
@@ -18,7 +14,7 @@
                 <div>
 
                     <h4 class="fw-bold mb-0">
-                        Registrar Concepto de Servicio
+                        Registrar concepto de servicio
                     </h4>
 
                     <small class="text-muted">
@@ -61,18 +57,14 @@
 
                     <div class="col-md-6">
 
-                        <label asp-for="TipoCatalogoServicioId"
-                               class="form-label fw-semibold">
+                        <label asp-for="TipoCatalogoServicioId" class="form-label fw-semibold">
+                            Tipo de catálogo
                         </label>
 
-                        <select asp-for="TipoCatalogoServicioId"
-                                asp-items="Model.TiposCatalogo"
-                                class="form-select" required>
-
+                        <select asp-for="TipoCatalogoServicioId" asp-items="Model.TiposCatalogo" class="form-select" required>
                             <option value="">
                                 Seleccione un tipo de catálogo
                             </option>
-
                         </select>
 
                         <span asp-validation-for="TipoCatalogoServicioId"

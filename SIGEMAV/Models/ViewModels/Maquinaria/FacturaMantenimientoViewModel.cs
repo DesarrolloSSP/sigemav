@@ -59,6 +59,9 @@
 
         public decimal Retencion { get; set; }
         public string? Observaciones { get; set; }
+
+        
+        public List<DocumentoSolicitudViewModel> DocumentosSolicitud { get; set; } = new();
     }
 
 

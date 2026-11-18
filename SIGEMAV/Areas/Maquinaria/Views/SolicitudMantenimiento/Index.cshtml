@@ -1421,52 +1421,7 @@
 
 
 @section Scripts {
-
-	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-@if (TempData["AbrirDictamen"] != null)
-{
-    var dictamenId = TempData["AbrirDictamen"].ToString();
-	var urlDictamen = Url.Action("ImprimirDictamenSolicitud", "SolicitudMantenimiento", new { solicitudId = dictamenId });
-
-    <script type="text/javascript">
-        document.addEventListener("DOMContentLoaded", function () {
-            var url = "@Html.Raw(urlDictamen)";
-            
-            // Intentar abrir la pestaña
-            var nuevaPestana = window.open(url, '_blank');
-
-            // Si el navegador bloqueó el pop-up, mostramos un botón de respaldo o notificación
-            if (!nuevaPestana || nuevaPestana.closed || typeof nuevaPestana.closed == 'undefined') {
-                if (typeof Swal !== 'undefined') {
-                    // Si usas SweetAlert2 en el proyecto SIGEMAV
-                    Swal.fire({
-                        title: 'Dictamen generado',
-                        text: 'La revisión fue autorizada. Haz clic en el botón para ver e imprimir el dictamen.',
-                        icon: 'success',
-                        showCancelButton: true,
-                        confirmButtonColor: '#800705',
-                        confirmButtonText: 'Abrir Dictamen',
-                        cancelButtonText: 'Cerrar'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            window.open(url, '_blank');
-                        }
-                    });
-                } else {
-                    // Respaldo con confirm/alert nativo de JavaScript
-                    if (confirm("La revisión técnica se autorizó correctamente. ¿Deseas abrir el Dictamen Técnico para imprimirlo ahora?")) {
-                        window.open(url, '_blank');
-                    }
-                }
-            }
-        });
-    </script>
-}
-
-
-
-	
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 @if (TempData["Success"] != null)
 {
     <script>
@@ -1486,10 +1441,7 @@
 }
 
 
-
-
-
-	<script>
+<script>
 
 		document.querySelectorAll('[data-bs-toggle="tooltip"]')
 		.forEach(function (el) {
@@ -1498,13 +1450,9 @@
 
 		});
 
-	</script>
+</script>
 
-
-
-
-
-	<script>
+<script>
 		//control de fecha desde hasta
 		document.addEventListener("DOMContentLoaded", function () {
 
@@ -1588,6 +1536,27 @@
             }
         });
     </script>
+
+
+
+
+
+	@if (TempData["Error"] != null)
+{
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            Swal.fire({
+                title: 'No fue posible generar el documento',
+                text: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(TempData["Error"])),
+                icon: 'error',
+                confirmButtonColor: '#800705',
+                confirmButtonText: 'Aceptar'
+            });
+
+        });
+    </script>
+}
 
 
 	

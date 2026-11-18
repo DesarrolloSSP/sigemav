@@ -38,10 +38,38 @@ using static System.Net.WebRequestMethods;
 using Colors = QuestPDF.Helpers.Colors;
 using File = System.IO.File;
 using QPdf = QuestPDF.Fluent.Document;
+using System;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using DocumentFormat.OpenXml.Validation;
 
 
-
-
+using DocumentFormat.OpenXml;
+using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Wordprocessing;
+using A = DocumentFormat.OpenXml.Drawing;
+using DW = DocumentFormat.OpenXml.Drawing.Wordprocessing;
+using PIC = DocumentFormat.OpenXml.Drawing.Pictures;
+using Document = DocumentFormat.OpenXml.Wordprocessing.Document;
+using Header = DocumentFormat.OpenXml.Wordprocessing.Header;
+using Run = DocumentFormat.OpenXml.Wordprocessing.Run;
+using TopBorder = DocumentFormat.OpenXml.Wordprocessing.TopBorder;
+using Break = DocumentFormat.OpenXml.Wordprocessing.Break;
+using Text = DocumentFormat.OpenXml.Wordprocessing.Text;
+using Table = DocumentFormat.OpenXml.Wordprocessing.Table;
+using BottomBorder = DocumentFormat.OpenXml.Wordprocessing.BottomBorder;
+using RightBorder = DocumentFormat.OpenXml.Wordprocessing.RightBorder;
+using LeftBorder = DocumentFormat.OpenXml.Wordprocessing.LeftBorder;
+using Drawing = DocumentFormat.OpenXml.Wordprocessing.Drawing;
+using Bold = DocumentFormat.OpenXml.Wordprocessing.Bold;
+using Italic = DocumentFormat.OpenXml.Wordprocessing.Italic;
+using FontSize = DocumentFormat.OpenXml.Wordprocessing.FontSize;
+using RunProperties = DocumentFormat.OpenXml.Wordprocessing.RunProperties;
+using PageSize = DocumentFormat.OpenXml.Wordprocessing.PageSize;
+using StartBorder = DocumentFormat.OpenXml.Wordprocessing.StartBorder;
+using EndBorder = DocumentFormat.OpenXml.Wordprocessing.EndBorder;
+using System.Drawing;
 
 namespace SIGEMAV.Services.Implementations.Maquinaria
 {
@@ -56,7 +84,7 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
 
         public MaquinariaService(BdSigeMavContext context, IConfiguration configuration, IHttpContextAccessor httpContextAccessor, HttpClient http,
             ILogger<TallerConfiguracionController> logger,
-            IWebHostEnvironment env 
+            IWebHostEnvironment env
             )
         {
             _context = context;
@@ -394,8 +422,8 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                 // =========================================================
                 // PLACA
                 //
-                // "ALTA" significa que todavía no tiene placa asignada.
-                // Por lo tanto, ALTA puede repetirse.
+                // "SIN PLACA" significa que todavía no tiene placa asignada.
+                // Por lo tanto, SIN PLACA puede repetirse.
                 // Cualquier placa real debe ser única.
                 // =========================================================
 
@@ -856,7 +884,7 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
             {
                 return await _context.Areas
               .AsNoTracking()
-              .Where(x => x.Activo && x.AreaId == 22) 
+              .Where(x => x.Activo && x.AreaId == 22)
               .OrderBy(x => x.AreaNombre)
               .Select(x => new SelectListItem
               {
@@ -881,7 +909,7 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
              .ToListAsync();
             }
 
-         
+
         }
 
 
@@ -889,7 +917,7 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
         //public async Task<PaginacionViewModel<SolicitudMantenimientoViewModel>> ObtenerSolicitudesMantenimiento(int pagina = 1, int registrosPorPagina = 10)
         public async Task<PaginacionViewModel<SolicitudMantenimientoViewModel>> ObtenerSolicitudesMantenimiento(SolicitudMantenimientoFiltroViewModel filtro, int pagina = 1, int registrosPorPagina = 10)
         {
-            
+
             var query = _context.SolicitudMantenimientos
                 .AsNoTracking();
 
@@ -1404,7 +1432,7 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                     }
                 }
 
-               
+
 
 
 
@@ -1721,34 +1749,34 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                 }
 
                 // =====================================================
-                // GENERACIÓN Y GUARDADO AUTOMÁTICO DEL OFICIO SOLICITUD DE MANTENIMIENTO PDF (QUESTPDF)
+                // GENERACIÓN Y GUARDADO AUTOMÁTICO DEL OFICIO SOLICITUD DE MANTENIMIENTO WORD (.DOCX)
                 // =====================================================
-                // NOTA: Si deseas que un fallo en el PDF detenga la transacción, 
-                // remueve el try-catch interno o lanza la excepción.
-                byte[] pdfBytes = await GenerarOficioSolicitudPdfAsync(entidad.SolicitudMantenimientoId);
+                byte[] wordBytes = await GenerarOficioSolicitudWordAsync(entidad.SolicitudMantenimientoId);
 
-                if (pdfBytes != null && pdfBytes.Length > 0)
+                if (wordBytes != null && wordBytes.Length > 0)
                 {
-                    string nombreOficioFisico = $"OFICIO_{entidad.SolicitudMantenimientoId}_{DateTime.Now:yyyyMMddHHmmss}.pdf";
+                    // 1. Cambiar la extensión física a .docx
+                    string nombreOficioFisico = $"OFICIO_{entidad.SolicitudMantenimientoId}_{DateTime.Now:yyyyMMddHHmmss}.docx";
                     string rutaOficioCompleta = Path.Combine(carpetaSolicitud, nombreOficioFisico);
 
-                    await File.WriteAllBytesAsync(rutaOficioCompleta, pdfBytes);
+                    await File.WriteAllBytesAsync(rutaOficioCompleta, wordBytes);
                     archivosGuardados.Add(rutaOficioCompleta);
 
                     string hashOficio;
                     using (var sha256 = SHA256.Create())
                     {
-                        hashOficio = Convert.ToHexString(sha256.ComputeHash(pdfBytes));
+                        hashOficio = Convert.ToHexString(sha256.ComputeHash(wordBytes));
                     }
 
                     var docOficio = new SolicitudMantenimientoDocumento
                     {
                         SolicitudMantenimientoId = entidad.SolicitudMantenimientoId,
                         TipoDocumento = "OFICIO_SOLICITUD",
-                        NombreArchivo = $"Oficio_Solicitud_{entidad.NumeroOficio.Replace('/', '_')}.pdf",
+                        // 2. Cambiar la extensión del nombre del documento a .docx
+                        NombreArchivo = $"Oficio_Solicitud_{entidad.NumeroOficio.Replace('/', '_')}.docx",
                         RutaArchivo = rutaOficioCompleta,
                         FechaCarga = DateTime.Now,
-                        UsuarioCargaId = 1,
+                        UsuarioCargaId = 1, // O el ID del usuario autenticado actual
                         Activo = true,
                         HashArchivo = hashOficio
                     };
@@ -2531,6 +2559,7 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                     .ThenInclude(x => x.Modelo)
                 .Include(x => x.Taller)
                 .Include(x => x.EstadoOdometro)
+                .Include(x => x.SolicitudMantenimientoDocumentos) // <-- Asegurar incluir los documentos para validar el DTA firmado
                 .FirstOrDefaultAsync(x => x.SolicitudMantenimientoId == solicitudId);
 
             if (solicitud == null)
@@ -2624,7 +2653,6 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                 CostoHistoricoConceptosSolicitados = costoHistoricoSolicitado
             };
 
-            // Proyección de conceptos con soporte de IVA (16%)
             var conceptos = await _context.SolicitudMantenimientoDetalles
                 .AsNoTracking()
                 .Where(x => x.SolicitudMantenimientoId == solicitudId)
@@ -2646,6 +2674,10 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
             {
                 throw new InvalidOperationException("WARNING|La solicitud no contiene conceptos o servicios registrados.");
             }
+
+            // NUEVO: Verificamos si ya se cuenta con el DTA firmado y escaneado cargado en los documentos
+            bool dtaFirmadoCargado = solicitud.SolicitudMantenimientoDocumentos != null &&
+                                     solicitud.SolicitudMantenimientoDocumentos.Any(d => d.Activo && d.TipoDocumento == "DTA_FIRMADO");
 
             bool yaAprobadaDSP = solicitud.EstatusSolicitudMantenimientoId == 4;
             bool yaAprobada = solicitud.EstatusSolicitudMantenimientoId == 5;
@@ -2673,7 +2705,10 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                 ResumenHistorico = resumenHistorico,
                 Kilometraje = solicitud.KilometrajeActual,
                 EstadoOdometroId = solicitud.EstadoOdometroId,
-                EstadoOdometroDescripcion = solicitud.EstadoOdometro?.Descripcion ?? string.Empty
+                EstadoOdometroDescripcion = solicitud.EstadoOdometro?.Descripcion ?? string.Empty,
+
+                // Propiedades de apoyo para la nueva lógica en la vista
+                DtaFirmadoCargado = dtaFirmadoCargado
             };
         }
 
@@ -3081,69 +3116,1393 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                 throw new InvalidOperationException("ERROR|No fue posible completar la revisión técnica y la operación presupuestal.");
             }
 
-            // =========================================================================
-            // 11. GENERACIÓN Y GUARDADO DEL PDF FUERA DE LA TRANSACCIÓN (AISLADO)
-            // =========================================================================
-            if (dto.Aprobada)
+
+            //// =========================================================================
+            //// 11. GENERACIÓN Y GUARDADO DEL WORD FUERA DE LA TRANSACCIÓN (AISLADO)
+            //// =========================================================================
+
+            //if (dto.Aprobada)
+            //{
+            //    try
+            //    {
+            //        byte[] wordBytes =
+            //            await GenerarDictamenTecnicoWordAsync(
+            //                dto.SolicitudMantenimientoId);
+
+            //        if (wordBytes != null && wordBytes.Length > 0)
+            //        {
+            //            var rutaBase = _configuration["Storage:DocumentosRuta"];
+
+            //            if (!string.IsNullOrWhiteSpace(rutaBase))
+            //            {
+            //                var solFolio = await _context.SolicitudMantenimientos
+            //                    .AsNoTracking()
+            //                    .FirstOrDefaultAsync(
+            //                        x => x.SolicitudMantenimientoId ==
+            //                             dto.SolicitudMantenimientoId);
+
+            //                if (solFolio != null)
+            //                {
+            //                    var carpetaFolioSegura =
+            //                        solFolio.Folio.Replace('/', '_');
+
+            //                    var carpetaSolicitud =
+            //                        Path.Combine(rutaBase, carpetaFolioSegura);
+
+            //                    if (!Directory.Exists(carpetaSolicitud))
+            //                    {
+            //                        Directory.CreateDirectory(carpetaSolicitud);
+            //                    }
+
+            //                    string nombreArchivoFisico =
+            //                        $"DICTAMEN_{dto.SolicitudMantenimientoId}_{DateTime.Now:yyyyMMddHHmmss}.docx";
+
+            //                    string rutaCompleta =
+            //                        Path.Combine(
+            //                            carpetaSolicitud,
+            //                            nombreArchivoFisico);
+
+            //                    await File.WriteAllBytesAsync(
+            //                        rutaCompleta,
+            //                        wordBytes);
+
+            //                    string hashArchivo;
+
+            //                    using (var sha256 =
+            //                        System.Security.Cryptography.SHA256.Create())
+            //                    {
+            //                        hashArchivo = Convert.ToHexString(
+            //                            sha256.ComputeHash(wordBytes));
+            //                    }
+
+            //                    var documentoEntidad =
+            //                        new SolicitudMantenimientoDocumento
+            //                        {
+            //                            SolicitudMantenimientoId =
+            //                                dto.SolicitudMantenimientoId,
+
+            //                            TipoDocumento = "DICTAMEN_TECNICO",
+
+            //                            NombreArchivo =
+            //                                $"Dictamen_Tecnico_{solFolio.NumeroOficio?.Replace('/', '_') ?? "SIN_OFICIO"}.docx",
+
+            //                            RutaArchivo = rutaCompleta,
+            //                            FechaCarga = DateTime.Now,
+            //                            UsuarioCargaId = 1,
+            //                            Activo = true,
+            //                            HashArchivo = hashArchivo
+            //                        };
+
+            //                    _context.SolicitudMantenimientoDocumentos.Add(
+            //                        documentoEntidad);
+
+            //                    await _context.SaveChangesAsync();
+            //                }
+            //            }
+            //        }
+            //    }
+            //    catch (Exception wordEx)
+            //    {
+            //        _logger.LogError(
+            //            wordEx,
+            //            "Error al generar o guardar físicamente el Word del dictamen para la solicitud {SolicitudId}.",
+            //            dto.SolicitudMantenimientoId);
+            //    }
+            //}
+
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+        public async Task<byte[]> GenerarDictamenTecnicoWordAsync(int solicitudId)
+        {
+            // =====================================================
+            // 1. CONSULTAR SOLICITUD Y RELACIONES
+            // =====================================================
+
+            var solicitud = await _context.SolicitudMantenimientos
+                .Include(s => s.AreaSolicitante)
+                .Include(s => s.EstadoOdometro)
+                .Include(s => s.EstatusSolicitudMantenimiento)
+                .Include(s => s.TipoMantenimiento)
+                .Include(s => s.Taller)
+                .Include(s => s.UnidadVehicular)
+                    .ThenInclude(u => u.Marca)
+                .Include(s => s.UnidadVehicular)
+                    .ThenInclude(u => u.Modelo)
+                .Include(s => s.UnidadVehicular)
+                    .ThenInclude(u => u.Anio)
+                .Include(s => s.UnidadVehicular)
+                    .ThenInclude(u => u.Cilindro)
+                .Include(s => s.SolicitudMantenimientoDetalles)
+                    .ThenInclude(d => d.ConceptoServicio)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(
+                    s => s.SolicitudMantenimientoId == solicitudId &&
+                         s.Activo == true);
+
+            if (solicitud == null)
             {
-                try
+                throw new Exception(
+                    $"No se encontró la solicitud activa con ID {solicitudId} para generar el dictamen técnico.");
+            }
+
+            // =====================================================
+            // 2. DATOS DEL VEHÍCULO
+            // =====================================================
+
+            var unidad = solicitud.UnidadVehicular;
+            var marca = unidad?.Marca?.MarcaNombre ?? "N/A";
+            var modeloNombre = unidad?.Modelo?.ModeloNombre ?? "N/A";
+            var placa = string.IsNullOrWhiteSpace(solicitud.PlacaVehiculo)
+                ? unidad?.PlacaActual ?? "N/A"
+                : solicitud.PlacaVehiculo;
+            var numSerie = unidad?.NumeroSerie ?? "N/A";
+            var numEcon = unidad?.NumeroEconomico ?? "S/N";
+            var anioModelo = unidad?.Anio?.AnioDescripcion ?? "N/A";
+            var cilindros = unidad?.Cilindro?.CilindroNombre ?? "N/A";
+            var kilometraje = solicitud.KilometrajeActual.ToString("N0");
+            var fechaFormateada = (solicitud.FechaAutorizacion ?? solicitud.FechaSolicitud).ToString("dd/MM/yyyy");
+
+            // =====================================================
+            // 3. TIPOS DE MANTENIMIENTO
+            // =====================================================
+
+            bool esPreventivo =
+                solicitud.TipoMantenimientoId == 1 ||
+                (solicitud.TipoMantenimiento?.Nombre?.Contains(
+                    "Preventivo",
+                    StringComparison.OrdinalIgnoreCase) ?? false);
+
+            bool esCorrectivo =
+                solicitud.TipoMantenimientoId == 2 ||
+                (solicitud.TipoMantenimiento?.Nombre?.Contains(
+                    "Correctivo",
+                    StringComparison.OrdinalIgnoreCase) ?? false);
+
+            bool esEnLlantado =
+                solicitud.TipoMantenimientoId == 7 ||
+                (solicitud.TipoMantenimiento?.Nombre?.Contains(
+                    "Enllantado",
+                    StringComparison.OrdinalIgnoreCase) ?? false);
+
+            bool tieneRefacciones =
+                solicitud.SolicitudMantenimientoDetalles != null &&
+                solicitud.SolicitudMantenimientoDetalles.Any(
+                    d => d.CostoEstimadoRefacciones > 0);
+
+            bool tieneManoObra =
+                solicitud.SolicitudMantenimientoDetalles != null &&
+                solicitud.SolicitudMantenimientoDetalles.Any(
+                    d => d.CostoEstimadoManoObra > 0);
+
+            // =====================================================
+            // 4. CONSULTAR FIRMANTES
+            // =====================================================
+
+            int? areaId = solicitud.AreaSolicitanteId;
+
+            var firmantesConsulta = await _context.Firmantes
+                .Where(f =>
+                    f.Activo &&
+                    (f.AreaId == areaId || f.AreaId == null))
+                .AsNoTracking()
+                .ToListAsync();
+
+            var dictFirmantes = firmantesConsulta
+                .GroupBy(f => f.ClavePuesto)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.OrderByDescending(
+                        f => f.AreaId.HasValue && f.AreaId == areaId)
+                        .First());
+
+            string ObtenerNombre(string clave) =>
+                dictFirmantes.TryGetValue(clave, out var f)
+                    ? f.NombreCompleto ?? ""
+                    : "";
+
+            string ObtenerCargo(string clave) =>
+                dictFirmantes.TryGetValue(clave, out var f)
+                    ? f.Cargo ?? ""
+                    : "";
+
+            // =====================================================
+            // 5. CONFIGURACIÓN DEL DOCUMENTO WORD
+            // =====================================================
+
+            using var stream = new MemoryStream();
+
+            using (var wordDocument = WordprocessingDocument.Create(
+                stream,
+                WordprocessingDocumentType.Document,
+                true))
+            {
+                var mainPart = wordDocument.AddMainDocumentPart();
+                mainPart.Document = new Document();
+
+                var body = new Body();
+
+                // -------------------------------------------------
+                // Configuración visual
+                // -------------------------------------------------
+
+                const int anchoTotal = 10540;
+
+                string colorBorde = "000000";
+                string colorEncabezado = "D9D9D9";
+                string colorGris = "F2F2F2";
+
+                // -------------------------------------------------
+                // Helpers locales para tablas
+                // -------------------------------------------------
+
+
+
+
+
+
+                Table CrearTablaLocal(
+                    int[] anchos,
+                    int alturaFilas = 0,
+                    HeightRuleValues? tipoAltura = null)
                 {
-                    byte[] pdfBytes = await GenerarDictamenTecnicoPdfAsync(dto.SolicitudMantenimientoId);
+                    // Valor predeterminado.
+                    tipoAltura ??= HeightRuleValues.AtLeast;
 
-                    if (pdfBytes != null && pdfBytes.Length > 0)
-                    {
-                        var rutaBase = _configuration["Storage:DocumentosRuta"];
-                        if (!string.IsNullOrWhiteSpace(rutaBase))
+                    var tabla = new Table();
+
+                    var propiedades = new TableProperties();
+
+                    // 1. Ancho total.
+                    propiedades.Append(
+                        new TableWidth
                         {
-                            var solFolio = await _context.SolicitudMantenimientos
-                                .AsNoTracking()
-                                .FirstOrDefaultAsync(x => x.SolicitudMantenimientoId == dto.SolicitudMantenimientoId);
+                            Width = anchos.Sum().ToString(),
+                            Type = TableWidthUnitValues.Dxa
+                        });
 
-                            if (solFolio != null)
+                    // 2. Bordes.
+                    propiedades.Append(
+                        new TableBorders(
+                            new TopBorder
                             {
-                                var carpetaFolioSegura = solFolio.Folio.Replace('/', '_');
-                                var carpetaSolicitud = Path.Combine(rutaBase, carpetaFolioSegura);
+                                Val = BorderValues.Single,
+                                Size = 6,
+                                Color = colorBorde
+                            },
+                            new LeftBorder
+                            {
+                                Val = BorderValues.Single,
+                                Size = 6,
+                                Color = colorBorde
+                            },
+                            new BottomBorder
+                            {
+                                Val = BorderValues.Single,
+                                Size = 6,
+                                Color = colorBorde
+                            },
+                            new RightBorder
+                            {
+                                Val = BorderValues.Single,
+                                Size = 6,
+                                Color = colorBorde
+                            },
+                            new InsideHorizontalBorder
+                            {
+                                Val = BorderValues.Single,
+                                Size = 6,
+                                Color = colorBorde
+                            },
+                            new InsideVerticalBorder
+                            {
+                                Val = BorderValues.Single,
+                                Size = 6,
+                                Color = colorBorde
+                            }));
 
-                                if (!Directory.Exists(carpetaSolicitud))
+                    // 3. Distribución fija.
+                    propiedades.Append(
+                        new TableLayout
+                        {
+                            Type = TableLayoutValues.Fixed
+                        });
+
+                    tabla.Append(propiedades);
+
+                    // 4. Columnas.
+                    var grid = new TableGrid();
+
+                    foreach (var ancho in anchos)
+                    {
+                        grid.Append(
+                            new GridColumn
+                            {
+                                Width = ancho.ToString()
+                            });
+                    }
+
+                    tabla.Append(grid);
+
+                    return tabla;
+                }
+
+
+
+
+                TableRow CrearFilaLocal(
+          int altura = 0,
+          HeightRuleValues? tipoAltura = null)
+                {
+                    var fila = new TableRow();
+
+                    if (altura > 0)
+                    {
+                        tipoAltura ??= HeightRuleValues.AtLeast;
+
+                        fila.Append(
+                            new TableRowProperties(
+                                new TableRowHeight
                                 {
-                                    Directory.CreateDirectory(carpetaSolicitud);
+                                    Val = (uint)altura,
+                                    HeightType = tipoAltura.Value
+                                }));
+                    }
+
+                    return fila;
+                }
+
+
+
+
+
+                TableCell CrearCeldaLocal(
+                 string texto,
+                 int ancho,
+                 double tamano = 7,
+                 bool negrita = false,
+                 JustificationValues? alineacion = null,
+                 bool sombreado = false,
+                 MergedCellValues? combinacionVertical = null,
+                 int margenVertical = 0)
+                {
+                    alineacion ??= JustificationValues.Center;
+
+                    var celda = new TableCell();
+                    var propiedades = new TableCellProperties();
+
+                    propiedades.Append(
+                        new TableCellWidth
+                        {
+                            Width = ancho.ToString(),
+                            Type = TableWidthUnitValues.Dxa
+                        });
+
+                    if (combinacionVertical.HasValue)
+                    {
+                        propiedades.Append(
+                            new VerticalMerge
+                            {
+                                Val = combinacionVertical.Value
+                            });
+                    }
+
+                    if (sombreado)
+                    {
+                        propiedades.Append(
+                            new Shading
+                            {
+                                Val = ShadingPatternValues.Clear,
+                                Color = "auto",
+                                Fill = colorEncabezado
+                            });
+                    }
+
+                    // Margen interno vertical.
+                    if (margenVertical > 0)
+                    {
+                        propiedades.Append(
+                            new TableCellMargin
+                            {
+                                TopMargin = new TopMargin
+                                {
+                                    Width = margenVertical.ToString(),
+                                    Type = TableWidthUnitValues.Dxa
+                                },
+                                BottomMargin = new BottomMargin
+                                {
+                                    Width = margenVertical.ToString(),
+                                    Type = TableWidthUnitValues.Dxa
                                 }
+                            });
+                    }
 
-                                string nombreArchivoFisico = $"DICTAMEN_{dto.SolicitudMantenimientoId}_{DateTime.Now:yyyyMMddHHmmss}.pdf";
-                                string rutaCompleta = Path.Combine(carpetaSolicitud, nombreArchivoFisico);
+                    propiedades.Append(
+                        new TableCellVerticalAlignment
+                        {
+                            Val = TableVerticalAlignmentValues.Center
+                        });
 
-                                await File.WriteAllBytesAsync(rutaCompleta, pdfBytes);
+                    celda.Append(propiedades);
 
-                                string hashArchivo;
-                                using (var sha256 = System.Security.Cryptography.SHA256.Create())
-                                {
-                                    hashArchivo = Convert.ToHexString(sha256.ComputeHash(pdfBytes));
-                                }
+                    celda.Append(
+                        CrearParrafo(
+                            new[]
+                            {
+                CrearRun(texto, tamano, bold: negrita)
+                            },
+                            alineacion.Value,
+                            0));
 
-                                var documentoEntidad = new SolicitudMantenimientoDocumento
-                                {
-                                    SolicitudMantenimientoId = dto.SolicitudMantenimientoId,
-                                    TipoDocumento = "DICTAMEN_TECNICO",
-                                    NombreArchivo = $"Dictamen_Tecnico_{solFolio.NumeroOficio?.Replace('/', '_') ?? "SIN_OFICIO"}.pdf",
-                                    RutaArchivo = rutaCompleta,
-                                    FechaCarga = DateTime.Now,
-                                    UsuarioCargaId = 1,
-                                    Activo = true,
-                                    HashArchivo = hashArchivo
-                                };
+                    return celda;
+                }
 
-                                _context.SolicitudMantenimientoDocumentos.Add(documentoEntidad);
-                                await _context.SaveChangesAsync();
-                            }
+
+
+                TableCell CrearCeldaContenidoLocal(int ancho, List<Paragraph> parrafos)
+                {
+                    var celda = new TableCell();
+
+                    var propiedades = new TableCellProperties();
+
+                    propiedades.Append(
+                        new TableCellWidth
+                        {
+                            Width = ancho.ToString(),
+                            Type = TableWidthUnitValues.Dxa
+                        });
+
+                    // Alinear el contenido verticalmente en la parte superior.
+                    propiedades.Append(
+                        new TableCellVerticalAlignment
+                        {
+                            Val = TableVerticalAlignmentValues.Top
+                        });
+
+                    celda.Append(propiedades);
+
+                    foreach (var parrafo in parrafos)
+                    {
+                        celda.Append(parrafo);
+                    }
+
+                    return celda;
+                }
+
+
+
+                // =================================================
+                // 6. ENCABEZADO CON LOGO
+                // =================================================
+
+                var headerPart = mainPart.AddNewPart<HeaderPart>();
+
+                var header = new Header();
+
+                var logoPath = Path.Combine(
+                    _env.WebRootPath,
+                    "img",
+                    "veracruz",
+                    "veracruz2025_2.png");
+
+                var headerParagraph = new Paragraph();
+
+                var headerProperties = new ParagraphProperties();
+
+                headerProperties.Append(
+                    new SpacingBetweenLines
+                    {
+                        Before = "0",
+                        After = "0",
+                        Line = "220",
+                        LineRule = LineSpacingRuleValues.Auto
+                    });
+
+                headerProperties.Append(
+                    new Justification
+                    {
+                        Val = JustificationValues.Left
+                    });
+
+                headerParagraph.Append(headerProperties);
+
+                if (File.Exists(logoPath))
+                {
+                    var imagePart = headerPart.AddImagePart(
+                        ImagePartType.Png);
+
+                    using (var imageStream = File.OpenRead(logoPath))
+                    {
+                        imagePart.FeedData(imageStream);
+                    }
+
+                    string relationshipId =
+                        headerPart.GetIdOfPart(imagePart);
+
+                    //headerParagraph.Append(new Run(CrearImagenWord(relationshipId,160,55)));
+                    headerParagraph.Append(new Run(CrearImagenWord(relationshipId, 220, 55)));
+                }
+                else
+                {
+                    headerParagraph.Append(
+                        CrearRun(
+                            "GOBIERNO DEL ESTADO DE VERACRUZ — SSP",
+                            8,
+                            bold: true));
+                }
+
+                header.Append(headerParagraph);
+
+                headerPart.Header = header;
+                headerPart.Header.Save();
+                body.Append(CrearParrafoVacio(3));
+
+                // =================================================
+                // 7. TÍTULO, FOLIO, ÁREA, FECHA Y OFICIO
+                // =================================================
+
+                var tablaEncabezado = CrearTablaLocal(
+                    new[] { 6840, 1200, 2500 });
+
+                // -------------------------------------------------
+                // FILA 1: TÍTULO Y FOLIO
+                // -------------------------------------------------
+
+                var filaTitulo = new TableRow();
+
+                filaTitulo.Append(
+                    CrearCeldaLocal(
+                        "DICTAMEN TÉCNICO DE AUTORIZACIÓN PARA INGRESO A TALLER",
+                        6840,
+                        8.5,
+                        true,
+                        JustificationValues.Center,
+                        true));
+
+                filaTitulo.Append(
+                    CrearCeldaLocal(
+                        "FOLIO:",
+                        1200,
+                        7,
+                        true,
+                        JustificationValues.Center));
+
+                filaTitulo.Append(
+                    CrearCeldaLocal(
+                        solicitud.Folio ?? "",
+                        2500,
+                        7.5,
+                        true,
+                        JustificationValues.Center));
+                tablaEncabezado.Append(filaTitulo);
+
+                // -------------------------------------------------
+                // FILA 2: ÁREA (INICIO DE COMBINACIÓN), FECHA
+                // -------------------------------------------------
+                var filaArea = new TableRow();
+                var celdaArea = CrearCeldaLocal(
+                    $"ÁREA: {(solicitud.AreaSolicitante?.AreaNombre ?? "N/A").ToUpper()}",
+                    6840,
+                    7.5,
+                    true,
+                    JustificationValues.Left,
+                    combinacionVertical: MergedCellValues.Restart);
+
+                filaArea.Append(celdaArea);
+
+                filaArea.Append(
+                    CrearCeldaLocal(
+                        "FECHA:",
+                        1200,
+                        7,
+                        true));
+
+                filaArea.Append(
+                    CrearCeldaLocal(
+                        fechaFormateada,
+                        2500,
+                        7.5));
+
+                tablaEncabezado.Append(filaArea);
+
+                // -------------------------------------------------
+                // FILA 3: CONTINUACIÓN DE ÁREA, NO. OFICIO
+                // -------------------------------------------------
+
+                var filaOficio = new TableRow();
+
+                var celdaAreaContinuacion = CrearCeldaLocal(
+                    "",
+                    6840,
+                    7,
+                    combinacionVertical: MergedCellValues.Continue);
+
+                filaOficio.Append(celdaAreaContinuacion);
+
+                filaOficio.Append(
+                    CrearCeldaLocal(
+                        "No. OFICIO:",
+                        1200,
+                        7,
+                        true));
+
+                filaOficio.Append(
+                    CrearCeldaLocal(
+                        solicitud.NumeroOficio ?? "",
+                        2500,
+                        7));
+
+                tablaEncabezado.Append(filaOficio);
+
+                body.Append(tablaEncabezado);
+                //body.Append(CrearParrafoVacio(3));
+
+
+
+                // =================================================
+                // 8. DATOS DE LA UNIDAD VEHICULAR
+                // =================================================
+
+                // -------------------------------------------------
+                // CONFIGURACIÓN DE ANCHOS
+                // -------------------------------------------------
+
+                int[] anchosVehiculo =
+                {
+                        1475, 2315, 1265, 2315,
+                        1055, 845, 635, 635
+                    };
+
+                // -------------------------------------------------
+                // CONFIGURACIÓN DE ALTURAS (TWIPS)
+                // -------------------------------------------------
+
+                int alturaEncabezadosVehiculo = 50;
+                int alturaDatosVehiculo = 400;
+
+                // -------------------------------------------------
+                // CONFIGURACIÓN DE MÁRGENES INTERNOS (TWIPS)
+                // -------------------------------------------------
+
+                int margenEncabezadosVehiculo = 100;
+                int margenDatosVehiculo = 100;
+
+                // -------------------------------------------------
+                // CONFIGURACIÓN DE ALTURA
+                // -------------------------------------------------
+
+                HeightRuleValues tipoAlturaEncabezados = HeightRuleValues.AtLeast;
+                HeightRuleValues tipoAlturaDatos = HeightRuleValues.AtLeast;
+
+                // -------------------------------------------------
+                // CREAR TABLA
+                // -------------------------------------------------
+
+                var tablaVehiculo = CrearTablaLocal(anchosVehiculo);
+
+                // =================================================
+                // FILA 1: ENCABEZADOS
+                // =================================================
+
+                var filaTitulosVehiculo = CrearFilaLocal(
+                    alturaEncabezadosVehiculo,
+                    tipoAlturaEncabezados);
+
+                string[] encabezadosVehiculo =
+                {
+                            "MARCA",
+                            "TIPO",
+                            "PLACA",
+                            "SERIE",
+                            "NUM. ECON.",
+                            "MODELO",
+                            "CIL.",
+                            "KM."
+                        };
+
+                for (int i = 0; i < encabezadosVehiculo.Length; i++)
+                {
+                    filaTitulosVehiculo.Append(
+                        CrearCeldaLocal(
+                            encabezadosVehiculo[i],
+                            anchosVehiculo[i],
+                            6.5,
+                            true,
+                            JustificationValues.Center,
+                            true,
+                            margenVertical: margenEncabezadosVehiculo));
+                }
+
+                tablaVehiculo.Append(filaTitulosVehiculo);
+
+                // =================================================
+                // FILA 2: DATOS DEL VEHÍCULO
+                // =================================================
+
+                var filaDatosVehiculo = CrearFilaLocal(
+                    alturaDatosVehiculo,
+                    tipoAlturaDatos);
+
+                string[] datosVehiculo =
+                {
+                    marca,
+                    modeloNombre,
+                    placa,
+                    numSerie,
+                    numEcon,
+                    anioModelo,
+                    cilindros,
+                    kilometraje
+                };
+
+                for (int i = 0; i < datosVehiculo.Length; i++)
+                {
+                    filaDatosVehiculo.Append(
+                        CrearCeldaLocal(
+                            datosVehiculo[i],
+                            anchosVehiculo[i],
+                            7,
+                            i == 0 || i == 2,
+                            JustificationValues.Center,
+                            margenVertical: margenDatosVehiculo));
+                }
+
+                tablaVehiculo.Append(filaDatosVehiculo);
+
+                // =================================================
+                // AGREGAR AL DOCUMENTO
+                // =================================================
+
+                body.Append(tablaVehiculo);
+                //body.Append(CrearParrafoVacio(3));
+
+                // =================================================
+                // 9. PRESTADOR DE SERVICIOS
+                // =================================================
+
+                var tablaPrestador = CrearTablaLocal(
+                    new[] { 2400, anchoTotal - 2400 });
+
+                var filaPrestador = new TableRow();
+
+                filaPrestador.Append(
+                    CrearCeldaLocal(
+                        "PRESTADOR DE SERVICIOS:",
+                        2400,
+                        7,
+                        true,
+                        JustificationValues.Left,
+                        true,
+                        margenVertical: margenEncabezadosVehiculo));
+
+                filaPrestador.Append(
+                    CrearCeldaLocal(
+                        solicitud.Taller?.RazonSocial ?? "POR ASIGNAR",
+                        anchoTotal - 2400,
+                        7,
+                        true,
+                        JustificationValues.Left,
+                        margenVertical: margenEncabezadosVehiculo));
+
+                tablaPrestador.Append(filaPrestador);
+
+                body.Append(tablaPrestador);
+                //body.Append(CrearParrafoVacio(3));
+
+                // =================================================
+                // 10. DETALLE DE SERVICIOS AUTORIZADOS
+                // =================================================
+
+                // -------------------------------------------------
+                // CONFIGURACIÓN DE ALTURAS (TWIPS)
+                // -------------------------------------------------
+
+                int alturaTituloServicios = 420;
+                int alturaMinimaContenidoServicios = 5000;
+
+                HeightRuleValues tipoAlturaTituloServicios =
+                    HeightRuleValues.AtLeast;
+
+                HeightRuleValues tipoAlturaContenidoServicios =
+                    HeightRuleValues.AtLeast;
+
+                // -------------------------------------------------
+                // CREAR TABLA
+                // -------------------------------------------------
+
+                var tablaServicios = CrearTablaLocal(
+                    new[] { anchoTotal });
+
+                // =================================================
+                // FILA 1: TÍTULO
+                // =================================================
+
+                var filaTituloServicios = CrearFilaLocal(
+                    alturaTituloServicios,
+                    tipoAlturaTituloServicios);
+
+                filaTituloServicios.Append(
+                    CrearCeldaLocal(
+                        "DETALLE DE SERVICIOS AUTORIZADOS:",
+                        anchoTotal,
+                        7,
+                        true,
+                        JustificationValues.Center,
+                        true));
+
+                tablaServicios.Append(filaTituloServicios);
+
+                // =================================================
+                // FILA 2: CONTENIDO DE SERVICIOS
+                // =================================================
+
+                var filaContenidoServicios = CrearFilaLocal(
+                    alturaMinimaContenidoServicios,
+                    tipoAlturaContenidoServicios);
+
+                var parrafosServicios = new List<Paragraph>();
+
+                var detallesActivos = solicitud.SolicitudMantenimientoDetalles?
+                    .Where(d => d.Activo)
+                    .ToList() ?? new List<SolicitudMantenimientoDetalle>();
+
+                if (detallesActivos.Any())
+                {
+                    foreach (var item in detallesActivos)
+                    {
+                        string texto =
+                            $"• ({item.Cantidad}) {item.ConceptoServicio?.ConceptoServicioNombre ?? "SERVICIO"}";
+
+                        if (!string.IsNullOrWhiteSpace(item.Observaciones))
+                        {
+                            texto += $" — ({item.Observaciones})";
                         }
+
+                        parrafosServicios.Add(
+                            CrearParrafo(
+                                new[]
+                                {
+                    CrearRun(texto, 7)
+                                },
+                                JustificationValues.Left,
+                                3));
                     }
                 }
-                catch (Exception pdfEx)
+                else
                 {
-                    _logger.LogError(pdfEx, "Error al generar o guardar físicamente el PDF del dictamen para la solicitud {SolicitudId}.", dto.SolicitudMantenimientoId);
+                    parrafosServicios.Add(
+                        CrearParrafo(
+                            new[]
+                            {
+                CrearRun(
+                    string.IsNullOrWhiteSpace(solicitud.MotivoSolicitud)
+                        ? "Según diagnóstico inicial de revisión técnica."
+                        : solicitud.MotivoSolicitud, 7, italic: true)
+                            },
+                            JustificationValues.Left,
+                            0));
+                }
+
+                // Crear celda con el contenido.
+                filaContenidoServicios.Append(
+                    CrearCeldaContenidoLocal(
+                        anchoTotal,
+                        parrafosServicios));
+
+                tablaServicios.Append(filaContenidoServicios);
+
+                // =================================================
+                // AGREGAR AL DOCUMENTO
+                // =================================================
+
+                body.Append(tablaServicios);
+                //body.Append(CrearParrafoVacio(3));
+
+                // =================================================
+                // 11. REFACCIONES Y MANO DE OBRA
+                // =================================================
+
+                int[] anchosCasillas =
+                {
+                    4005, 1265, 4005, 1265
+                };
+
+                var tablaCasillas = CrearTablaLocal(anchosCasillas);
+
+                var filaCasillas = new TableRow();
+
+                filaCasillas.Append(
+                    CrearCeldaLocal(
+                        "REFACCIONES:",
+                        anchosCasillas[0],
+                        6.5,
+                        true,
+                        JustificationValues.Left,
+                        true));
+
+                filaCasillas.Append(
+                    CrearCeldaLocal(
+                        tieneRefacciones ? "X" : " - ",
+                        anchosCasillas[1],
+                        7.5,
+                        true,
+                        margenVertical: margenEncabezadosVehiculo));
+
+                filaCasillas.Append(
+                    CrearCeldaLocal(
+                        "MANO DE OBRA:",
+                        anchosCasillas[2],
+                        6.5,
+                        true,
+                        JustificationValues.Left,
+                        true,
+                        margenVertical: margenEncabezadosVehiculo));
+
+                filaCasillas.Append(
+                    CrearCeldaLocal(
+                        tieneManoObra ? "X" : " - ",
+                        anchosCasillas[3],
+                        7.5,
+                        true,
+                        margenVertical: margenEncabezadosVehiculo));
+
+                tablaCasillas.Append(filaCasillas);
+
+                body.Append(tablaCasillas);
+                //body.Append(CrearParrafoVacio(3));
+
+                // =================================================
+                // 12. TIPOS DE SERVICIO
+                // =================================================
+
+                int[] anchosTipos =
+                {
+            2670, 850,
+            2670, 850,
+            2670, 830
+        };
+
+                var tablaTipos = CrearTablaLocal(anchosTipos);
+
+                var filaTipos = new TableRow();
+
+                string[] etiquetasTipos =
+                {
+                    "SERVICIO MECÁNICO PREVENTIVO:",
+                    esPreventivo ? "X" : " - ",
+                    "SERVICIO MECÁNICO CORRECTIVO:",
+                    esCorrectivo ? "X" : " - ",
+                    "SERVICIO DE ENLLANTADO:",
+                    esEnLlantado ? "X" : " - "
+                };
+
+                for (int i = 0; i < etiquetasTipos.Length; i++)
+                {
+                    bool esCasilla = i % 2 != 0;
+
+                    filaTipos.Append(
+                        CrearCeldaLocal(
+                            etiquetasTipos[i],
+                            anchosTipos[i],
+                            esCasilla ? 7.5 : 6,
+                            esCasilla || !esCasilla,
+                            JustificationValues.Center,
+                            !esCasilla,
+                            margenVertical: margenEncabezadosVehiculo
+                            ));
+                }
+
+                tablaTipos.Append(filaTipos);
+
+                body.Append(tablaTipos);
+                //body.Append(CrearParrafoVacio(5));
+
+                // =================================================
+                // 13. BLOQUES DE FIRMAS
+                // =================================================
+
+                // Cada firma conserva:
+                // - Título.
+                // - Espacio para firma autógrafa.
+                // - Nombre.
+                // - Cargo.
+
+                // =================================================
+                // HELPER: CONSTRUIR TABLA DE FIRMAS
+                // =================================================
+
+                Table CrearTablaFirmas(
+                    IEnumerable<(string Titulo, string Nombre, string Cargo)> firmas,
+                    int alturaTotal,
+                    int alturaFirma,
+                    int anchoColumna)
+                {
+                    var tabla = new Table();
+
+                    // -------------------------------------------------
+                    // PROPIEDADES DE LA TABLA INTERNA
+                    // -------------------------------------------------
+
+                    var propiedades = new TableProperties();
+
+                    propiedades.Append(
+                        new TableWidth
+                        {
+                            Width = anchoColumna.ToString(),
+                            Type = TableWidthUnitValues.Dxa
+                        });
+
+                    // Sin bordes exteriores ni interiores.
+                    propiedades.Append(
+                        new TableBorders(
+                            new TopBorder { Val = BorderValues.Nil },
+                            new LeftBorder { Val = BorderValues.Nil },
+                            new BottomBorder { Val = BorderValues.Nil },
+                            new RightBorder { Val = BorderValues.Nil },
+                            new InsideHorizontalBorder { Val = BorderValues.Nil },
+                            new InsideVerticalBorder { Val = BorderValues.Nil }
+                        ));
+
+                    propiedades.Append(
+                        new TableLayout
+                        {
+                            Type = TableLayoutValues.Fixed
+                        });
+
+                    tabla.Append(propiedades);
+
+                    // Una sola columna.
+                    var grid = new TableGrid();
+
+                    grid.Append(
+                        new GridColumn
+                        {
+                            Width = anchoColumna.ToString()
+                        });
+
+                    tabla.Append(grid);
+
+                    // -------------------------------------------------
+                    // RECORRER FIRMAS
+                    // -------------------------------------------------
+
+                    foreach (var firma in firmas)
+                    {
+                        // ---------------------------------------------
+                        // FILA 1: TÍTULO
+                        // ---------------------------------------------
+
+                        var filaTitulo = new TableRow();
+
+                        filaTitulo.Append(
+                            CrearCeldaLocal(
+                                firma.Titulo,
+                                anchoColumna,
+                                5.5,
+                                true,
+                                JustificationValues.Center,
+                                true));
+
+                        tabla.Append(filaTitulo);
+
+                        // ---------------------------------------------
+                        // FILA 2: ESPACIO PARA FIRMA
+                        // ---------------------------------------------
+
+                        var filaEspacio = new TableRow();
+
+                        var celdaEspacio = new TableCell();
+
+                        var propiedadesEspacio = new TableCellProperties();
+
+                        propiedadesEspacio.Append(
+                            new TableCellWidth
+                            {
+                                Width = anchoColumna.ToString(),
+                                Type = TableWidthUnitValues.Dxa
+                            });
+
+                        propiedadesEspacio.Append(
+                            new TableCellVerticalAlignment
+                            {
+                                Val = TableVerticalAlignmentValues.Center
+                            });
+
+                        celdaEspacio.Append(propiedadesEspacio);
+
+                        var parrafoEspacio = new Paragraph();
+
+                        parrafoEspacio.Append(
+                            new ParagraphProperties(
+                                new SpacingBetweenLines
+                                {
+                                    Before = "0",
+                                    After = "0",
+                                    Line = alturaFirma.ToString(),
+                                    LineRule = LineSpacingRuleValues.Exact
+                                }));
+
+                        parrafoEspacio.Append(
+                            new Run(new Text(" "))
+                        );
+
+                        celdaEspacio.Append(parrafoEspacio);
+
+                        filaEspacio.Append(celdaEspacio);
+
+                        tabla.Append(filaEspacio);
+
+                        // ---------------------------------------------
+                        // FILA 3: NOMBRE Y CARGO
+                        // ---------------------------------------------
+
+                        var filaNombre = new TableRow();
+
+                        var parrafosNombre = new List<Paragraph>
+        {
+            CrearParrafo(
+                new[]
+                {
+                    CrearRun(firma.Nombre, 6)
+                },
+                JustificationValues.Center,
+                0),
+
+            CrearParrafo(
+                new[]
+                {
+                    CrearRun(firma.Cargo, 6, bold: true)
+                },
+                JustificationValues.Center,
+                0)
+        };
+
+                        filaNombre.Append(
+                            CrearCeldaContenidoLocal(
+                                anchoColumna,
+                                parrafosNombre));
+
+                        tabla.Append(filaNombre);
+                    }
+
+                    return tabla;
+                }
+
+                // =================================================
+                // DEFINICIÓN DE FIRMAS
+                // =================================================
+
+                // Columna izquierda: solicitante y supervisor.
+                var firmasIzquierda = new[]
+                {
+    (
+        "SOLICITUD DEL ÁREA USUARIA",
+        ObtenerNombre("SOLICITANTE"),
+        ObtenerCargo("SOLICITANTE")
+    ),
+    (
+        "SUPERVISA, VERIFICA Y VALIDA REPARACIÓN",
+        ObtenerNombre("SUPERVISOR"),
+        ObtenerCargo("SUPERVISOR")
+    )
+};
+
+                // Columna derecha: subdirector, director y autoriza.
+                var firmasDerecha = new[]
+                {
+    (
+        "REVISIÓN DE SOLICITUD",
+        ObtenerNombre("SUBDIRECTOR_MAQUINARIA"),
+        ObtenerCargo("SUBDIRECTOR_MAQUINARIA")
+    ),
+    (
+        "Vo. Bo.",
+        ObtenerNombre("DIRECTOR_RECURSOS"),
+        ObtenerCargo("DIRECTOR_RECURSOS")
+    ),
+    (
+        "AUTORIZA",
+        ObtenerNombre("AUTORIZA"),
+        ObtenerCargo("AUTORIZA")
+    )
+};
+
+                // =================================================
+                // TABLA EXTERIOR DE DOS COLUMNAS
+                // =================================================
+
+                int anchoColumnaFirmas = anchoTotal / 2;
+
+                var tablaFirmas = CrearTablaLocal(
+                    new[]
+                    {
+        anchoColumnaFirmas,
+        anchoTotal - anchoColumnaFirmas
+                    });
+
+                // =================================================
+                // CONSTRUIR AMBAS TABLAS INTERNAS
+                // =================================================
+
+                var tablaFirmasIzquierda = CrearTablaFirmas(
+                    firmasIzquierda,
+                    2200,
+                    1400,
+                    anchoColumnaFirmas);
+
+                var tablaFirmasDerecha = CrearTablaFirmas(
+                    firmasDerecha,
+                    1466,
+                    800,
+                    anchoTotal - anchoColumnaFirmas);
+
+                // =================================================
+                // FILA EXTERIOR
+                // =================================================
+
+                var filaFirmas = new TableRow();
+
+                // -------------------------------------------------
+                // CELDA IZQUIERDA
+                // -------------------------------------------------
+
+                var celdaIzquierda = new TableCell();
+
+                celdaIzquierda.Append(
+                    new TableCellProperties(
+                        new TableCellWidth
+                        {
+                            Width = anchoColumnaFirmas.ToString(),
+                            Type = TableWidthUnitValues.Dxa
+                        },
+                        new TableCellVerticalAlignment
+                        {
+                            Val = TableVerticalAlignmentValues.Top
+                        }));
+
+                celdaIzquierda.Append(tablaFirmasIzquierda);
+                celdaIzquierda.Append(new Paragraph());
+
+                filaFirmas.Append(celdaIzquierda);
+
+                // -------------------------------------------------
+                // CELDA DERECHA
+                // -------------------------------------------------
+
+                var celdaDerecha = new TableCell();
+
+                celdaDerecha.Append(
+                    new TableCellProperties(
+                        new TableCellWidth
+                        {
+                            Width = (anchoTotal - anchoColumnaFirmas).ToString(),
+                            Type = TableWidthUnitValues.Dxa
+                        },
+                        new TableCellVerticalAlignment
+                        {
+                            Val = TableVerticalAlignmentValues.Top
+                        }));
+
+                celdaDerecha.Append(tablaFirmasDerecha);
+                celdaDerecha.Append(new Paragraph());
+
+                filaFirmas.Append(celdaDerecha);
+
+                // =================================================
+                // AGREGAR TABLA AL DOCUMENTO
+                // =================================================
+                tablaFirmas.Append(filaFirmas);
+                body.Append(tablaFirmas);
+
+
+
+
+                // =================================================
+                // 14. CONFIGURACIÓN DE PÁGINA
+                // =================================================
+
+                var sectionProperties = new SectionProperties();
+
+                sectionProperties.Append(
+                    new HeaderReference
+                    {
+                        Type = HeaderFooterValues.Default,
+                        Id = mainPart.GetIdOfPart(headerPart)
+                    });
+
+                sectionProperties.Append(
+                    new PageSize
+                    {
+                        Width = 12240,
+                        Height = 15840,
+                        Orient = PageOrientationValues.Portrait
+                    });
+
+                sectionProperties.Append(
+                    new PageMargin
+                    {
+                        Top = 900,
+                        Bottom = 1700,
+                        Left = 850,
+                        Right = 850,
+                        Header = 350,
+                        Footer = 450,
+                        Gutter = 0
+                    });
+
+                body.Append(sectionProperties);
+
+                mainPart.Document.Append(body);
+                mainPart.Document.Save();
+            }
+
+            // =====================================================
+            // 15. VALIDAR DOCUMENTO OPEN XML
+            // =====================================================
+
+            byte[] wordBytes = stream.ToArray();
+
+            using (var validationStream = new MemoryStream(wordBytes))
+            using (var document = WordprocessingDocument.Open(
+                validationStream,
+                false))
+            {
+                var validator = new OpenXmlValidator();
+
+                var errores = validator.Validate(document)
+                    .Take(20)
+                    .Select(error =>
+                        $"Descripción: {error.Description}\n" +
+                        $"Parte: {error.Part?.Uri}\n" +
+                        $"XPath: {error.Path?.XPath}")
+                    .ToList();
+
+                if (errores.Any())
+                {
+                    throw new InvalidDataException(
+                        "El documento contiene errores de estructura Open XML:\n\n" +
+                        string.Join("\n\n", errores));
                 }
             }
+
+            return wordBytes;
         }
+
+
+
+
+
+
 
 
 
@@ -4729,7 +6088,7 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
         public async Task<List<Select2Dto>> BuscarUnidadesVehiculares(string term)
         {
             //////////////////////////////////////////////// ESTO ES PARA EL CHIPOTE
-                var usuarioGuid = Guid.TryParse(_httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var guid) ? guid : (Guid?)null;
+            var usuarioGuid = Guid.TryParse(_httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var guid) ? guid : (Guid?)null;
 
             if (usuarioGuid.ToString() == "0bf13a21-fe5a-45f9-a584-1f6d338e1995")
             {
@@ -5072,14 +6431,7 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
 
                 var fechaActual = DateTime.Now;
 
-                //var consecutivo = await _context.TransferenciaUnidads.CountAsync();
-
                 var folio = $"TR-{DateTime.Now:yyyyMMddHHmmssfff}";
-
-
-                //consecutivo++;
-
-                //var folio = $"TR-{fechaActual:yyyyMMdd}-{consecutivo:D5}";
 
                 // =========================================
                 // GUARDAR DOCUMENTO
@@ -5093,11 +6445,11 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                     throw new Exception("WARNING|No se configuró la ruta de almacenamiento.");
                 }
 
+                var nombreCarpeta = $"Transferencias_{folio}";
                 var carpetaTransferencia =
                     Path.Combine(
                         rutaBase,
-                        "Transferencias",
-                        folio);
+                        nombreCarpeta);
 
                 if (!Directory.Exists(carpetaTransferencia))
                 {
@@ -5116,6 +6468,8 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                     rutaDocumentoGuardado,
                     bytes);
 
+                // Generar ruta relativa limpia para BD (ej. Transferencias_TR-..., / GUID.pdf)
+                var rutaRelativaParaBd = Path.Combine(nombreCarpeta, nombreFisico).Replace("\\", "/");
 
                 // OBTENER DEL USUARIO AUTENTICADO
                 string usuarioId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "";
@@ -5140,7 +6494,7 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                             dto.AreaDestinoId,
 
                         FechaSolicitud =
-                            fechaActual,
+                            dto.FechaTransferencia != default ? dto.FechaTransferencia : fechaActual,
 
                         MotivoTransferencia =
                             dto.MotivoTransferencia.Trim(),
@@ -5149,12 +6503,12 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                             dto.Observaciones?.Trim(),
 
                         DocumentoRuta =
-                            rutaDocumentoGuardado,
+                            rutaRelativaParaBd, // Guardamos ruta limpia/relativa
 
                         DocumentoNombreOriginal =
                             nombreOriginal,
 
-                        EstatusTransferenciaUnidadId = 1,
+                        EstatusTransferenciaUnidadId = 1, // 1: Registrada / Pendiente
 
                         UsuarioSolicitaId = usuarioId,
 
@@ -5167,13 +6521,8 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                 _context.TransferenciaUnidads
                     .Add(entidad);
 
-                // ACTUALIZAR ÁREA DE LA UNIDAD
-
-                //unidad.AreaId =
-                //    dto.AreaDestinoId;
-
                 // =========================================
-                // BITÁCORA
+                // BITÁCORA (SEGUIMIENTO INICIAL)
                 // =========================================
 
                 var seguimiento =
@@ -5184,8 +6533,9 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
 
                         EstatusTransferenciaUnidadId = 1,
 
-                        Observaciones =
-                            "Transferencia registrada.",
+                        TipoMovimiento = "REGISTRO", // <-- Asignado correctamente
+
+                        Observaciones = "Transferencia registrada y documento de resguardo adjuntado.",
 
                         UsuarioId = usuarioId,
 
@@ -5194,6 +6544,11 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
 
                         FechaCreacion =
                             fechaActual,
+
+                        // Copiamos los metadatos del documento también a la bitácora inicial
+                        DocumentoRuta = rutaRelativaParaBd,
+                        DocumentoNombreOriginal = nombreOriginal,
+                        HashDocumento = hashArchivo,
 
                         Activo = true
                     };
@@ -5372,9 +6727,7 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
             // SEGUIMIENTOS
             // =========================================
 
-            var seguimientos =
-                await _context.TransferenciaUnidadSeguimientos
-                    .AsNoTracking()
+            var seguimientos = await _context.TransferenciaUnidadSeguimientos.AsNoTracking()
 
                     .Include(x => x.EstatusTransferenciaUnidad)
 
@@ -5407,7 +6760,9 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                             FechaRegistro =
                                 x.FechaCreacion,
 
-                            DocumentoNombreOriginal = x.DocumentoNombreOriginal
+                            // CORRECCIÓN: Asignar el nombre y ruta del documento
+                            DocumentoNombreOriginal = x.DocumentoNombreOriginal,
+                            DocumentoRuta = x.DocumentoRuta
                         })
                     .ToListAsync();
 
@@ -9578,7 +10933,7 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                         $"WARNING|El taller '{taller.RazonSocial.Trim()}' quedará en nivel crítico presupuestal. Saldo proyectado: {disponiblePosteriorTaller:C}; umbral crítico: {configuracionTaller.MontoCritico.Value:C}. No es posible procesar la DSP.");
                 }
 
-                
+
                 if (configuracionTaller.MontoAlerta.HasValue && disponiblePosteriorTaller <= configuracionTaller.MontoAlerta.Value)
                 {
                     warnings.Add($"El taller '{taller.RazonSocial.Trim()}' quedará en nivel de alerta. Saldo proyectado: {disponiblePosteriorTaller:C}; umbral de alerta: {configuracionTaller.MontoAlerta.Value:C}.");
@@ -12105,7 +13460,7 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
             // DUPLICADA
             //-----------------------------------
             // SE QUITA MIENTRAS PARA LA PRUEBA 09/11/2026
-            
+
             //if (
             //    await _context
             //    .FacturaMantenimientos
@@ -12210,7 +13565,7 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                 .MantenimientoDetalles
                 .Where(x => x.MantenimientoId == mantenimientoId)
                 .SumAsync(x => x.TotalLinea ?? ((x.SubtotalManoObra ?? 0m) + (x.SubtotalRefacciones ?? 0m)));
-            
+
             // Como el mantenimiento trae IVA incluido, obtenemos su base equivalente para compararla con el subtotal de la factura
             var subtotalMantenimientoBase = Math.Round(totalMantenimientoConIva / 1.16m, 2);
             var diferencia = Math.Abs(subtotalMantenimientoBase - factura.Subtotal); // Tolerancia de .99 centavos
@@ -12401,26 +13756,26 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                 // -------------------------------------------------
                 // 7. MOVIMIENTOS PRESUPUESTALES (DEVENGADO)
                 // -------------------------------------------------
-                var movimientos = await _context.MovimientoPresupuestals
-                    .Where(x => x.SolicitudMantenimientoId == mantenimiento.SolicitudMantenimientoId && x.Activo == true)
-                    .ToListAsync();
+                //var movimientos = await _context.MovimientoPresupuestals
+                //    .Where(x => x.SolicitudMantenimientoId == mantenimiento.SolicitudMantenimientoId && x.Activo == true)
+                //    .ToListAsync();
 
-                foreach (var m in movimientos)
-                {
-                    _context.MovimientoPresupuestals.Add(new MovimientoPresupuestal
-                    {
-                        IdDispPresupuestal = m.IdDispPresupuestal,
-                        FechaMovimiento = DateTime.Now,
-                        TipoMovimiento = "DEVENGADO",
-                        Importe = m.Importe,
-                        Observaciones = $"Devengado de Factura Folio/UUID: {factura.UUID}",
-                        FechaCaptura = DateTime.Now,
-                        UsuarioCaptura = usuarioGuid,
-                        SolicitudMantenimientoId = mantenimiento.SolicitudMantenimientoId,
-                        FacturaMantenimientoId = entidad.FacturaMantenimientoId,
-                        Activo = true
-                    });
-                }
+                //foreach (var m in movimientos)
+                //{
+                //    _context.MovimientoPresupuestals.Add(new MovimientoPresupuestal
+                //    {
+                //        IdDispPresupuestal = m.IdDispPresupuestal,
+                //        FechaMovimiento = DateTime.Now,
+                //        TipoMovimiento = "DEVENGADO",
+                //        Importe = m.Importe,
+                //        Observaciones = $"Devengado de Factura Folio/UUID: {factura.UUID}",
+                //        FechaCaptura = DateTime.Now,
+                //        UsuarioCaptura = usuarioGuid,
+                //        SolicitudMantenimientoId = mantenimiento.SolicitudMantenimientoId,
+                //        FacturaMantenimientoId = entidad.FacturaMantenimientoId,
+                //        Activo = true
+                //    });
+                //}
 
                 // -------------------------------------------------
                 // 8. ALMACENAR ARCHIVOS FÍSICOS (XML y PDF)
@@ -12457,19 +13812,25 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
 
         public async Task<FacturaMantenimientoViewModel> PrepararVistaAsync(int mantenimientoId)
         {
+            // 1. Consultar el mantenimiento incluyendo la Solicitud de Mantenimiento y sus Documentos asociados
             var mantenimiento =
                 await _context.Mantenimientos
                     .AsNoTracking()
+                    .Include(x => x.SolicitudMantenimiento)
+                        .ThenInclude(s => s.SolicitudMantenimientoDocumentos)
                     .FirstOrDefaultAsync(x =>
                         x.MantenimientoId == mantenimientoId &&
                         x.Activo);
 
             if (mantenimiento == null)
-                throw new Exception("El mantenimiento no existe.");
+                throw new Exception("El mantenimiento especificado no existe o se encuentra inactivo.");
 
             if (mantenimiento.EstatusMantenimientoId != 5)
-                throw new Exception("WARNING|Solo se pueden facturar mantenimientos finalizados.");
+                throw new Exception("WARNING|Solo se pueden facturar mantenimientos que se encuentren en estatus finalizado.");
 
+
+
+            // 2. Validar si ya cuenta con una factura activa registrada
             var yaFacturado =
                 await _context.FacturaMantenimientos
                     .AnyAsync(x =>
@@ -12477,27 +13838,50 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                         x.Activo);
 
             if (yaFacturado)
-                throw new Exception("WARNING|Este mantenimiento ya tiene factura registrada.");
+                throw new Exception("WARNING|Este mantenimiento ya cuenta con una factura registrada en el sistema.");
 
+
+
+            // 3. Obtener los detalles y partidas del mantenimiento
             var detalles =
                 await _context.MantenimientoDetalles
+                    .AsNoTracking()
                     .Include(x => x.ConceptoServicio)
-                    .Where(x => x.MantenimientoId == mantenimientoId )
+                    .Where(x => x.MantenimientoId == mantenimientoId)
                     .ToListAsync();
 
             if (!detalles.Any())
-                throw new Exception("WARNING|El mantenimiento no contiene detalles o partidas registradas.");
+                throw new Exception("WARNING|El mantenimiento no contiene detalles o partidas registradas para facturar.");
 
-            var taller = await _context.Tallers.FirstOrDefaultAsync(x => x.TallerId == mantenimiento.TallerId);
+            // 4. Obtener información del Taller
+            var taller = await _context.Tallers
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.TallerId == mantenimiento.TallerId);
 
-            // Como los subtotales de la línea ya traen el IVA integrado (flujo anterior),
-            // el importe total con IVA incluido es la suma de TotalLinea o (SubtotalManoObra + SubtotalRefacciones)
+
+
+            // 5. Cálculos financieros seguros (Subtotal con IVA integrado)
             var totalConIva = detalles.Sum(x => (x.TotalLinea ?? ((x.SubtotalManoObra ?? 0m) + (x.SubtotalRefacciones ?? 0m))));
 
-            // Desglose matemático seguro (Base / 1.16 y el resto es IVA)
             var subtotalBase = Math.Round(totalConIva / 1.16m, 2);
-            var ivaCalculado = Math.Round(totalConIva - subtotalBase, 2);
+            var ivaCalculado = Math.Round(totalConIva - subtotalBase, 2); // Corregido el operador faltante
             var totalFinal = Math.Round(totalConIva, 2);
+
+
+            // 6. Mapeo de documentos previos de la solicitud (si existen)
+            var documentosSolicitud = mantenimiento.SolicitudMantenimiento?.SolicitudMantenimientoDocumentos?
+                .Where(d => d.Activo)
+                .Select(d => new DocumentoSolicitudViewModel
+                {
+                    SolicitudMantenimientoDocumentoId = d.SolicitudMantenimientoDocumentoId,
+                    TipoDocumento = d.TipoDocumento,
+                    NombreArchivo = d.NombreArchivo,
+                    RutaArchivo = d.RutaArchivo,
+                    FechaCarga = d.FechaCarga
+                }).ToList() ?? new List<DocumentoSolicitudViewModel>();
+
+
+
 
             return new FacturaMantenimientoViewModel
             {
@@ -12510,6 +13894,8 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                 Subtotal = subtotalBase,
                 IVA = ivaCalculado,
                 Total = totalFinal,
+
+                DocumentosSolicitud = documentosSolicitud,
 
                 Detalles = detalles.Select(x =>
                 {
@@ -13178,7 +14564,7 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
                     FechaCarga =
                         DateTime.Now,
 
-                    UsuarioCargaId = usuarioGuid, 
+                    UsuarioCargaId = usuarioGuid,
 
                     Activo =
                         true
@@ -13429,18 +14815,18 @@ namespace SIGEMAV.Services.Implementations.Maquinaria
 
 
 
-public async Task<ValidacionSatDto> ValidarAsync(string uuid,string rfcEmisor,string rfcReceptor,    decimal total,CancellationToken cancellationToken = default)
-    {
-        // =====================================================
-        // 1. FORMATO EXPRESIÓN IMPRESA (ESTÁNDAR VIGENTE SAT)
-        // =====================================================
-        var expresion = $"?re={rfcEmisor}&rr={rfcReceptor}&tt={total.ToString("0.######", CultureInfo.InvariantCulture)}&id={uuid}";
-        var url = "https://consultaqr.facturaelectronica.sat.gob.mx/ConsultaCFDIService.svc";
+        public async Task<ValidacionSatDto> ValidarAsync(string uuid, string rfcEmisor, string rfcReceptor, decimal total, CancellationToken cancellationToken = default)
+        {
+            // =====================================================
+            // 1. FORMATO EXPRESIÓN IMPRESA (ESTÁNDAR VIGENTE SAT)
+            // =====================================================
+            var expresion = $"?re={rfcEmisor}&rr={rfcReceptor}&tt={total.ToString("0.######", CultureInfo.InvariantCulture)}&id={uuid}";
+            var url = "https://consultaqr.facturaelectronica.sat.gob.mx/ConsultaCFDIService.svc";
 
-        // =====================================================
-        // 2. CONSTRUCCIÓN SOAP REQUEST 1.1 / 1.2
-        // =====================================================
-        var soapEnvelope = $"""
+            // =====================================================
+            // 2. CONSTRUCCIÓN SOAP REQUEST 1.1 / 1.2
+            // =====================================================
+            var soapEnvelope = $"""
         <?xml version="1.0" encoding="utf-8"?>
         <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:temp="http://tempuri.org/">
            <soapenv:Header/>
@@ -13452,137 +14838,137 @@ public async Task<ValidacionSatDto> ValidarAsync(string uuid,string rfcEmisor,st
         </soapenv:Envelope>
         """;
 
-        try
-        {
-            // =====================================================
-            // 3. CONFIGURAR REQUISICIÓN CON TIMEOUT Y CANCELLATION
-            // =====================================================
-            using var request = new HttpRequestMessage(HttpMethod.Post, url)
+            try
             {
-                Content = new StringContent(soapEnvelope, Encoding.UTF8, "text/xml")
-            };
+                // =====================================================
+                // 3. CONFIGURAR REQUISICIÓN CON TIMEOUT Y CANCELLATION
+                // =====================================================
+                using var request = new HttpRequestMessage(HttpMethod.Post, url)
+                {
+                    Content = new StringContent(soapEnvelope, Encoding.UTF8, "text/xml")
+                };
 
-            request.Headers.Add("SOAPAction", "\"http://tempuri.org/IConsultaCFDIService/Consulta\"");
+                request.Headers.Add("SOAPAction", "\"http://tempuri.org/IConsultaCFDIService/Consulta\"");
 
-            // Se agrega un CancellationTokenSource para establecer un timeout máximo de 10 segundos
-            using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            cts.CancelAfter(TimeSpan.FromSeconds(10));
+                // Se agrega un CancellationTokenSource para establecer un timeout máximo de 10 segundos
+                using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                cts.CancelAfter(TimeSpan.FromSeconds(10));
 
-            // =====================================================
-            // 4. CONSUMO DEL SERVICIO WEB SAT
-            // =====================================================
-            using var response = await _http.SendAsync(request, cts.Token);
+                // =====================================================
+                // 4. CONSUMO DEL SERVICIO WEB SAT
+                // =====================================================
+                using var response = await _http.SendAsync(request, cts.Token);
 
-            if (!response.IsSuccessStatusCode)
-            {
+                if (!response.IsSuccessStatusCode)
+                {
+                    return new ValidacionSatDto
+                    {
+                        ConsultaExitosa = false,
+                        EsValida = false,
+                        Estado = "PENDIENTE",
+                        CodigoEstatus = $"SAT devolvió un código HTTP de error: {(int)response.StatusCode} ({response.ReasonPhrase})",
+                        FechaConsulta = DateTime.Now,
+                        Mensaje = $"Respuesta Http no exitosa desde el servicio del SAT. Estatus: {response.StatusCode}"
+                    };
+                }
+
+                var contenido = await response.Content.ReadAsStringAsync(cts.Token);
+
+                if (string.IsNullOrWhiteSpace(contenido))
+                {
+                    return new ValidacionSatDto
+                    {
+                        ConsultaExitosa = false,
+                        EsValida = false,
+                        Estado = "PENDIENTE",
+                        CodigoEstatus = "Servicio SAT devolvió un cuerpo de respuesta vacío.",
+                        FechaConsulta = DateTime.Now
+                    };
+                }
+
+                // =====================================================
+                // 5. PARSEO SEGURO DEL XML DE RESPUESTA
+                // =====================================================
+                var doc = XDocument.Parse(contenido);
+
+                string? ObtenerValorNodo(string nombreNodo)
+                {
+                    return doc.Descendants()
+                        .FirstOrDefault(x => string.Equals(x.Name.LocalName, nombreNodo, StringComparison.OrdinalIgnoreCase))
+                        ?.Value
+                        ?.Trim();
+                }
+
+                var estado = ObtenerValorNodo("Estado");
+                var codigoEstatus = ObtenerValorNodo("CodigoEstatus");
+                var cancelable = ObtenerValorNodo("EsCancelable");
+                var estatusCancelacion = ObtenerValorNodo("EstatusCancelacion");
+
+                // Validar respuesta estructural
+                if (string.IsNullOrWhiteSpace(estado))
+                {
+                    return new ValidacionSatDto
+                    {
+                        ConsultaExitosa = false,
+                        EsValida = false,
+                        Estado = "PENDIENTE",
+                        CodigoEstatus = codigoEstatus ?? "SAT no devolvió el nodo 'Estado' del CFDI.",
+                        FechaConsulta = DateTime.Now
+                    };
+                }
+
+                bool esVigente = string.Equals(estado, "Vigente", StringComparison.OrdinalIgnoreCase);
+
+                // =====================================================
+                // 6. RESPUESTA DE ÉXITO EN CONSULTA
+                // =====================================================
                 return new ValidacionSatDto
                 {
-                    ConsultaExitosa = false,
-                    EsValida = false,
-                    Estado = "PENDIENTE",
-                    CodigoEstatus = $"SAT devolvió un código HTTP de error: {(int)response.StatusCode} ({response.ReasonPhrase})",
+                    ConsultaExitosa = true,
+                    EsValida = esVigente,
+                    Estado = estado.ToUpper(),
+                    CodigoEstatus = codigoEstatus,
+                    Cancelable = cancelable,
+                    EstatusCancelacion = estatusCancelacion,
                     FechaConsulta = DateTime.Now,
-                    Mensaje = $"Respuesta Http no exitosa desde el servicio del SAT. Estatus: {response.StatusCode}"
+                    Mensaje = null
                 };
             }
-
-            var contenido = await response.Content.ReadAsStringAsync(cts.Token);
-
-            if (string.IsNullOrWhiteSpace(contenido))
+            catch (OperationCanceledException ex) when (!cancellationToken.IsCancellationRequested)
             {
+                // Se disparó el timeout de 10 segundos
                 return new ValidacionSatDto
                 {
                     ConsultaExitosa = false,
                     EsValida = false,
                     Estado = "PENDIENTE",
-                    CodigoEstatus = "Servicio SAT devolvió un cuerpo de respuesta vacío.",
-                    FechaConsulta = DateTime.Now
+                    CodigoEstatus = "Tiempo de espera agotado al conectar con el SAT (Timeout 10s).",
+                    FechaConsulta = DateTime.Now,
+                    Mensaje = "El servidor del SAT tardó demasiado en responder: " + ex.Message
                 };
             }
-
-            // =====================================================
-            // 5. PARSEO SEGURO DEL XML DE RESPUESTA
-            // =====================================================
-            var doc = XDocument.Parse(contenido);
-
-            string? ObtenerValorNodo(string nombreNodo)
+            catch (Exception ex)
             {
-                return doc.Descendants()
-                    .FirstOrDefault(x => string.Equals(x.Name.LocalName, nombreNodo, StringComparison.OrdinalIgnoreCase))
-                    ?.Value
-                    ?.Trim();
-            }
-
-            var estado = ObtenerValorNodo("Estado");
-            var codigoEstatus = ObtenerValorNodo("CodigoEstatus");
-            var cancelable = ObtenerValorNodo("EsCancelable");
-            var estatusCancelacion = ObtenerValorNodo("EstatusCancelacion");
-
-            // Validar respuesta estructural
-            if (string.IsNullOrWhiteSpace(estado))
-            {
+                // Captura cualquier falla de red, DNS, TLS o deserialización sin romper el flujo del sistema
                 return new ValidacionSatDto
                 {
                     ConsultaExitosa = false,
                     EsValida = false,
                     Estado = "PENDIENTE",
-                    CodigoEstatus = codigoEstatus ?? "SAT no devolvió el nodo 'Estado' del CFDI.",
-                    FechaConsulta = DateTime.Now
+                    CodigoEstatus = "Servicio SAT no disponible temporalmente.",
+                    FechaConsulta = DateTime.Now,
+                    Mensaje = ex.Message
                 };
             }
-
-            bool esVigente = string.Equals(estado, "Vigente", StringComparison.OrdinalIgnoreCase);
-
-            // =====================================================
-            // 6. RESPUESTA DE ÉXITO EN CONSULTA
-            // =====================================================
-            return new ValidacionSatDto
-            {
-                ConsultaExitosa = true,
-                EsValida = esVigente,
-                Estado = estado.ToUpper(),
-                CodigoEstatus = codigoEstatus,
-                Cancelable = cancelable,
-                EstatusCancelacion = estatusCancelacion,
-                FechaConsulta = DateTime.Now,
-                Mensaje = null
-            };
         }
-        catch (OperationCanceledException ex) when (!cancellationToken.IsCancellationRequested)
-        {
-            // Se disparó el timeout de 10 segundos
-            return new ValidacionSatDto
-            {
-                ConsultaExitosa = false,
-                EsValida = false,
-                Estado = "PENDIENTE",
-                CodigoEstatus = "Tiempo de espera agotado al conectar con el SAT (Timeout 10s).",
-                FechaConsulta = DateTime.Now,
-                Mensaje = "El servidor del SAT tardó demasiado en responder: " + ex.Message
-            };
-        }
-        catch (Exception ex)
-        {
-            // Captura cualquier falla de red, DNS, TLS o deserialización sin romper el flujo del sistema
-            return new ValidacionSatDto
-            {
-                ConsultaExitosa = false,
-                EsValida = false,
-                Estado = "PENDIENTE",
-                CodigoEstatus = "Servicio SAT no disponible temporalmente.",
-                FechaConsulta = DateTime.Now,
-                Mensaje = ex.Message
-            };
-        }
-    }
 
 
 
 
 
 
-    private ResultadoValidacionHistoricaDto EvaluarValidacionTecnica(List<ConfiguracionValidacionTecnicaDto> configuraciones, List<ValidacionSolicitudActivaDto> solicitudesActivas,
-        List<ValidacionHistorialServicioDto> historial, DateTime fechaActual)
+        private ResultadoValidacionHistoricaDto EvaluarValidacionTecnica(List<ConfiguracionValidacionTecnicaDto> configuraciones, List<ValidacionSolicitudActivaDto> solicitudesActivas,
+            List<ValidacionHistorialServicioDto> historial, DateTime fechaActual)
         {
             var resultado = new ResultadoValidacionHistoricaDto
             {
@@ -17752,9 +19138,266 @@ public async Task<ValidacionSatDto> ValidarAsync(string uuid,string rfcEmisor,st
 
 
 
+        //PDF GENERATION FOR MAINTENANCE REQUEST LETTER
+        //public async Task<byte[]> GenerarOficioSolicitudPdfAsync(int solicitudMantenimientoId)
+        //{
+        //    var solicitud = await _context.SolicitudMantenimientos
+        //        .AsNoTracking()
+        //        .Where(x => x.SolicitudMantenimientoId == solicitudMantenimientoId)
+        //        .Select(x => new
+        //        {
+        //            x.Folio,
+        //            x.NumeroOficio,
+        //            x.FechaSolicitud,
+        //            AreaSolicitante = x.AreaSolicitante.AreaNombre,
+        //            AreaId = x.AreaSolicitanteId,
+        //            Unidad = new
+        //            {
+        //                Marca = x.UnidadVehicular.Marca.MarcaNombre,
+        //                Modelo = x.UnidadVehicular.Modelo.ModeloNombre,
+        //                Anio = x.UnidadVehicular.Anio.AnioDescripcion,
+        //                Serie = x.UnidadVehicular.NumeroSerie,
+        //                Placa = x.UnidadVehicular.PlacaActual,
+        //                Economico = x.UnidadVehicular.NumeroEconomico,
+        //                Cilindros = x.UnidadVehicular.Cilindro.CilindroNombre,
+        //                Km = x.KilometrajeActual
+        //            },
+        //            Taller = x.Taller != null ? x.Taller.RazonSocial : "SIN TALLER",
+        //            Detalles = x.SolicitudMantenimientoDetalles
+        //                .Where(d => d.Activo)
+        //                .Select(d => new
+        //                {
+        //                    d.ConceptoServicio.ConceptoServicioNombre,
+        //                    d.Cantidad,
+        //                    d.Observaciones
+        //                }).ToList()
+        //        })
+        //        .FirstOrDefaultAsync();
 
-        public async Task<byte[]> GenerarOficioSolicitudPdfAsync(int solicitudMantenimientoId)
+        //    if (solicitud == null)
+        //        throw new Exception("No se encontró la solicitud de mantenimiento especificada.");
+
+        //    // Obtener signatarios activos
+        //    var OficialMayor = await _context.Firmantes.FirstOrDefaultAsync(s => s.Cargo.Contains("OFICIAL MAYOR") && s.Activo && s.FirmanteId == 9);
+        //    var Solicitante = await _context.Firmantes.FirstOrDefaultAsync(s => s.ClavePuesto.Contains("SOLICITANTE") && s.Activo && solicitud.AreaId == s.Area.AreaId);
+        //    var Director = await _context.Firmantes.FirstOrDefaultAsync(s => s.ClavePuesto.Contains("DIRECTOR_RECURSOS") && s.Activo && s.FirmanteId == 2);
+        //    var subdirector = await _context.Firmantes.FirstOrDefaultAsync(s => s.ClavePuesto.Contains("SUBDIRECTOR_MAQUINARIA") && s.Activo);
+
+        //    string fechaFormateada = $"Xalapa, Veracruz, a {solicitud.FechaSolicitud.ToString("dd 'de' MMMM 'de' yyyy", new CultureInfo("es-MX"))}";
+
+        //    // Generar documento PDF con distribución equilibrada para hasta 15 servicios
+        //    var documento = QuestPDF.Fluent.Document.Create(container =>
+        //    {
+        //        container.Page(page =>
+        //        {
+        //            page.Size(PageSizes.Letter);
+        //            // Margen optimizado de 1.4 cm para ganar el espacio exacto sin verse pegado a los bordes
+        //            page.Margin(1.4f, Unit.Centimetre);
+        //            page.DefaultTextStyle(x => x.FontSize(9f).FontFamily("Gotham").FontColor(Colors.Black));
+
+        //            // --- CINTILLO FIJO AL PIE DE PÁGINA ---
+        //            page.Footer().Element(footerContainer =>
+        //            {
+        //                var cintilloPath = Path.Combine(_env.WebRootPath, "img", "veracruz", "Cintillo_Corazón.png");
+
+        //                if (File.Exists(cintilloPath))
+        //                {
+        //                    footerContainer.ExtendHorizontal().Image(cintilloPath, ImageScaling.FitWidth);
+        //                }
+        //                else
+        //                {
+        //                    footerContainer.AlignCenter().Text("CINTILLO VERACRUZ — SSP").Bold()
+        //                        .FontSize(7.5f).FontFamily("Gotham").FontColor(Colors.Grey.Darken2);
+        //                }
+        //            });
+
+        //            // Contenido principal estructurado
+        //            page.Content().Column(col =>
+        //            {
+        //                // Espaciado controlado para que los elementos respiren de manera uniforme
+        //                col.Spacing(4);
+
+        //                // --- LOGO / ENCABEZADO SUPERIOR ---
+        //                var logoPath = Path.Combine(_env.WebRootPath, "img", "veracruz", "veracruz2025_2.png");
+
+        //                if (File.Exists(logoPath))
+        //                {
+        //                    col.Item().Height(38).AlignLeft().Image(logoPath, ImageScaling.FitArea);
+        //                }
+        //                else
+        //                {
+        //                    col.Item().Text("GOBIERNO DEL ESTADO DE VERACRUZ — SSP").Bold()
+        //                        .FontSize(7.5f).FontFamily("Gotham").FontColor(Colors.Grey.Darken2);
+        //                }
+
+        //                // Membrete superior derecho
+        //                col.Item().AlignRight().Column(c =>
+        //                {
+        //                    c.Spacing(1);
+        //                    c.Item().Text(solicitud.AreaSolicitante.ToUpper()).FontSize(8.5f).FontFamily("Gotham");
+        //                    c.Item().Text($"Oficio No. {solicitud.NumeroOficio}").FontSize(8.5f).FontFamily("Gotham");
+        //                    c.Item().Text($"Asunto: Solicitud de mantenimiento vehicular").FontSize(8.5f).FontFamily("Gotham");
+        //                    c.Item().Text(fechaFormateada).FontSize(8.5f).FontFamily("Gotham");
+        //                });
+
+        //                col.Item().PaddingTop(2);
+
+        //                // Destinatario
+        //                col.Item().Column(c =>
+        //                {
+        //                    c.Spacing(1);
+        //                    c.Item().Text(OficialMayor?.NombreCompleto ?? "C. OFICIAL MAYOR").Bold().FontFamily("Gotham").FontSize(9.5f);
+        //                    c.Item().Text(OficialMayor?.Cargo ?? "OFICIAL MAYOR").Bold().FontFamily("Gotham").FontSize(9.5f);
+        //                    c.Item().Text("P R E S E N T E").Bold().FontFamily("Gotham").FontSize(9.5f);
+        //                });
+
+        //                col.Item().PaddingTop(2);
+
+        //                // Párrafo inicial
+        //                col.Item().Text(text =>
+        //                {
+        //                    text.Justify();
+        //                    text.Span("Por medio del presente, me permito requerir de su valioso apoyo para que sea autorizado el servicio de mantenimiento vehicular, relativo a la unidad automotora que se describe a continuación:")
+        //                        .FontSize(9f).FontFamily("Gotham");
+        //                });
+
+        //                col.Item().PaddingTop(2);
+
+        //                // Tabla de Especificaciones del Vehículo
+        //                col.Item().Table(table =>
+        //                {
+        //                    table.ColumnsDefinition(columns =>
+        //                    {
+        //                        columns.RelativeColumn(1.2f);
+        //                        columns.RelativeColumn(1.2f);
+        //                        columns.RelativeColumn(0.7f);
+        //                        columns.RelativeColumn(1.8f);
+        //                        columns.RelativeColumn(1.1f);
+        //                        columns.RelativeColumn(0.9f);
+        //                        columns.RelativeColumn(0.6f);
+        //                        columns.RelativeColumn(0.8f);
+        //                    });
+
+        //                    table.Header(header =>
+        //                    {
+        //                        void HeaderCell(string text) => header.Cell().Background(Colors.Grey.Lighten3).Border(1).BorderColor(Colors.Black).Padding(2f).AlignCenter().Text(text).Bold().FontSize(8f).FontFamily("Gotham");
+
+        //                        HeaderCell("Marca");
+        //                        HeaderCell("Tipo");
+        //                        HeaderCell("Mod.");
+        //                        HeaderCell("Núm. Serie");
+        //                        HeaderCell("Placa");
+        //                        HeaderCell("Núm. Econ.");
+        //                        HeaderCell("Cil.");
+        //                        HeaderCell("Km.");
+        //                    });
+
+        //                    void DataCell(string text) => table.Cell().Border(1).BorderColor(Colors.Black).Padding(2f).AlignCenter().Text(text).FontSize(7.5f).FontFamily("Gotham");
+
+        //                    DataCell(solicitud.Unidad.Marca);
+        //                    DataCell(solicitud.Unidad.Modelo);
+        //                    DataCell(solicitud.Unidad.Anio.ToString());
+        //                    DataCell(solicitud.Unidad.Serie);
+        //                    DataCell(solicitud.Unidad.Placa);
+        //                    DataCell(solicitud.Unidad.Economico);
+        //                    DataCell(solicitud.Unidad.Cilindros?.ToString() ?? "N/A");
+        //                    DataCell(solicitud.Unidad.Km.ToString("N0"));
+        //                });
+
+        //                col.Item().PaddingTop(2);
+
+        //                // --- SECCIÓN DE SERVICios SOLICITADOS (Hasta 15 servicios con padding optimizado de 2f) ---
+        //                col.Item().Table(table =>
+        //                {
+        //                    table.ColumnsDefinition(columns =>
+        //                    {
+        //                        columns.ConstantColumn(28); // Cantidad
+        //                        columns.RelativeColumn();   // Concepto
+        //                    });
+
+        //                    table.Header(header =>
+        //                    {
+        //                        header.Cell().Background(Colors.Grey.Lighten3).Border(1).BorderColor(Colors.Black).Padding(2f).AlignCenter().Text("Cant.").Bold().FontSize(8f);
+        //                        header.Cell().Background(Colors.Grey.Lighten3).Border(1).BorderColor(Colors.Black).Padding(2f).AlignLeft().Text("Servicio Solicitado").Bold().FontSize(8f);
+        //                    });
+
+        //                    foreach (var det in solicitud.Detalles)
+        //                    {
+        //                        table.Cell().Border(1).BorderColor(Colors.Black).Padding(2f).AlignCenter().Text(det.Cantidad.ToString()).FontSize(7.5f).FontFamily("Gotham");
+        //                        table.Cell().Border(1).BorderColor(Colors.Black).Padding(2f).AlignLeft().Column(c =>
+        //                        {
+        //                            c.Item().Text(det.ConceptoServicioNombre).FontSize(7.5f).FontFamily("Gotham");
+        //                            if (!string.IsNullOrWhiteSpace(det.Observaciones))
+        //                            {
+        //                                c.Item().Text(det.Observaciones).FontSize(7f).FontColor(Colors.Grey.Darken2);
+        //                            }
+        //                        });
+        //                    }
+        //                });
+
+        //                col.Item().PaddingTop(3);
+
+        //                // --- PÁRRAFOS COMPLEMENTARIOS ---
+        //                col.Item().Text(text =>
+        //                {
+        //                    text.Justify();
+        //                    text.Span("Derivado de lo anterior, adjunto cotización emitida por el prestador de servicios ")
+        //                        .FontSize(9f).FontFamily("Gotham");
+        //                    text.Span(solicitud.Taller).Bold().FontSize(9f).FontFamily("Gotham");
+        //                    text.Span(", el cual fue considerado para la reparación del vehículo antes citado, ya que ofrece las mejores condiciones en cuanto a precio, tiempo de respuesta y calidad en el servicio.")
+        //                        .FontSize(9f).FontFamily("Gotham");
+        //                });
+
+        //                col.Item().Text(text =>
+        //                {
+        //                    text.Justify();
+        //                    text.Span("Cabe mencionar que dicha petición es con la finalidad de mantener en óptimas condiciones el parque vehicular de esta ")
+        //                        .FontSize(9f).FontFamily("Gotham");
+        //                    text.Span(solicitud.AreaSolicitante).Bold().FontSize(9f).FontFamily("Gotham");
+        //                    text.Span(" y garantizar su uso operativo.").FontSize(9f).FontFamily("Gotham");
+        //                });
+
+        //                col.Item().Text(text =>
+        //                {
+        //                    text.Justify();
+        //                    text.Span("Sin más por el momento, me suscribo a sus órdenes.")
+        //                        .FontSize(9f).FontFamily("Gotham");
+        //                });
+
+        //                // --- BLOQUE DE FIRMA ---
+        //                col.Item().PaddingTop(6).AlignLeft().Column(c =>
+        //                {
+        //                    c.Spacing(0.5f);
+        //                    c.Item().Text("A T E N T A M E N T E").Bold().FontSize(9f).FontFamily("Gotham");
+        //                    c.Item().PaddingTop(10).Text(Solicitante?.NombreCompleto ?? "Sin Datos...").Bold().FontFamily("Gotham").FontSize(9f);
+        //                    c.Item().Text(solicitud.AreaSolicitante).FontSize(9f).FontFamily("Gotham").Bold();
+        //                });
+
+        //                // --- C.C.P. ---
+        //                col.Item().PaddingTop(4).Column(c =>
+        //                {
+        //                    c.Spacing(0.5f);
+        //                    c.Item().Text($"C.C.P. {Director?.NombreCompleto ?? "Sin datos."}.- Director de Recursos Materiales y Servicios Generales.").FontSize(7.5f).FontColor(Colors.Grey.Darken2).FontFamily("Gotham");
+        //                    c.Item().Text($"C.C.P. {subdirector?.NombreCompleto ?? "Sin datos."}.- Subdirector de Maquinaria.").FontSize(7.5f).FontColor(Colors.Grey.Darken2).FontFamily("Gotham");
+        //                });
+        //            });
+        //        });
+        //    });
+
+        //    byte[] pdfBytes = documento.GeneratePdf();
+        //    return await Task.FromResult(pdfBytes);
+        //}
+
+
+
+        //WORD 
+
+        public async Task<byte[]> GenerarOficioSolicitudWordAsync(int solicitudMantenimientoId)
         {
+            // =========================================================
+            // 1. OBTENER INFORMACIÓN DE LA SOLICITUD
+            // =========================================================
+
             var solicitud = await _context.SolicitudMantenimientos
                 .AsNoTracking()
                 .Where(x => x.SolicitudMantenimientoId == solicitudMantenimientoId)
@@ -17763,8 +19406,10 @@ public async Task<ValidacionSatDto> ValidarAsync(string uuid,string rfcEmisor,st
                     x.Folio,
                     x.NumeroOficio,
                     x.FechaSolicitud,
+
                     AreaSolicitante = x.AreaSolicitante.AreaNombre,
                     AreaId = x.AreaSolicitanteId,
+
                     Unidad = new
                     {
                         Marca = x.UnidadVehicular.Marca.MarcaNombre,
@@ -17776,7 +19421,11 @@ public async Task<ValidacionSatDto> ValidarAsync(string uuid,string rfcEmisor,st
                         Cilindros = x.UnidadVehicular.Cilindro.CilindroNombre,
                         Km = x.KilometrajeActual
                     },
-                    Taller = x.Taller != null ? x.Taller.RazonSocial : "SIN TALLER",
+
+                    Taller = x.Taller != null
+                        ? x.Taller.RazonSocial
+                        : "SIN TALLER",
+
                     Detalles = x.SolicitudMantenimientoDetalles
                         .Where(d => d.Activo)
                         .Select(d => new
@@ -17784,223 +19433,1028 @@ public async Task<ValidacionSatDto> ValidarAsync(string uuid,string rfcEmisor,st
                             d.ConceptoServicio.ConceptoServicioNombre,
                             d.Cantidad,
                             d.Observaciones
-                        }).ToList()
+                        })
+                        .ToList()
                 })
                 .FirstOrDefaultAsync();
 
             if (solicitud == null)
-                throw new Exception("No se encontró la solicitud de mantenimiento especificada.");
-
-            // Obtener signatarios activos
-            var OficialMayor = await _context.Firmantes.FirstOrDefaultAsync(s => s.Cargo.Contains("OFICIAL MAYOR") && s.Activo && s.FirmanteId == 9);
-            var Solicitante = await _context.Firmantes.FirstOrDefaultAsync(s => s.ClavePuesto.Contains("SOLICITANTE") && s.Activo && solicitud.AreaId == s.Area.AreaId);
-            var Director = await _context.Firmantes.FirstOrDefaultAsync(s => s.ClavePuesto.Contains("DIRECTOR_RECURSOS") && s.Activo && s.FirmanteId == 2);
-            var subdirector = await _context.Firmantes.FirstOrDefaultAsync(s => s.ClavePuesto.Contains("SUBDIRECTOR_MAQUINARIA") && s.Activo);
-
-            string fechaFormateada = $"Xalapa, Veracruz, a {solicitud.FechaSolicitud.ToString("dd 'de' MMMM 'de' yyyy", new CultureInfo("es-MX"))}";
-
-            // Generar documento PDF con QuestPDF
-            var documento = QuestPDF.Fluent.Document.Create(container =>
             {
-                container.Page(page =>
+                throw new Exception(
+                    "No se encontró la solicitud de mantenimiento especificada.");
+            }
+
+            // =========================================================
+            // 2. OBTENER FIRMANTES
+            // =========================================================
+
+            var oficialMayor = await _context.Firmantes
+                .AsNoTracking()
+                .FirstOrDefaultAsync(s =>
+                    s.Cargo.Contains("OFICIAL MAYOR") &&
+                    s.Activo &&
+                    s.FirmanteId == 9);
+
+            var solicitante = await _context.Firmantes
+                .AsNoTracking()
+                .FirstOrDefaultAsync(s =>
+                    s.ClavePuesto.Contains("SOLICITANTE") &&
+                    s.Activo &&
+                    solicitud.AreaId == s.Area.AreaId);
+
+            var director = await _context.Firmantes
+                .AsNoTracking()
+                .FirstOrDefaultAsync(s =>
+                    s.ClavePuesto.Contains("DIRECTOR_RECURSOS") &&
+                    s.Activo &&
+                    s.FirmanteId == 2);
+
+            var subdirector = await _context.Firmantes
+                .AsNoTracking()
+                .FirstOrDefaultAsync(s =>
+                    s.ClavePuesto.Contains("SUBDIRECTOR_MAQUINARIA") &&
+                    s.Activo);
+
+            // =========================================================
+            // 3. PREPARAR INFORMACIÓN
+            // =========================================================
+
+            var cultura = new CultureInfo("es-MX");
+
+            string fechaFormateada =
+                $"Xalapa, Veracruz, a {solicitud.FechaSolicitud.ToString(
+                    "dd 'de' MMMM 'de' yyyy",
+                    cultura)}";
+
+            string areaSolicitante =
+                solicitud.AreaSolicitante ?? "ÁREA SOLICITANTE";
+
+            string nombreOficial =
+                oficialMayor?.NombreCompleto ?? "C. OFICIAL MAYOR";
+
+            string cargoOficial =
+                oficialMayor?.Cargo ?? "OFICIAL MAYOR";
+
+            string nombreSolicitante =
+                solicitante?.NombreCompleto ?? "Sin datos...";
+
+            string nombreDirector =
+                director?.NombreCompleto ?? "Sin datos.";
+
+            string nombreSubdirector =
+                subdirector?.NombreCompleto ?? "Sin datos.";
+
+            // =========================================================
+            // 4. CREAR DOCUMENTO WORD EN MEMORIA
+            // =========================================================
+
+            using var stream = new MemoryStream();
+
+            using (var wordDocument = WordprocessingDocument.Create(
+                stream,
+                WordprocessingDocumentType.Document,
+                true))
+            {
+                var mainPart = wordDocument.AddMainDocumentPart();
+
+                mainPart.Document = new Document();
+
+                var body = new Body();
+
+                mainPart.Document.Append(body);
+
+                // =====================================================
+                // 5. ENCABEZADO
+                // =====================================================
+
+                var headerPart = mainPart.AddNewPart<HeaderPart>();
+
+                var header = new Header();
+
+                var logoPath = Path.Combine(
+                    _env.WebRootPath,
+                    "img",
+                    "veracruz",
+                    "veracruz2025_2.png");
+
+                var cintilloPath = Path.Combine(
+                    _env.WebRootPath,
+                    "img",
+                    "veracruz",
+                    "Cintillo_Corazón.png");
+
+
+                // -----------------------------------------------------
+                // PROPIEDADES DEL PÁRRAFO
+                // -----------------------------------------------------
+
+                var paragraphProperties = new ParagraphProperties();
+
+                // 1. Espaciado.
+                paragraphProperties.Append(
+                    new SpacingBetweenLines
+                    {
+                        Before = "0",
+                        After = "0",
+                        Line = "220",
+                        LineRule = LineSpacingRuleValues.Auto
+                    });
+
+                // 2. Alineación.
+                paragraphProperties.Append(
+                    new Justification
+                    {
+                        Val = JustificationValues.Left
+                    });
+
+                var paragraphHeader = new Paragraph();
+                paragraphHeader.Append(paragraphProperties);
+
+                // -----------------------------------------------------
+                // LOGOTIPO INSTITUCIONAL
+                // -----------------------------------------------------
+
+                if (File.Exists(logoPath))
                 {
-                    page.Size(PageSizes.Letter);
-                    // Reducción estratégica del margen (1.6 cm) para maximizar área útil vertical
-                    page.Margin(1.6f, Unit.Centimetre);
-                    page.DefaultTextStyle(x => x.FontSize(10f).FontFamily("Gotham").FontColor(Colors.Black));
+                    var imagePart = headerPart.AddImagePart(
+                        ImagePartType.Png);
 
-                    // --- CINTILLO FIJO AL PIE DE PÁGINA ---
-                    page.Footer().Element(footerContainer =>
+                    using (var imageStream = File.OpenRead(logoPath))
                     {
-                        var cintilloPath = Path.Combine(_env.WebRootPath, "img", "veracruz", "Cintillo_Corazón.png");
+                        imagePart.FeedData(imageStream);
+                    }
 
-                        if (File.Exists(cintilloPath))
+                    string relationshipId =
+                        headerPart.GetIdOfPart(imagePart);
+
+                    paragraphHeader.Append(new Run(CrearImagenWord(relationshipId, 220, 55)));
+                }
+
+                // -----------------------------------------------------
+                // GUARDAR ENCABEZADO
+                // -----------------------------------------------------
+
+                header.Append(paragraphHeader);
+
+                headerPart.Header = header;
+                headerPart.Header.Save();
+
+
+
+
+                // =====================================================
+                // 7. MEMBRETE DERECHO
+                // =====================================================
+
+                body.Append(CrearParrafo(
+                    new[] { CrearRun(areaSolicitante.ToUpper(), 9) },
+                    JustificationValues.Right, 0));
+
+                body.Append(CrearParrafo(
+                    new[] { CrearRun($"Oficio No. {solicitud.NumeroOficio}", 9) },
+                    JustificationValues.Right, 0));
+
+                body.Append(CrearParrafo(
+                    new[] { CrearRun("Asunto: Solicitud de mantenimiento vehicular", 9) },
+                    JustificationValues.Right, 0));
+
+                body.Append(CrearParrafo(
+                    new[] { CrearRun(fechaFormateada, 9) },
+                    JustificationValues.Right, 8));
+
+                body.Append(CrearParrafoVacio(3));
+
+                // =====================================================
+                // 8. DESTINATARIO
+                // =====================================================
+
+                body.Append(CrearParrafo(
+                    new[] { CrearRun(nombreOficial, 11, bold: true) },
+                    JustificationValues.Left, 0));
+
+                body.Append(CrearParrafo(
+                    new[] { CrearRun(cargoOficial, 11, bold: true) },
+                    JustificationValues.Left, 0));
+
+                body.Append(CrearParrafo(
+                    new[] { CrearRun("P R E S E N T E", 11, bold: true) },
+                    JustificationValues.Left, 8));
+
+                body.Append(CrearParrafoVacio(3));
+
+                // =====================================================
+                // 9. PÁRRAFO INTRODUCTORIO
+                // =====================================================
+
+                body.Append(CrearParrafo(
+                     new[]
+                     {
+                        CrearRun(
+                            "Por medio del presente, me permito requerir de su valioso apoyo para que sea autorizado el servicio de mantenimiento vehicular, relativo a la unidad automotora que se describe a continuación:",
+                            11)
+                     },
+                     JustificationValues.Both,
+                     5));
+
+                // =====================================================
+                // 10. TABLA DE UNIDAD VEHICULAR
+                // =====================================================
+
+                string[] encabezadosVehiculo =
+                {
+                    "Marca",
+                    "Tipo",
+                    "Mod.",
+                    "Núm. Serie",
+                    "Placa",
+                    "Núm. Econ.",
+                    "Cil.",
+                    "Km."
+                };
+
+                string[] datosVehiculo =
+                {
+                    solicitud.Unidad.Marca ?? "N/A",
+                    solicitud.Unidad.Modelo ?? "N/A",
+                    solicitud.Unidad.Anio ?? "N/A",
+                    solicitud.Unidad.Serie ?? "N/A",
+                    solicitud.Unidad.Placa ?? "N/A",
+                    solicitud.Unidad.Economico ?? "N/A",
+                    solicitud.Unidad.Cilindros ?? "N/A",
+                    solicitud.Unidad.Km.ToString("N0", cultura)
+                };
+
+                int[] anchosVehiculo =
+                     {
+                        1160,  // Marca
+                        1160,  // Tipo
+                        770,   // Modelo
+                        2080,  // Núm. serie
+                        1040,  // Placa
+                        1600,  // Núm. económico
+                        710,   // Cilindros
+                        2020   // Km
+                    };
+
+                var tablaVehiculo = CrearTabla(anchosVehiculo);
+
+                tablaVehiculo.Append(
+                    CrearFilaTabla(
+                        encabezadosVehiculo,
+                        anchosVehiculo,
+                        encabezado: true,
+                        fontSize: 10));
+
+                tablaVehiculo.Append(
+                    CrearFilaTabla(
+                        datosVehiculo,
+                        anchosVehiculo,
+                        encabezado: false,
+                        fontSize: 10));
+
+                body.Append(tablaVehiculo);
+
+                body.Append(CrearParrafoVacio(6));
+
+                // =====================================================
+                // 11. TABLA DE SERVICIOS SOLICITADOS
+                // =====================================================
+
+                int[] anchosServicios = { 950, 9590 };
+
+                var tablaServicios = CrearTabla(anchosServicios);
+
+                tablaServicios.Append(
+                    CrearFilaTabla(
+                        new[] { "Cant.", "Servicio Solicitado" },
+                        anchosServicios,
+                        encabezado: true,
+                        fontSize: 10));
+
+                foreach (var detalle in solicitud.Detalles)
+                {
+                    var fila = new TableRow();
+
+                    fila.Append(
+                        CrearCelda(
+                            detalle.Cantidad.ToString(),
+                            anchosServicios[0],
+                            10,
+                            centrado: true));
+
+                    string concepto =
+                        detalle.ConceptoServicioNombre ?? string.Empty;
+
+                    if (!string.IsNullOrWhiteSpace(detalle.Observaciones))
+                        concepto += "\n" + detalle.Observaciones;
+
+                    fila.Append(
+                        CrearCelda(
+                            concepto,
+                            anchosServicios[1],
+                            10,
+                            centrado: false));
+
+                    tablaServicios.Append(fila);
+                }
+
+                body.Append(tablaServicios);
+
+                body.Append(CrearParrafoVacio(6));
+
+                // =====================================================
+                // 12. PÁRRAFO DE COTIZACIÓN
+                // =====================================================
+
+                body.Append(
+                    CrearParrafo(
+                        new[]
                         {
-                            footerContainer.ExtendHorizontal().Image(cintilloPath, ImageScaling.FitWidth);
-                        }
-                        else
+                    CrearRun("Derivado de lo anterior, adjunto cotización emitida por el prestador de servicios ",11),
+
+                    CrearRun(solicitud.Taller ?? "SIN TALLER",11,bold: true),
+                    CrearRun(", el cual fue considerado para la reparación del vehículo antes citado, ",11),
+                    CrearRun("dicha petición es con la finalidad de mantener en óptimas condiciones el parque vehicular de esta ",11),
+                    CrearRun(areaSolicitante,11,bold: true),
+                    CrearRun(" y garantizar su uso operativo.",11)
+
+                        },
+                        JustificationValues.Both,
+                        4));
+
+
+
+                // =====================================================
+                // 13. PÁRRAFO DE USO
+                // =====================================================
+                //body.Append(
+                //    CrearParrafo(
+                //        new[]
+                //        {
+                //        },
+                //        JustificationValues.Both,
+                //        4));
+
+                // =====================================================
+                // 14. DESPEDIDA
+                // =====================================================
+                body.Append(
+                   CrearParrafoVacio(3));
+
+                body.Append(
+                    CrearParrafo(
+                        new[]
                         {
-                            footerContainer.AlignCenter().Text("CINTILLO VERACRUZ — SSP").Bold()
-                                .FontSize(8).FontFamily("Gotham").FontColor(Colors.Grey.Darken2);
-                        }
+                    CrearRun(
+                        "Sin más por el momento, me suscribo a sus órdenes.",
+                        11)
+                        },
+                        JustificationValues.Both,
+                        10));
+
+                // =====================================================
+                // 15. BLOQUE DE FIRMA
+                // =====================================================
+
+                // Espacio antes de la despedida.
+                body.Append(CrearParrafoVacio(4));
+
+                // ATENTAMENTE
+                body.Append(
+                    CrearParrafo(
+                        new[]
+                        {
+                        CrearRun("A T E N T A M E N T E",11,bold: true)
+                        },
+                        JustificationValues.Left, 0
+                        )
+                    );
+
+                // Espacio para firma manuscrita.
+                // 90 puntos equivalen aproximadamente a 3.17 cm.
+                body.Append(CrearParrafoVacio(90));
+
+                // Nombre del solicitante.
+                body.Append(
+                    CrearParrafo(
+                        new[]
+                        {
+                            CrearRun(
+                                nombreSolicitante,
+                                11,
+                                bold: true)
+                                        },
+                                        JustificationValues.Left,
+                                        0));
+
+                // Área solicitante.
+                body.Append(
+                    CrearParrafo(
+                        new[]
+                        {
+                        CrearRun(
+                            areaSolicitante,
+                            11,
+                            bold: true)
+                        },
+                        JustificationValues.Left,
+                        6));
+
+                // =====================================================
+                // 16. COPIAS
+                // =====================================================
+
+                body.Append(CrearParrafoVacio(6));
+
+                // Primera copia
+                body.Append(
+                    CrearParrafo(
+                        new[]
+                        {
+            CrearRun(
+                $"C.C.P. {nombreDirector}.- Director de Recursos Materiales y Servicios Generales.– Para su conocimiento.",
+                8)
+                        },
+                        JustificationValues.Left,
+                        0));
+
+                // Segunda copia
+                body.Append(
+                    CrearParrafo(
+                        new[]
+                        {
+            CrearRun(
+                $"C.C.P. {nombreSubdirector}.- Subdirector de Maquinaria.– Para su conocimiento.",
+                8)
+                        },
+                        JustificationValues.Left,
+                        0));
+
+
+
+                // =====================================================
+                // FOOTER - CINTILLO INSTITUCIONAL
+                // =====================================================
+
+                string? footerRelationshipId = null;
+
+                if (File.Exists(cintilloPath))
+                {
+                    // Crear parte del pie de página
+                    var footerPart = mainPart.AddNewPart<FooterPart>();
+
+                    // Agregar imagen
+                    var imagePart = footerPart.AddImagePart(
+                        ImagePartType.Png);
+
+                    using (var imageStream = File.OpenRead(cintilloPath))
+                    {
+                        imagePart.FeedData(imageStream);
+                    }
+
+                    string relationshipId = footerPart.GetIdOfPart(imagePart);
+
+                    // Crear footer
+                    var footer = new Footer();
+
+                    var footerParagraph = new Paragraph();
+
+                    var footerParagraphProperties = new ParagraphProperties();
+
+                    footerParagraphProperties.Append(
+                        new SpacingBetweenLines
+                        {
+                            Before = "0",
+                            After = "0",
+                            Line = "0",
+                            LineRule = LineSpacingRuleValues.Exact
+                        });
+
+                    footerParagraphProperties.Append(
+                        new Justification
+                        {
+                            Val = JustificationValues.Center
+                        });
+
+                    footerParagraph.Append(footerParagraphProperties);
+
+                    // Insertar cintillo
+                    footerParagraph.Append(
+                        new Run(
+                            CrearImagenWord(
+                                relationshipId,
+                                500,
+                                70)));
+
+                    footer.Append(footerParagraph);
+
+                    footerPart.Footer = footer;
+                    footerPart.Footer.Save();
+
+                    // Conservar relación para asociarla a la sección
+                    footerRelationshipId = mainPart.GetIdOfPart(footerPart);
+                }
+
+                // =====================================================
+                // CONFIGURACIÓN DE PÁGINA
+                // =====================================================
+
+                var sectionProperties = new SectionProperties();
+
+                sectionProperties.Append(
+                    new HeaderReference
+                    {
+                        Type = HeaderFooterValues.Default,
+                        Id = mainPart.GetIdOfPart(headerPart)
                     });
 
-                    // Contenido principal de la hoja con distribución calibrada
-                    page.Content().Column(col =>
+                // Footer: únicamente si existe el cintillo
+                if (!string.IsNullOrEmpty(footerRelationshipId))
+                {
+                    sectionProperties.Append(
+                        new FooterReference
+                        {
+                            Type = HeaderFooterValues.Default,
+                            Id = footerRelationshipId
+                        });
+                }
+
+                // Hoja carta: 8.5 x 11 pulgadas.
+                sectionProperties.Append(
+                    new PageSize
                     {
-                        // Espaciado dinámico balanceado
-                        col.Spacing(6);
-
-                        // --- LOGO / ENCABEZADO SUPERIOR ---
-                        var logoPath = Path.Combine(_env.WebRootPath, "img", "veracruz", "veracruz2025_2.png");
-
-                        if (File.Exists(logoPath))
-                        {
-                            col.Item().Height(44).AlignLeft().Image(logoPath, ImageScaling.FitArea);
-                        }
-                        else
-                        {
-                            col.Item().Text("GOBIERNO DEL ESTADO DE VERACRUZ — SSP").Bold()
-                                .FontSize(8).FontFamily("Gotham").FontColor(Colors.Grey.Darken2);
-                        }
-
-                        // Membrete superior derecho
-                        col.Item().AlignRight().Column(c =>
-                        {
-                            c.Spacing(1.5f);
-                            c.Item().Text(solicitud.AreaSolicitante.ToUpper()).FontSize(9).FontFamily("Gotham");
-                            c.Item().Text($"Oficio No. {solicitud.NumeroOficio}").FontSize(9).FontFamily("Gotham");
-                            c.Item().Text($"Asunto: Solicitud de mantenimiento vehicular").FontSize(9).FontFamily("Gotham");
-                            c.Item().PaddingTop(2).Text(fechaFormateada).FontSize(9).FontFamily("Gotham");
-                        });
-
-                        col.Item().PaddingTop(4);
-
-                        // Destinatario
-                        col.Item().Column(c =>
-                        {
-                            c.Spacing(1);
-                            c.Item().Text(OficialMayor?.NombreCompleto ?? "C. OFICIAL MAYOR").Bold().FontFamily("Gotham").FontSize(10.5f);
-                            c.Item().Text(OficialMayor?.Cargo ?? "OFICIAL MAYOR").Bold().FontFamily("Gotham").FontSize(10.5f);
-                            c.Item().Text("P R E S E N T E").Bold().FontFamily("Gotham").FontSize(10.5f);
-                        });
-
-                        col.Item().PaddingTop(4);
-
-                        // Párrafo inicial
-                        col.Item().Text(text =>
-                        {
-                            text.Justify();
-                            text.Span("Por medio del presente, me permito requerir de su valioso apoyo para que sea autorizado el servicio de mantenimiento vehicular, relativo a la unidad automotora que se describe a continuación:")
-                                .FontSize(10f).FontFamily("Gotham");
-                        });
-
-                        col.Item().PaddingTop(2);
-
-                        // Tabla de Especificaciones del Vehículo (Padding óptimo 3.5f)
-                        col.Item().Table(table =>
-                        {
-                            table.ColumnsDefinition(columns =>
-                            {
-                                columns.RelativeColumn(1.2f);
-                                columns.RelativeColumn(1.2f);
-                                columns.RelativeColumn(0.7f);
-                                columns.RelativeColumn(1.8f);
-                                columns.RelativeColumn(1.1f);
-                                columns.RelativeColumn(0.9f);
-                                columns.RelativeColumn(0.6f);
-                                columns.RelativeColumn(0.8f);
-                            });
-
-                            table.Header(header =>
-                            {
-                                void HeaderCell(string text) => header.Cell().Background(Colors.Grey.Lighten3).Border(1).BorderColor(Colors.Black).Padding(3f).AlignCenter().Text(text).Bold().FontSize(8.5f).FontFamily("Gotham");
-
-                                HeaderCell("Marca");
-                                HeaderCell("Tipo");
-                                HeaderCell("Mod.");
-                                HeaderCell("Núm. Serie");
-                                HeaderCell("Placa");
-                                HeaderCell("Núm. Econ.");
-                                HeaderCell("Cil.");
-                                HeaderCell("Km.");
-                            });
-
-                            void DataCell(string text) => table.Cell().Border(1).BorderColor(Colors.Black).Padding(3f).AlignCenter().Text(text).FontSize(8f).FontFamily("Gotham");
-
-                            DataCell(solicitud.Unidad.Marca);
-                            DataCell(solicitud.Unidad.Modelo);
-                            DataCell(solicitud.Unidad.Anio.ToString());
-                            DataCell(solicitud.Unidad.Serie);
-                            DataCell(solicitud.Unidad.Placa);
-                            DataCell(solicitud.Unidad.Economico);
-                            DataCell(solicitud.Unidad.Cilindros?.ToString() ?? "N/A");
-                            DataCell(solicitud.Unidad.Km.ToString("N0"));
-                        });
-
-                        col.Item().PaddingTop(4);
-
-                        // --- SECCIÓN DE SERVICIOS SOLICITADOS ---
-                        col.Item().Table(table =>
-                        {
-                            table.ColumnsDefinition(columns =>
-                            {
-                                columns.ConstantColumn(35); // Cantidad
-                                columns.RelativeColumn();   // Concepto
-                            });
-
-                            table.Header(header =>
-                            {
-                                header.Cell().Background(Colors.Grey.Lighten3).Border(1).BorderColor(Colors.Black).Padding(3f).AlignCenter().Text("Cant.").Bold().FontSize(8.5f);
-                                header.Cell().Background(Colors.Grey.Lighten3).Border(1).BorderColor(Colors.Black).Padding(3f).AlignLeft().Text("Servicio Solicitado").Bold().FontSize(8.5f);
-                            });
-
-                            foreach (var det in solicitud.Detalles)
-                            {
-                                table.Cell().Border(1).BorderColor(Colors.Black).Padding(3f).AlignCenter().Text(det.Cantidad.ToString()).FontSize(8.5f).FontFamily("Gotham");
-                                table.Cell().Border(1).BorderColor(Colors.Black).Padding(3f).AlignLeft().Column(c =>
-                                {
-                                    c.Item().Text(det.ConceptoServicioNombre).FontSize(8.5f).FontFamily("Gotham");
-                                    if (!string.IsNullOrWhiteSpace(det.Observaciones))
-                                    {
-                                        c.Item().Text(det.Observaciones).FontSize(8f).FontColor(Colors.Grey.Darken2);
-                                    }
-                                });
-                            }
-                        });
-
-                        col.Item().PaddingTop(4);
-
-                        // --- PÁRRAFOS COMPLEMENTARIOS ---
-                        col.Item().Text(text =>
-                        {
-                            text.Justify();
-                            text.Span("Derivado de lo anterior, adjunto cotización emitida por el prestador de servicios ")
-                                .FontSize(10f).FontFamily("Gotham");
-                            text.Span(solicitud.Taller).Bold().FontSize(10f).FontFamily("Gotham");
-                            text.Span(", el cual fue considerado para la reparación del vehículo antes citado, ya que ofrece las mejores condiciones en cuanto a precio, tiempo de respuesta y calidad en el servicio.")
-                                .FontSize(10f).FontFamily("Gotham");
-                        });
-
-                        col.Item().Text(text =>
-                        {
-                            text.Justify();
-                            text.Span("Cabe mencionar que dicha petición es con la finalidad de mantener en óptimas condiciones el parque vehicular de esta ")
-                                .FontSize(10f).FontFamily("Gotham");
-                            text.Span(solicitud.AreaSolicitante).Bold().FontSize(10f).FontFamily("Gotham");
-                            text.Span(" y garantizar su uso operativo.").FontSize(10f).FontFamily("Gotham");
-                        });
-
-                        col.Item().Text(text =>
-                        {
-                            text.Justify();
-                            text.Span("Sin más por el momento, me suscribo a sus órdenes.")
-                                .FontSize(10f).FontFamily("Gotham");
-                        });
-
-                        // --- BLOQUE DE FIRMA (PaddingTop amplio para dar peso visual y llenar espacio) ---
-                        col.Item().PaddingTop(12).AlignLeft().Column(c =>
-                        {
-                            c.Spacing(1);
-                            c.Item().Text("A T E N T A M E N T E").Bold().FontSize(10f).FontFamily("Gotham");
-                            c.Item().PaddingTop(18).Text(Solicitante?.NombreCompleto ?? "Sin Datos... verifique el catálogo.").Bold().FontFamily("Gotham").FontSize(10f);
-                            c.Item().Text(solicitud.AreaSolicitante).FontSize(10f).FontFamily("Gotham").Bold();
-                        });
-
-                        // --- C.C.P. ---
-                        col.Item().PaddingTop(6).Column(c =>
-                        {
-                            c.Spacing(1);
-                            c.Item().Text($"C.C.P. {Director?.NombreCompleto ?? "Sin datos."}.- Director de Recursos Materiales y Servicios Generales. - Para su conocimiento.").FontSize(8f).FontColor(Colors.Grey.Darken2).FontFamily("Gotham");
-                            c.Item().Text($"C.C.P. {subdirector?.NombreCompleto ?? "Sin datos."}.- Subdirector de Maquinaria. - Para su conocimiento.").FontSize(8f).FontColor(Colors.Grey.Darken2).FontFamily("Gotham");
-                        });
+                        Width = 12240,
+                        Height = 15840,
+                        Orient = PageOrientationValues.Portrait
                     });
-                });
-            });
 
-            byte[] pdfBytes = documento.GeneratePdf();
-            return await Task.FromResult(pdfBytes);
+                sectionProperties.Append(
+                    new PageMargin
+                    {
+                        Top = 900,
+                        Bottom = 1700,
+                        Left = 850,
+                        Right = 850,
+                        Header = 350,
+                        Footer = 350,
+                        Gutter = 0
+                    });
+
+                body.Append(sectionProperties);
+
+                mainPart.Document.Save();
+            }
+
+            //return stream.ToArray();
+
+            // =========================================================
+            // 18. VALIDAR DOCUMENTO GENERADO
+            // =========================================================
+
+            byte[] wordBytes = stream.ToArray();
+
+            using (var validationStream = new MemoryStream(wordBytes))
+            using (var document = WordprocessingDocument.Open(
+                validationStream,
+                false))
+            {
+                var validator = new OpenXmlValidator();
+
+                var errores = validator
+                    .Validate(document)
+                    .Take(20)
+                    .Select(error =>
+                        $"Descripción: {error.Description}\n" +
+                        $"Parte: {error.Part?.Uri}\n" +
+                        $"XPath: {error.Path?.XPath}")
+                    .ToList();
+
+                if (errores.Any())
+                {
+                    throw new InvalidDataException(
+                        "El documento contiene errores de estructura Open XML:\n\n" +
+                        string.Join("\n\n", errores));
+                }
+            }
+
+            return wordBytes;
         }
+
+
+
+        private static Run CrearRun(
+    string? texto,
+    double fontSize,
+    bool bold = false,
+    bool italic = false)
+        {
+            var run = new Run();
+
+            var runProperties = new RunProperties();
+
+            // 1. Fuente.
+            runProperties.Append(
+                new RunFonts
+                {
+                    Ascii = "Gotham",
+                    HighAnsi = "Gotham",
+                    ComplexScript = "Gotham",
+                    EastAsia = "Gotham"
+                });
+
+            // 2. Negrita.
+            if (bold)
+            {
+                runProperties.Append(new Bold());
+            }
+
+            // 3. Cursiva.
+            if (italic)
+            {
+                runProperties.Append(new Italic());
+            }
+
+            // 4. Tamaño de fuente.
+            runProperties.Append(
+                new FontSize
+                {
+                    Val = ((int)Math.Round(fontSize * 2))
+                        .ToString(CultureInfo.InvariantCulture)
+                });
+
+            run.Append(runProperties);
+
+            string contenido = texto ?? string.Empty;
+
+            var lineas = contenido
+                .Replace("\r\n", "\n")
+                .Split('\n');
+
+            for (int i = 0; i < lineas.Length; i++)
+            {
+                if (i > 0)
+                {
+                    run.Append(new Break());
+                }
+
+                run.Append(
+                    new Text(lineas[i])
+                    {
+                        Space = SpaceProcessingModeValues.Preserve
+                    });
+            }
+
+            return run;
+        }
+
+
+
+        private static Paragraph CrearParrafo(
+     IEnumerable<Run> runs,
+     JustificationValues alignment,
+     int spacingAfter)
+        {
+            var paragraph = new Paragraph();
+
+            var paragraphProperties = new ParagraphProperties();
+
+            // 1. Mantener las líneas del párrafo juntas.
+            paragraphProperties.Append(new KeepLines());
+
+            // 2. Espaciado.
+            paragraphProperties.Append(
+                new SpacingBetweenLines
+                {
+                    Before = "0",
+                    After = (spacingAfter * 20).ToString(
+                        CultureInfo.InvariantCulture),
+                    Line = "220",
+                    LineRule = LineSpacingRuleValues.Auto
+                });
+
+            // 3. Alineación.
+            paragraphProperties.Append(
+                new Justification
+                {
+                    Val = alignment
+                });
+
+            paragraph.Append(paragraphProperties);
+
+            foreach (var run in runs)
+            {
+                paragraph.Append((Run)run.CloneNode(true));
+            }
+
+            return paragraph;
+        }
+
+
+
+        private static Paragraph CrearParrafoVacio(int spacingAfter)
+        {
+            return CrearParrafo(
+                new[] { CrearRun(string.Empty, 9) },
+                JustificationValues.Left,
+                spacingAfter);
+        }
+
+
+        private static Table CrearTabla(int[] anchosColumnas)
+        {
+            int anchoTotal = anchosColumnas.Sum();
+
+            var table = new Table();
+
+            var tableProperties = new TableProperties();
+
+            // =====================================================
+            // 1. ANCHO DE TABLA
+            // =====================================================
+
+            tableProperties.Append(
+                new TableWidth
+                {
+                    Width = anchoTotal.ToString(
+                        CultureInfo.InvariantCulture),
+                    Type = TableWidthUnitValues.Dxa
+                });
+
+            // =====================================================
+            // 2. BORDES
+            // IMPORTANTE: RESPETAR EL ORDEN DEL ESQUEMA OPEN XML
+            // =====================================================
+
+            tableProperties.Append(
+                new TableBorders(
+                    // Borde superior
+                    new TopBorder
+                    {
+                        Val = BorderValues.Single,
+                        Size = 4,
+                        Color = "808080"
+                    },
+
+                    // Borde izquierdo
+                    new LeftBorder
+                    {
+                        Val = BorderValues.Single,
+                        Size = 4,
+                        Color = "808080"
+                    },
+
+                    // Borde inferior
+                    new BottomBorder
+                    {
+                        Val = BorderValues.Single,
+                        Size = 4,
+                        Color = "808080"
+                    },
+
+                    // Borde derecho
+                    new RightBorder
+                    {
+                        Val = BorderValues.Single,
+                        Size = 4,
+                        Color = "808080"
+                    },
+
+                    // Bordes horizontales internos
+                    new InsideHorizontalBorder
+                    {
+                        Val = BorderValues.Single,
+                        Size = 4,
+                        Color = "BFBFBF"
+                    },
+
+                    // Bordes verticales internos
+                    new InsideVerticalBorder
+                    {
+                        Val = BorderValues.Single,
+                        Size = 4,
+                        Color = "BFBFBF"
+                    }));
+
+            // =====================================================
+            // 3. DISTRIBUCIÓN FIJA DE COLUMNAS
+            // =====================================================
+
+            tableProperties.Append(
+                new TableLayout
+                {
+                    Type = TableLayoutValues.Fixed
+                });
+
+            table.Append(tableProperties);
+
+            // =====================================================
+            // 4. CUADRÍCULA DE COLUMNAS
+            // =====================================================
+
+            var tableGrid = new TableGrid();
+
+            foreach (int ancho in anchosColumnas)
+            {
+                tableGrid.Append(
+                    new GridColumn
+                    {
+                        Width = ancho.ToString(
+                            CultureInfo.InvariantCulture)
+                    });
+            }
+
+            table.Append(tableGrid);
+
+            return table;
+        }
+
+
+        private static TableRow CrearFilaTabla(
+            string[] valores,
+            int[] anchosColumnas,
+            bool encabezado,
+            double fontSize)
+        {
+            if (valores.Length != anchosColumnas.Length)
+            {
+                throw new ArgumentException(
+                    "La cantidad de valores debe coincidir con las columnas.");
+            }
+
+            var row = new TableRow();
+
+            var rowProperties = new TableRowProperties(
+                new CantSplit());
+
+            if (encabezado)
+            {
+                rowProperties.Append(
+                    new TableHeader
+                    {
+                        Val = OnOffOnlyValues.On
+                    });
+            }
+
+            row.Append(rowProperties);
+
+            for (int i = 0; i < valores.Length; i++)
+            {
+                row.Append(
+                    CrearCelda(
+                        valores[i],
+                        anchosColumnas[i],
+                        fontSize,
+                        centrado: true,
+                        encabezado: encabezado));
+            }
+
+            return row;
+        }
+
+
+
+        private static TableCell CrearCelda(
+    string? texto,
+    int ancho,
+    double fontSize,
+    bool centrado,
+    bool encabezado = false)
+        {
+            var cell = new TableCell();
+
+            var cellProperties = new TableCellProperties();
+
+            cellProperties.Append(
+                new TableCellWidth
+                {
+                    Width = ancho.ToString(
+                        CultureInfo.InvariantCulture),
+                    Type = TableWidthUnitValues.Dxa
+                });
+
+            if (encabezado)
+            {
+                cellProperties.Append(
+                    new Shading
+                    {
+                        Val = ShadingPatternValues.Clear,
+                        Color = "auto",
+                        Fill = "D9D9D9"
+                    });
+            }
+
+            cellProperties.Append(
+                new TableCellVerticalAlignment
+                {
+                    Val = TableVerticalAlignmentValues.Center
+                });
+
+            cell.Append(cellProperties);
+
+            cell.Append(
+                CrearParrafo(
+                    new[]
+                    {
+                CrearRun(
+                    texto,
+                    fontSize,
+                    bold: encabezado)
+                    },
+                    centrado
+                        ? JustificationValues.Center
+                        : JustificationValues.Left,
+                    0));
+
+            return cell;
+        }
+
+
+        private static Drawing CrearImagenWord(
+            string relationshipId,
+            long widthPoints,
+            long heightPoints)
+        {
+            // Conversión de puntos a EMU.
+            const long emusPorPunto = 12700;
+
+            long cx = widthPoints * emusPorPunto;
+            long cy = heightPoints * emusPorPunto;
+
+            return new Drawing(
+                new DW.Inline(
+                    new DW.Extent
+                    {
+                        Cx = cx,
+                        Cy = cy
+                    },
+                    new DW.EffectExtent
+                    {
+                        LeftEdge = 0L,
+                        TopEdge = 0L,
+                        RightEdge = 0L,
+                        BottomEdge = 0L
+                    },
+                    new DW.DocProperties
+                    {
+                        Id = 1U,
+                        Name = "Logotipo institucional"
+                    },
+                    new DW.NonVisualGraphicFrameDrawingProperties(
+                        new A.GraphicFrameLocks
+                        {
+                            NoChangeAspect = true
+                        }),
+                    new A.Graphic(
+                        new A.GraphicData(
+                            new PIC.Picture(
+                                new PIC.NonVisualPictureProperties(
+                                    new PIC.NonVisualDrawingProperties
+                                    {
+                                        Id = 0U,
+                                        Name = "Logotipo Veracruz"
+                                    },
+                                    new PIC.NonVisualPictureDrawingProperties()),
+                                new PIC.BlipFill(
+                                    new A.Blip
+                                    {
+                                        Embed = relationshipId
+                                    },
+                                    new A.Stretch(
+                                        new A.FillRectangle())),
+                                new PIC.ShapeProperties(
+                                    new A.Transform2D(
+                                        new A.Offset
+                                        {
+                                            X = 0L,
+                                            Y = 0L
+                                        },
+                                        new A.Extents
+                                        {
+                                            Cx = cx,
+                                            Cy = cy
+                                        }),
+                                    new A.PresetGeometry(
+                                        new A.AdjustValueList())
+                                    {
+                                        Preset = A.ShapeTypeValues.Rectangle
+                                    }))
+                        )
+                        {
+                            Uri = "http://schemas.openxmlformats.org/drawingml/2006/picture"
+                        }))
+                {
+                    DistanceFromTop = 0U,
+                    DistanceFromBottom = 0U,
+                    DistanceFromLeft = 0U,
+                    DistanceFromRight = 0U
+                });
+        }
+
+
+
+
+
+
 
 
 
@@ -18387,6 +20841,947 @@ public async Task<ValidacionSatDto> ValidarAsync(string uuid,string rfcEmisor,st
         }
 
 
+
+
+
+
+
+
+
+
+        // ================= MARCAS =================
+        public async Task<IEnumerable<MarcaDto>> ObtenerMarcasAsync()
+        {
+            return await _context.Marcas
+                .AsNoTracking()
+                .Select(x => new MarcaDto
+                {
+                    MarcaId = x.MarcaId,
+                    MarcaNombre = x.MarcaNombre,
+                    Activo = x.Activo,
+                    FechaCreacion = x.FechaCreacion
+                })
+                .ToListAsync();
+        }
+
+        public async Task<MarcaCreateUpdateDto?> ObtenerMarcaPorIdParaEditarAsync(int id)
+        {
+            var marca = await _context.Marcas.FindAsync(id);
+            if (marca == null) return null;
+
+            return new MarcaCreateUpdateDto
+            {
+                MarcaId = marca.MarcaId,
+                MarcaNombre = marca.MarcaNombre
+            };
+        }
+
+        public async Task CrearMarcaAsync(MarcaCreateUpdateDto dto)
+        {
+            var existe = await _context.Marcas.AnyAsync(x => x.MarcaNombre.ToLower() == dto.MarcaNombre.Trim().ToLower());
+            if (existe) throw new Exception("Ya existe una marca registrada con ese nombre.");
+
+            var marca = new Marca
+            {
+                MarcaNombre = dto.MarcaNombre.Trim(),
+                Activo = true,
+                FechaCreacion = DateTime.Now
+            };
+
+            _context.Marcas.Add(marca);
+            await _context.SaveChangesAsync();
+        }
+
+
+        public async Task ActualizarMarcaAsync(MarcaCreateUpdateDto dto)
+        {
+            // 1. Buscamos la marca de forma ligera (sin includes pesados)
+            var marca = await _context.Marcas
+                .FirstOrDefaultAsync(m => m.MarcaId == dto.MarcaId);
+
+            if (marca == null) throw new Exception("La marca no fue encontrada.");
+
+            // 2. Validamos si estaba activa y ahora se intenta desactivar (Activo pasa de true a false)
+            if (marca.Activo && !dto.Activo)
+            {
+                // Consultas rápidas con AnyAsync (utilizan índices y no cargan datos a memoria)
+                bool tieneModelos = await _context.Modelos.AnyAsync(x => x.MarcaId == dto.MarcaId);
+                bool tieneUnidades = await _context.UnidadVehiculars.AnyAsync(x => x.MarcaId == dto.MarcaId);
+                bool tieneCostos = await _context.ConceptoServicioCostos.AnyAsync(x => x.MarcaId == dto.MarcaId);
+
+                if (tieneModelos || tieneUnidades || tieneCostos)
+                {
+                    throw new InvalidOperationException(
+                        "No se puede desactivar esta marca porque se encuentra asociada a modelos, unidades vehiculares y/o costos de servicio existentes."
+                    );
+                }
+            }
+
+            // 3. Validamos duplicados de nombre
+            var existe = await _context.Marcas.AnyAsync(x => x.MarcaNombre.ToLower() == dto.MarcaNombre.Trim().ToLower() && x.MarcaId != dto.MarcaId);
+            if (existe) throw new Exception("Ya existe otra marca con ese nombre.");
+
+            marca.MarcaNombre = dto.MarcaNombre.Trim();
+            marca.Activo = dto.Activo;
+
+            _context.Marcas.Update(marca);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task CambiarEstadoMarcaAsync(int id)
+        {
+            var marca = await _context.Marcas.FirstOrDefaultAsync(m => m.MarcaId == id);
+            if (marca == null) throw new Exception("La marca no fue encontrada.");
+
+            if (marca.Activo)
+            {
+                bool tieneModelos = await _context.Modelos.AnyAsync(x => x.MarcaId == id);
+                bool tieneUnidades = await _context.UnidadVehiculars.AnyAsync(x => x.MarcaId == id);
+                bool tieneCostos = await _context.ConceptoServicioCostos.AnyAsync(x => x.MarcaId == id);
+
+                if (tieneModelos || tieneUnidades || tieneCostos)
+                {
+                    throw new InvalidOperationException(
+                        "No se puede desactivar esta marca porque tiene modelos, unidades vehiculares o costos de servicio asociados."
+                    );
+                }
+            }
+
+            marca.Activo = !marca.Activo;
+            await _context.SaveChangesAsync();
+        }
+
+
+        public async Task EliminarMarcaAsync(int marcaId)
+        {
+            var marca = await _context.Marcas.FirstOrDefaultAsync(m => m.MarcaId == marcaId);
+            if (marca == null) throw new Exception("La marca especificada no existe.");
+
+            bool tieneModelos = await _context.Modelos.AnyAsync(x => x.MarcaId == marcaId);
+            bool tieneUnidades = await _context.UnidadVehiculars.AnyAsync(x => x.MarcaId == marcaId);
+            bool tieneCostos = await _context.ConceptoServicioCostos.AnyAsync(x => x.MarcaId == marcaId);
+
+            if (tieneModelos || tieneUnidades || tieneCostos)
+            {
+                throw new InvalidOperationException(
+                    "No se puede desactivar la marca porque tiene modelos, unidades o costos asociados."
+                );
+            }
+
+            marca.Activo = false;
+            await _context.SaveChangesAsync();
+        }
+
+
+
+
+        // ================= MODELOS =================
+        public async Task<IEnumerable<ModeloDto>> ObtenerModelosAsync()
+        {
+            return await _context.Modelos
+                .Include(x => x.Marca)
+                .AsNoTracking()
+                .Select(x => new ModeloDto
+                {
+                    ModeloId = x.ModeloId,
+                    ModeloNombre = x.ModeloNombre,
+                    MarcaId = x.MarcaId,
+                    MarcaNombre = x.Marca.MarcaNombre,
+                    Activo = x.Activo,
+                    FechaCreacion = x.FechaCreacion
+                })
+                .ToListAsync();
+        }
+
+
+
+
+        public async Task<ModeloIndexViewModel> ObtenerModeloIndexViewModelAsync()
+        {
+            var modelos = await ObtenerModelosAsync();
+            var marcas = await _context.Marcas
+                .Where(x => x.Activo)
+                .AsNoTracking()
+                .OrderBy(x => x.MarcaNombre)
+                .ToListAsync();
+
+            return new ModeloIndexViewModel
+            {
+                Modelos = modelos,
+                MarcasSelectList = new SelectList(marcas, "MarcaId", "MarcaNombre")
+            };
+        }
+
+
+
+
+
+        public async Task<ModeloCreateUpdateDto?> ObtenerModeloPorIdParaEditarAsync(int id)
+        {
+            var modelo = await _context.Modelos.FindAsync(id);
+            if (modelo == null) return null;
+
+            return new ModeloCreateUpdateDto
+            {
+                ModeloId = modelo.ModeloId,
+                ModeloNombre = modelo.ModeloNombre,
+                MarcaId = modelo.MarcaId
+            };
+        }
+
+        public async Task CrearModeloAsync(ModeloCreateUpdateDto dto)
+        {
+            var marcaExiste = await _context.Marcas.AnyAsync(x => x.MarcaId == dto.MarcaId && x.Activo);
+            if (!marcaExiste) throw new Exception("La marca seleccionada no es válida o está inactiva.");
+
+            var existe = await _context.Modelos.AnyAsync(x => x.MarcaId == dto.MarcaId && x.ModeloNombre.ToLower() == dto.ModeloNombre.Trim().ToLower());
+            if (existe) throw new Exception("Ya existe un modelo con ese nombre para la marca seleccionada.");
+
+            var modelo = new Modelo
+            {
+                ModeloNombre = dto.ModeloNombre.Trim(),
+                MarcaId = dto.MarcaId,
+                Activo = true,
+                FechaCreacion = DateTime.Now
+            };
+
+            _context.Modelos.Add(modelo);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task ActualizarModeloAsync(ModeloCreateUpdateDto dto)
+        {
+            // 1. Buscamos el modelo de forma ligera (sin includes pesados)
+            var modelo = await _context.Modelos
+                .FirstOrDefaultAsync(m => m.ModeloId == dto.ModeloId);
+
+            if (modelo == null) throw new Exception("El modelo no fue encontrado.");
+
+            // 2. Validamos si se intenta desactivar el modelo (pasa de true a false)
+            if (modelo.Activo && !dto.Activo)
+            {
+                // Consultas optimizadas con AnyAsync directas a la base de datos
+                bool tieneUnidades = await _context.UnidadVehiculars.AnyAsync(x => x.ModeloId == dto.ModeloId);
+                bool tieneCostos = await _context.ConceptoServicioCostos.AnyAsync(x => x.ModeloId == dto.ModeloId);
+
+                if (tieneUnidades || tieneCostos)
+                {
+                    throw new InvalidOperationException(
+                        "No se puede desactivar este modelo porque se encuentra asociado a unidades vehiculares y/o costos de servicio existentes."
+                    );
+                }
+            }
+
+            var existe = await _context.Modelos.AnyAsync(x => x.MarcaId == dto.MarcaId && x.ModeloNombre.ToLower() == dto.ModeloNombre.Trim().ToLower() && x.ModeloId != dto.ModeloId);
+            if (existe) throw new Exception("Ya existe otro modelo con ese nombre para la marca seleccionada.");
+
+            modelo.ModeloNombre = dto.ModeloNombre.Trim();
+            modelo.MarcaId = dto.MarcaId;
+            modelo.Activo = dto.Activo;
+
+            _context.Modelos.Update(modelo);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task CambiarEstadoModeloAsync(int id)
+        {
+            var modelo = await _context.Modelos.FirstOrDefaultAsync(m => m.ModeloId == id);
+            if (modelo == null) throw new Exception("El modelo no fue encontrado.");
+
+            // Si actualmente está activo y se pretende desactivar
+            if (modelo.Activo)
+            {
+                bool tieneUnidades = await _context.UnidadVehiculars.AnyAsync(x => x.ModeloId == id);
+                bool tieneCostos = await _context.ConceptoServicioCostos.AnyAsync(x => x.ModeloId == id);
+
+                if (tieneUnidades || tieneCostos)
+                {
+                    throw new InvalidOperationException(
+                        "No se puede desactivar este modelo porque tiene unidades vehiculares o costos de servicio asociados."
+                    );
+                }
+            }
+
+            modelo.Activo = !modelo.Activo;
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<IEnumerable<SelectListItem>> ObtenerMarcasSelectListAsync()
+        {
+            return await _context.Marcas
+                .Where(x => x.Activo)
+                .OrderBy(x => x.MarcaNombre)
+                .Select(x => new SelectListItem
+                {
+                    Value = x.MarcaId.ToString(),
+                    Text = x.MarcaNombre
+                })
+                .ToListAsync();
+        }
+
+        public async Task EliminarModeloAsync(int modeloId)
+        {
+            var modelo = await _context.Modelos.FirstOrDefaultAsync(m => m.ModeloId == modeloId);
+            if (modelo == null)
+            {
+                throw new Exception("El modelo especificado no existe.");
+            }
+
+            // 1. Primero validamos con consultas rápidas antes de cambiar el estado
+            bool tieneUnidades = await _context.UnidadVehiculars.AnyAsync(x => x.ModeloId == modeloId);
+            bool tieneCostos = await _context.ConceptoServicioCostos.AnyAsync(x => x.ModeloId == modeloId);
+
+            if (tieneUnidades || tieneCostos)
+            {
+                throw new InvalidOperationException("No se puede desactivar el modelo porque tiene unidades o costos asociados.");
+            }
+
+            // 2. Si pasa la validación, procedemos a realizar la baja lógica de forma segura
+            modelo.Activo = false;
+
+            await _context.SaveChangesAsync();
+        }
+
+
+
+
+
+
+
+        // ================= ANIOS =================
+        public async Task<IEnumerable<AnioDto>> ObtenerAniosAsync()
+        {
+            return await _context.Anios
+                .AsNoTracking()
+                .OrderByDescending(x => x.AnioDescripcion)
+                .Select(x => new AnioDto
+                {
+                    AnioId = x.AnioId,
+                    AnioDescripcion = x.AnioDescripcion,
+                    Activo = x.Activo,
+                    FechaCreacion = x.FechaCreacion
+                })
+                .ToListAsync();
+        }
+
+        public async Task CrearAnioAsync(AnioDto dto)
+        {
+            // Opcional: Validar que no exista un año duplicado
+            var existe = await _context.Anios.AnyAsync(x => x.AnioDescripcion == dto.AnioDescripcion);
+            if (existe)
+            {
+                throw new Exception("Ya existe un año registrado con esa descripción.");
+            }
+
+            var anio = new Anio
+            {
+                AnioDescripcion = dto.AnioDescripcion,
+                Activo = true,
+                FechaCreacion = DateTime.Now
+            };
+
+            _context.Anios.Add(anio);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task ActualizarAnioAsync(AnioDto dto)
+        {
+            // 1. Buscamos el año de forma ligera (sin includes pesados)
+            var anio = await _context.Anios
+                .FirstOrDefaultAsync(a => a.AnioId == dto.AnioId);
+
+            if (anio == null)
+            {
+                throw new Exception("El año especificado no existe.");
+            }
+
+            // 2. Validamos si se intenta desactivar (Activo pasa de true a false)
+            if (anio.Activo && !dto.Activo)
+            {
+                // Consultas ultra rápidas directas a la BD (aprovechan índices y evitan cargar 80k+ filas)
+                bool tieneUnidades = await _context.UnidadVehiculars.AnyAsync(x => x.AnioId == dto.AnioId);
+                bool tieneCostos = await _context.ConceptoServicioCostos.AnyAsync(x => x.AnioId == dto.AnioId);
+
+                if (tieneUnidades || tieneCostos)
+                {
+                    throw new InvalidOperationException(
+                        "No se puede desactivar este año porque se encuentra asociado a unidades vehiculares y/o costos de servicio existentes."
+                    );
+                }
+            }
+
+            // 3. Actualizamos las propiedades permitidas
+            anio.AnioDescripcion = dto.AnioDescripcion.Trim();
+            anio.Activo = dto.Activo;
+
+            _context.Anios.Update(anio);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task EliminarAnioAsync(int anioId)
+        {
+            // 1. Busqueda ligera del año
+            var anio = await _context.Anios
+                .FirstOrDefaultAsync(a => a.AnioId == anioId);
+
+            if (anio == null)
+            {
+                throw new Exception("El año especificado no existe.");
+            }
+
+            // 2. Validamos las dependencias PRIMERO, antes de cambiar el estado
+            bool tieneUnidades = await _context.UnidadVehiculars.AnyAsync(x => x.AnioId == anioId);
+            bool tieneCostos = await _context.ConceptoServicioCostos.AnyAsync(x => x.AnioId == anioId);
+
+            if (tieneUnidades || tieneCostos)
+            {
+                throw new InvalidOperationException("No se puede desactivar el año porque tiene unidades o costos asociados.");
+            }
+
+            // 3. Si pasa la validación, realizamos la baja lógica de forma segura
+            anio.Activo = false;
+
+            await _context.SaveChangesAsync();
+        }
+
+
+        // ================= ANIOS =================
+
+
+
+
+
+
+
+
+
+        // ================= TRANSMISIONES =================
+        public async Task<IEnumerable<TransmisionDto>> ObtenerTransmisionesAsync()
+        {
+            return await _context.Transmisions
+                .AsNoTracking()
+                .OrderBy(x => x.TransmisionNombre)
+                .Select(x => new TransmisionDto
+                {
+                    TransmisionId = x.TransmisionId,
+                    TransmisionNombre = x.TransmisionNombre,
+                    Activo = x.Activo,
+                    FechaCreacion = x.FechaCreacion
+                })
+                .ToListAsync();
+        }
+
+        public async Task CrearTransmisionAsync(TransmisionDto dto)
+        {
+            var existe = await _context.Transmisions.AnyAsync(x => x.TransmisionNombre.ToLower() == dto.TransmisionNombre.Trim().ToLower());
+            if (existe)
+            {
+                throw new Exception("Ya existe una transmisión registrada con ese nombre.");
+            }
+
+            var transmision = new Transmision
+            {
+                TransmisionNombre = dto.TransmisionNombre.Trim(),
+                Activo = true,
+                FechaCreacion = DateTime.Now
+            };
+
+            _context.Transmisions.Add(transmision);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task ActualizarTransmisionAsync(TransmisionDto dto)
+        {
+            // Búsqueda ligera sin includes masivos
+            var transmision = await _context.Transmisions
+                .FirstOrDefaultAsync(t => t.TransmisionId == dto.TransmisionId);
+
+            if (transmision == null)
+            {
+                throw new Exception("La transmisión especificada no existe.");
+            }
+
+            // Validamos si se intenta desactivar
+            if (transmision.Activo && !dto.Activo)
+            {
+                bool tieneUnidades = await _context.UnidadVehiculars.AnyAsync(x => x.TransmisionId == dto.TransmisionId);
+                bool tieneCostos = await _context.ConceptoServicioCostos.AnyAsync(x => x.TransmisionId == dto.TransmisionId);
+
+                if (tieneUnidades || tieneCostos)
+                {
+                    throw new InvalidOperationException(
+                        "No se puede desactivar esta transmisión porque se encuentra asociada a unidades vehiculares y/o costos de servicio existentes."
+                    );
+                }
+            }
+
+            var existe = await _context.Transmisions.AnyAsync(x => x.TransmisionNombre.ToLower() == dto.TransmisionNombre.Trim().ToLower() && x.TransmisionId != dto.TransmisionId);
+            if (existe)
+            {
+                throw new Exception("Ya existe otra transmisión con ese nombre.");
+            }
+
+            transmision.TransmisionNombre = dto.TransmisionNombre.Trim();
+            transmision.Activo = dto.Activo;
+
+            _context.Transmisions.Update(transmision);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task EliminarTransmisionAsync(int transmisionId)
+        {
+            var transmision = await _context.Transmisions
+                .FirstOrDefaultAsync(t => t.TransmisionId == transmisionId);
+
+            if (transmision == null)
+            {
+                throw new Exception("La transmisión especificada no existe.");
+            }
+
+            // Validación previa ultrarrápida con AnyAsync
+            bool tieneUnidades = await _context.UnidadVehiculars.AnyAsync(x => x.TransmisionId == transmisionId);
+            bool tieneCostos = await _context.ConceptoServicioCostos.AnyAsync(x => x.TransmisionId == transmisionId);
+
+            if (tieneUnidades || tieneCostos)
+            {
+                throw new InvalidOperationException("No se puede desactivar la transmisión porque tiene unidades o costos asociados.");
+            }
+
+            transmision.Activo = false;
+            await _context.SaveChangesAsync();
+        }
+        // ================= TRANSMISIONES =================
+
+
+
+
+
+
+
+
+        // ================= CILINDROS =================
+        public async Task<IEnumerable<CilindroDto>> ObtenerCilindrosAsync()
+        {
+            return await _context.Cilindros
+                .AsNoTracking()
+                .OrderBy(x => x.CilindroNombre)
+                .Select(x => new CilindroDto
+                {
+                    CilindroId = x.CilindroId,
+                    CilindroNombre = x.CilindroNombre,
+                    Activo = x.Activo,
+                    FechaCreacion = x.FechaCreacion
+                })
+                .ToListAsync();
+        }
+
+        public async Task CrearCilindroAsync(CilindroDto dto)
+        {
+            var existe = await _context.Cilindros.AnyAsync(x => x.CilindroNombre.ToLower() == dto.CilindroNombre.Trim().ToLower());
+            if (existe)
+            {
+                throw new Exception("Ya existe un cilindro registrado con ese nombre.");
+            }
+
+            var cilindro = new Cilindro
+            {
+                CilindroNombre = dto.CilindroNombre.Trim(),
+                Activo = true,
+                FechaCreacion = DateTime.Now
+            };
+
+            _context.Cilindros.Add(cilindro);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task ActualizarCilindroAsync(CilindroDto dto)
+        {
+            // Búsqueda ligera sin includes pesados
+            var cilindro = await _context.Cilindros
+                .FirstOrDefaultAsync(c => c.CilindroId == dto.CilindroId);
+
+            if (cilindro == null)
+            {
+                throw new Exception("El cilindro especificado no existe.");
+            }
+
+            // Validamos si se intenta desactivar
+            if (cilindro.Activo && !dto.Activo)
+            {
+                bool tieneUnidades = await _context.UnidadVehiculars.AnyAsync(x => x.CilindroId == dto.CilindroId);
+                bool tieneCostos = await _context.ConceptoServicioCostos.AnyAsync(x => x.CilindroId == dto.CilindroId);
+
+                if (tieneUnidades || tieneCostos)
+                {
+                    throw new InvalidOperationException(
+                        "No se puede desactivar este cilindro porque se encuentra asociado a unidades vehiculares y/o costos de servicio existentes."
+                    );
+                }
+            }
+
+            var existe = await _context.Cilindros.AnyAsync(x => x.CilindroNombre.ToLower() == dto.CilindroNombre.Trim().ToLower() && x.CilindroId != dto.CilindroId);
+            if (existe)
+            {
+                throw new Exception("Ya existe otro cilindro con ese nombre.");
+            }
+
+            cilindro.CilindroNombre = dto.CilindroNombre.Trim();
+            cilindro.Activo = dto.Activo;
+
+            _context.Cilindros.Update(cilindro);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task EliminarCilindroAsync(int cilindroId)
+        {
+            var cilindro = await _context.Cilindros
+                .FirstOrDefaultAsync(c => c.CilindroId == cilindroId);
+
+            if (cilindro == null)
+            {
+                throw new Exception("El cilindro especificado no existe.");
+            }
+
+            // Validación previa ultrarrápida con AnyAsync
+            bool tieneUnidades = await _context.UnidadVehiculars.AnyAsync(x => x.CilindroId == cilindroId);
+            bool tieneCostos = await _context.ConceptoServicioCostos.AnyAsync(x => x.CilindroId == cilindroId);
+
+            if (tieneUnidades || tieneCostos)
+            {
+                throw new InvalidOperationException("No se puede desactivar el cilindro porque tiene unidades o costos asociados.");
+            }
+
+            cilindro.Activo = false;
+            await _context.SaveChangesAsync();
+        }
+
+
+        // ================= CILINDROS =================
+
+
+
+
+
+        // ================= COLORES =================
+        public async Task<IEnumerable<ColorDto>> ObtenerColoresAsync()
+        {
+            return await _context.Colors
+                .AsNoTracking()
+                .OrderBy(x => x.ColorNombre)
+                .Select(x => new ColorDto
+                {
+                    ColorId = x.ColorId,
+                    ColorNombre = x.ColorNombre,
+                    Activo = x.Activo,
+                    FechaCreacion = x.FechaCreacion
+                })
+                .ToListAsync();
+        }
+
+        public async Task CrearColorAsync(ColorDto dto)
+        {
+            var existe = await _context.Colors.AnyAsync(x => x.ColorNombre.ToLower() == dto.ColorNombre.Trim().ToLower());
+            if (existe)
+            {
+                throw new Exception("Ya existe un color registrado con ese nombre.");
+            }
+
+            var color = new Models.Entities.Color
+            {
+                ColorNombre = dto.ColorNombre.Trim(),
+                Activo = true,
+                FechaCreacion = DateTime.Now
+            };
+
+            _context.Colors.Add(color);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task ActualizarColorAsync(ColorDto dto)
+        {
+            var color = await _context.Colors
+                .FirstOrDefaultAsync(c => c.ColorId == dto.ColorId);
+
+            if (color == null)
+            {
+                throw new Exception("El color especificado no existe.");
+            }
+
+            // Validamos si se intenta desactivar
+            if (color.Activo && !dto.Activo)
+            {
+                bool tieneUnidades = await _context.UnidadVehiculars.AnyAsync(x => x.ColorId == dto.ColorId);
+
+                if (tieneUnidades)
+                {
+                    throw new InvalidOperationException(
+                        "No se puede desactivar este color porque se encuentra asociado a unidades vehiculares existentes."
+                    );
+                }
+            }
+
+            var existe = await _context.Colors.AnyAsync(x => x.ColorNombre.ToLower() == dto.ColorNombre.Trim().ToLower() && x.ColorId != dto.ColorId);
+            if (existe)
+            {
+                throw new Exception("Ya existe otro color con ese nombre.");
+            }
+
+            color.ColorNombre = dto.ColorNombre.Trim();
+            color.Activo = dto.Activo;
+
+            _context.Colors.Update(color);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task EliminarColorAsync(int colorId)
+        {
+            var color = await _context.Colors
+                .FirstOrDefaultAsync(c => c.ColorId == colorId);
+
+            if (color == null)
+            {
+                throw new Exception("El color especificado no existe.");
+            }
+
+            // Validación previa con AnyAsync
+            bool tieneUnidades = await _context.UnidadVehiculars.AnyAsync(x => x.ColorId == colorId);
+
+            if (tieneUnidades)
+            {
+                throw new InvalidOperationException("No se puede desactivar el color porque tiene unidades vehiculares asociadas.");
+            }
+
+            color.Activo = false;
+            await _context.SaveChangesAsync();
+        }
+
+        // ================= COLORES =================
+
+
+
+
+
+
+
+        // ================= AREAS =================
+        public async Task<IEnumerable<AreaDto>> ObtenerAreasAsync()
+        {
+            return await _context.Areas
+                .AsNoTracking()
+                .OrderBy(x => x.AreaNombre)
+                .Select(x => new AreaDto
+                {
+                    AreaId = x.AreaId,
+                    AreaNombre = x.AreaNombre,
+                    Activo = x.Activo,
+                    ActivoFinancieros = x.ActivoFinancieros,
+                    FechaCreacion = x.FechaCreacion
+                })
+                .ToListAsync();
+        }
+
+        public async Task CrearAreaAsync(AreaDto dto)
+        {
+            var existe = await _context.Areas.AnyAsync(x => x.AreaNombre.ToLower() == dto.AreaNombre.Trim().ToLower());
+            if (existe)
+            {
+                throw new Exception("Ya existe un área registrada con ese nombre.");
+            }
+
+            var area = new Area
+            {
+                AreaNombre = dto.AreaNombre.Trim().ToUpper(),
+                Activo = true,
+                ActivoFinancieros = false,
+                FechaCreacion = DateTime.Now
+            };
+
+            _context.Areas.Add(area);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task ActualizarAreaAsync(AreaDto dto)
+        {
+            var area = await _context.Areas
+                .FirstOrDefaultAsync(a => a.AreaId == dto.AreaId);
+
+            if (area == null)
+            {
+                throw new Exception("El área especificada no existe.");
+            }
+
+            // Validamos si se intenta desactivar
+            if (area.Activo && !dto.Activo)
+            {
+                bool tieneUnidades = await _context.UnidadVehiculars.AnyAsync(x => x.AreaId == dto.AreaId);
+                bool tieneSolicitudes = await _context.SolicitudMantenimientos.AnyAsync(x => x.AreaSolicitanteId == dto.AreaId);
+                bool tieneFirmantes = await _context.Firmantes.AnyAsync(x => x.AreaId == dto.AreaId);
+                bool tieneTransferenciasDestino = await _context.TransferenciaUnidads.AnyAsync(x => x.AreaDestinoId == dto.AreaId && x.EstatusTransferenciaUnidadId != 6);
+                bool tieneTransferenciasOrigen = await _context.TransferenciaUnidads.AnyAsync(x => x.AreaOrigenId == dto.AreaId && x.EstatusTransferenciaUnidadId != 6);
+
+                if (tieneUnidades || tieneSolicitudes || tieneFirmantes || tieneTransferenciasDestino || tieneTransferenciasOrigen)
+                {
+                    throw new InvalidOperationException(
+                        "No se puede desactivar esta área porque se encuentra asociada a unidades vehiculares, solicitudes, firmantes o transferencias existentes."
+                    );
+                }
+            }
+
+            var existe = await _context.Areas.AnyAsync(x => x.AreaNombre.ToLower() == dto.AreaNombre.Trim().ToLower() && x.AreaId != dto.AreaId);
+            if (existe)
+            {
+                throw new Exception("Ya existe otra área con ese nombre.");
+            }
+
+            area.AreaNombre = dto.AreaNombre.Trim();
+            area.Activo = dto.Activo;
+            area.ActivoFinancieros = dto.ActivoFinancieros;
+
+            _context.Areas.Update(area);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task EliminarAreaAsync(int areaId)
+        {
+            var area = await _context.Areas
+                .FirstOrDefaultAsync(a => a.AreaId == areaId);
+
+            if (area == null)
+            {
+                throw new Exception("El área especificada no existe.");
+            }
+
+            // Validaciones previas con AnyAsync
+            bool tieneUnidades = await _context.UnidadVehiculars.AnyAsync(x => x.AreaId == areaId);
+            bool tieneSolicitudes = await _context.SolicitudMantenimientos.AnyAsync(x => x.AreaSolicitanteId == areaId);
+            bool tieneFirmantes = await _context.Firmantes.AnyAsync(x => x.AreaId == areaId);
+            bool tieneTransferenciasDestino = await _context.TransferenciaUnidads.AnyAsync(x => x.AreaDestinoId == areaId && x.EstatusTransferenciaUnidadId != 6);
+            bool tieneTransferenciasOrigen = await _context.TransferenciaUnidads.AnyAsync(x => x.AreaOrigenId == areaId && x.EstatusTransferenciaUnidadId != 6);
+
+            if (tieneUnidades || tieneSolicitudes || tieneFirmantes || tieneTransferenciasDestino || tieneTransferenciasOrigen)
+            {
+                throw new InvalidOperationException("No se puede desactivar el área porque tiene dependencias activas asociadas.");
+            }
+
+            area.Activo = false;
+            await _context.SaveChangesAsync();
+        }
+
+
+        // ================= AREAS =================
+
+
+
+
+
+
+        // ================= MUNICIPIOS =================
+        public async Task<IEnumerable<MunicipioDto>> ObtenerMunicipiosAsync()
+        {
+            return await _context.Municipios
+                .AsNoTracking()
+                .OrderBy(x => x.CveMun)
+                .Select(x => new MunicipioDto
+                {
+                    MunicipioId = x.MunicipioId,
+                    Nombre = x.Nombre,
+                    CveMun = x.CveMun,
+                    CveZona = x.CveZona,
+                    Zona = x.Zona,
+                    CveDeleg = x.CveDeleg,
+                    Delegacion = x.Delegacion,
+                    TcmunicipioAlerta = x.TcmunicipioAlerta,
+                    TcmunicipioIndigena = x.TcmunicipioIndigena,
+                    TcmunicipioRegion = x.TcmunicipioRegion,
+                    TcmunicipioCpdh = x.TcmunicipioCpdh
+                })
+                .ToListAsync();
+        }
+
+        public async Task CrearMunicipioAsync(MunicipioDto dto)
+        {
+            if (string.IsNullOrWhiteSpace(dto.Nombre))
+            {
+                throw new Exception("El nombre del municipio es obligatorio.");
+            }
+
+            var existe = await _context.Municipios.AnyAsync(x => x.Nombre != null && x.Nombre.ToLower() == dto.Nombre.Trim().ToLower());
+            if (existe)
+            {
+                throw new Exception("Ya existe un municipio registrado con ese nombre.");
+            }
+
+            var municipio = new Municipio
+            {
+                Nombre = dto.Nombre.Trim(),
+                CveMun = dto.CveMun?.Trim(),
+                CveZona = dto.CveZona,
+                Zona = dto.Zona?.Trim(),
+                CveDeleg = dto.CveDeleg,
+                Delegacion = dto.Delegacion?.Trim(),
+                TcmunicipioAlerta = dto.TcmunicipioAlerta ?? false,
+                TcmunicipioIndigena = dto.TcmunicipioIndigena ?? false,
+                TcmunicipioRegion = dto.TcmunicipioRegion?.Trim(),
+                TcmunicipioCpdh = dto.TcmunicipioCpdh ?? false
+            };
+
+            _context.Municipios.Add(municipio);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task ActualizarMunicipioAsync(MunicipioDto dto)
+        {
+            var municipio = await _context.Municipios
+                .FirstOrDefaultAsync(m => m.MunicipioId == dto.MunicipioId);
+
+            if (municipio == null)
+            {
+                throw new Exception("El municipio especificado no existe.");
+            }
+
+            var existe = await _context.Municipios.AnyAsync(x => x.Nombre != null && x.Nombre.ToLower() == dto.Nombre!.Trim().ToLower() && x.MunicipioId != dto.MunicipioId);
+            if (existe)
+            {
+                throw new Exception("Ya existe otro municipio con ese nombre.");
+            }
+
+            municipio.Nombre = dto.Nombre?.Trim() ?? string.Empty;
+            municipio.CveMun = dto.CveMun?.Trim();
+            municipio.CveZona = dto.CveZona;
+            municipio.Zona = dto.Zona?.Trim();
+            municipio.CveDeleg = dto.CveDeleg;
+            municipio.Delegacion = dto.Delegacion?.Trim();
+            municipio.TcmunicipioAlerta = dto.TcmunicipioAlerta ?? false;
+            municipio.TcmunicipioIndigena = dto.TcmunicipioIndigena ?? false;
+            municipio.TcmunicipioRegion = dto.TcmunicipioRegion?.Trim();
+            municipio.TcmunicipioCpdh = dto.TcmunicipioCpdh ?? false;
+
+            _context.Municipios.Update(municipio);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task EliminarMunicipioAsync(int municipioId)
+        {
+            var municipio = await _context.Municipios
+                .FirstOrDefaultAsync(m => m.MunicipioId == municipioId);
+
+            if (municipio == null)
+            {
+                throw new Exception("El municipio especificado no existe.");
+            }
+
+            // Validación previa ultrarrápida con AnyAsync para proteger la integridad relacional
+            bool tieneUnidades = await _context.UnidadVehiculars.AnyAsync(x => x.MunicipioId == municipioId);
+            if (tieneUnidades)
+            {
+                throw new InvalidOperationException("No se puede eliminar o desactivar el municipio porque se encuentra asociado a unidades vehiculares existentes.");
+            }
+
+            _context.Municipios.Remove(municipio);
+            await _context.SaveChangesAsync();
+        }
+
+        // ================= MUNICIPIOS =================
 
 
 

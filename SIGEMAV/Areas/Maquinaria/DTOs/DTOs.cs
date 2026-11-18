@@ -2003,8 +2003,123 @@ namespace SIGEMAV.Areas.Maquinaria.DTOs
 
 
 
+    public class MarcaDto
+    {
+        public int MarcaId { get; set; }
+        public string MarcaNombre { get; set; } = null!;
+        public bool Activo { get; set; }
+        public DateTime FechaCreacion { get; set; }
+    }
+
+    public class MarcaCreateUpdateDto
+    {
+        public int MarcaId { get; set; }
+
+        [Required(ErrorMessage = "El nombre de la marca es obligatorio.")]
+        [StringLength(100, ErrorMessage = "El nombre no puede exceder los 100 caracteres.")]
+        public string MarcaNombre { get; set; } = null!;
+
+        public bool Activo { get; set; }
+        public DateTime FechaCreacion { get; set; }
 
 
+    }
+
+    public class ModeloDto
+    {
+        public int ModeloId { get; set; }
+        public string ModeloNombre { get; set; } = null!;
+        public int MarcaId { get; set; }
+        public string MarcaNombre { get; set; } = null!;
+        public bool Activo { get; set; }
+        public DateTime FechaCreacion { get; set; }
+    }
+
+    public class ModeloCreateUpdateDto
+    {
+        public int ModeloId { get; set; }
+
+        [Required(ErrorMessage = "El nombre del modelo es obligatorio.")]
+        [StringLength(100, ErrorMessage = "El nombre no puede exceder los 100 caracteres.")]
+        public string ModeloNombre { get; set; } = null!;
+
+        public bool Activo { get; set; }
+        public DateTime FechaCreacion { get; set; }
+
+
+        [Required(ErrorMessage = "Debe seleccionar una marca.")]
+        public int MarcaId { get; set; }
+    }
+
+
+
+
+    public class AnioDto
+    {
+        public int AnioId { get; set; }
+        public string AnioDescripcion { get; set; } = null!;
+        public bool Activo { get; set; }
+        public DateTime FechaCreacion { get; set; }
+    }
+
+
+
+
+    public class TransmisionDto
+    {
+        public int TransmisionId { get; set; }
+        public string TransmisionNombre { get; set; } = null!;
+        public bool Activo { get; set; }
+        public DateTime FechaCreacion { get; set; }
+    }
+
+
+
+    public class CilindroDto
+    {
+        public int CilindroId { get; set; }
+        public string CilindroNombre { get; set; } = null!;
+        public bool Activo { get; set; }
+        public DateTime FechaCreacion { get; set; }
+    }
+
+
+
+    public class ColorDto
+    {
+        public int ColorId { get; set; }
+        public string ColorNombre { get; set; } = null!;
+        public bool Activo { get; set; }
+        public DateTime FechaCreacion { get; set; }
+    }
+
+
+
+    public class AreaDto
+    {
+        public int AreaId { get; set; }
+        public string AreaNombre { get; set; } = null!;
+        public bool Activo { get; set; }
+        public bool ActivoFinancieros { get; set; }
+        public DateTime FechaCreacion { get; set; }
+    }
+
+
+
+    public class MunicipioDto
+    {
+        public int MunicipioId { get; set; }
+        public string? Nombre { get; set; }
+        public string? CveMun { get; set; }
+        public int? CveZona { get; set; }
+        public string? Zona { get; set; }
+        public int? CveDeleg { get; set; }
+        public string? Delegacion { get; set; }
+        public bool? TcmunicipioAlerta { get; set; }
+        public bool? TcmunicipioIndigena { get; set; }
+        public string? TcmunicipioRegion { get; set; }
+        public bool? TcmunicipioCpdh { get; set; }
+    }
 
 
 

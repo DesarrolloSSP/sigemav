@@ -1,10 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using SIGEMAV.Areas.Maquinaria.DTOs;
+using SIGEMAV.Areas.Maquinaria.Funciones;
 using SIGEMAV.Models.ViewModels.Maquinaria;
+using System.Collections;
 using System.Security.Claims;
 using static SIGEMAV.Areas.Maquinaria.DTOs.DTOs;
-using SIGEMAV.Areas.Maquinaria.Funciones;
 
 namespace SIGEMAV.Services.Interfaces.Maquinaria
 {
@@ -346,7 +347,7 @@ namespace SIGEMAV.Services.Interfaces.Maquinaria
 
 
         //reportes
-        Task<byte[]> GenerarOficioSolicitudPdfAsync(int solicitudMantenimientoId);
+        //Task<byte[]> GenerarOficioSolicitudPdfAsync(int solicitudMantenimientoId);
         Task<byte[]> GenerarDictamenTecnicoPdfAsync(int solicitudId);
 
 
@@ -367,6 +368,94 @@ namespace SIGEMAV.Services.Interfaces.Maquinaria
        bool esAdministrador = false,
        bool esAreaOperativa = false,
        string areaUsuario = "");
+
+
+
+
+        Task<byte[]> GenerarOficioSolicitudWordAsync(int solicitudMantenimientoId);
+        Task<byte[]> GenerarDictamenTecnicoWordAsync(int solicitudId);
+
+
+
+
+        // Marca
+
+        Task<IEnumerable<MarcaDto>> ObtenerMarcasAsync();
+        
+        Task<MarcaCreateUpdateDto?> ObtenerMarcaPorIdParaEditarAsync(int id);
+        Task CrearMarcaAsync(MarcaCreateUpdateDto dto);
+        Task ActualizarMarcaAsync(MarcaCreateUpdateDto dto);
+        Task CambiarEstadoMarcaAsync(int id);
+
+        Task EliminarMarcaAsync(int id);
+
+
+
+        // Modelo
+        Task<IEnumerable<ModeloDto>> ObtenerModelosAsync();
+        Task<ModeloIndexViewModel> ObtenerModeloIndexViewModelAsync();
+
+        Task EliminarModeloAsync(int modeloId);
+
+
+
+        Task<ModeloCreateUpdateDto?> ObtenerModeloPorIdParaEditarAsync(int id);
+        Task CrearModeloAsync(ModeloCreateUpdateDto dto);
+        Task ActualizarModeloAsync(ModeloCreateUpdateDto dto);
+        Task CambiarEstadoModeloAsync(int id);
+        Task<IEnumerable<SelectListItem>> ObtenerMarcasSelectListAsync();
+
+
+
+        //anio
+        Task<IEnumerable<AnioDto>> ObtenerAniosAsync();
+        Task CrearAnioAsync(AnioDto dto);
+        Task ActualizarAnioAsync(AnioDto dto);
+        Task EliminarAnioAsync(int anioId);
+
+
+
+
+        //transmision
+        Task<IEnumerable<TransmisionDto>> ObtenerTransmisionesAsync();
+        Task CrearTransmisionAsync(TransmisionDto dto);
+        Task ActualizarTransmisionAsync(TransmisionDto dto);
+        Task EliminarTransmisionAsync(int transmisionId);
+
+
+
+
+        //cilindro
+        Task<IEnumerable<CilindroDto>> ObtenerCilindrosAsync();
+        Task CrearCilindroAsync(CilindroDto dto);
+        Task ActualizarCilindroAsync(CilindroDto dto);
+        Task EliminarCilindroAsync(int cilindroId);
+
+
+
+
+        //color
+        Task<IEnumerable<ColorDto>> ObtenerColoresAsync();
+        Task CrearColorAsync(ColorDto dto);
+        Task ActualizarColorAsync(ColorDto dto);
+        Task EliminarColorAsync(int colorId);
+
+
+
+        //area
+        Task<IEnumerable<AreaDto>> ObtenerAreasAsync();
+        Task CrearAreaAsync(AreaDto dto);
+        Task ActualizarAreaAsync(AreaDto dto);
+        Task EliminarAreaAsync(int areaId);
+
+
+
+        //municipio
+        Task<IEnumerable<MunicipioDto>> ObtenerMunicipiosAsync();
+        Task CrearMunicipioAsync(MunicipioDto dto);
+        Task ActualizarMunicipioAsync(MunicipioDto dto);
+        Task EliminarMunicipioAsync(int municipioId);
+
 
 
     }
