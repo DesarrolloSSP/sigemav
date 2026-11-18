@@ -3,6 +3,9 @@ using Microsoft.AspNetCore.Mvc;
 using SIGEMAV.Models.ViewModels.Financieros.ClaveAdministrativa;
 using SIGEMAV.Services.Interfaces.Financieros;
 
+
+using System.Security.Claims;
+
 namespace SIGEMAV.Areas.AdminFinancieros.Controllers
 {
 
@@ -26,6 +29,8 @@ namespace SIGEMAV.Areas.AdminFinancieros.Controllers
         // ============================
         public async Task<IActionResult> Index()
         {
+            var idUsuario = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
             var model = await _service.Obtener();
 
             return View(model);

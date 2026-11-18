@@ -1,7 +1,5 @@
 ﻿@using System.Security.Claims
 
-
-
 @{
     var roles = User.Claims
      .Where(x => x.Type == ClaimTypes.Role)
@@ -121,9 +119,11 @@
 
                             </a>
 
-                            <a asp-area="AdminFinancieros"
-                               asp-controller="Odp"
-                               asp-action="Index">
+							
+
+							<a asp-area="AdminFinancieros"
+							   asp-controller="OrdenDePago"
+							   asp-action="Index">
 
                                 <i class="bi bi-receipt"></i>
 
@@ -131,7 +131,9 @@
 
                             </a>
 
-                        </div>
+							
+
+						</div>
 
                     </div>
 

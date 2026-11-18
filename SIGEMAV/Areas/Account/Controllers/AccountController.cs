@@ -46,21 +46,21 @@ namespace SIGEMAV.Areas.Account.Controllers
                         model.UserName,
                         model.Password);
 
-            //foreach (var rol in resultado.Usuario.Roles)//descomentar
+            //foreach (var rol in resultado.Usuario.Roles)//descomentar para probar
             //{
             //    Console.WriteLine($"ROL RECIBIDO: {rol}");
             //}
 
-            //if (resultado == null ||
-            //    !resultado.Success ||
-            //    resultado.Usuario == null)
-            //{
-            //    ModelState.AddModelError(
-            //        "",
-            //        "Usuario o contraseña incorrectos.");
+            if (resultado == null ||
+                !resultado.Success ||
+                resultado.Usuario == null)
+            {
+                ModelState.AddModelError(
+                    "",
+                    "Usuario o contraseña incorrectos.");
 
-            //    return View(model);
-            //}
+                return View(model);
+            }
 
             if (resultado == null)
             {
@@ -101,6 +101,8 @@ namespace SIGEMAV.Areas.Account.Controllers
                 return View(model);
             }
 
+
+
             var claims = new List<Claim>
             {
 
@@ -116,6 +118,11 @@ namespace SIGEMAV.Areas.Account.Controllers
                     "NombreCompleto",
                     usuario.NombreCompleto)
             };
+
+            foreach (var rol in usuario.Roles)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, rol));
+            }
 
             //Descomentar
             TempData["Roles"] = string.Join(", ", usuario.Roles);
