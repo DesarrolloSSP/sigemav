@@ -18,12 +18,13 @@ namespace SIGEMAV.Areas.Maquinaria.Controllers
     {
         private readonly IMaquinariaService _maquinariaService;
         private readonly BdSigeMavContext _context;
+        private readonly IConfiguration _configuration;
 
-
-        public TransferenciaController(IMaquinariaService maquinariaService, BdSigeMavContext context)
+        public TransferenciaController(IMaquinariaService maquinariaService, BdSigeMavContext context, IConfiguration configuration)
         {
             _maquinariaService = maquinariaService;
             _context = context;
+            _configuration = configuration;
         }
 
         public async Task<IActionResult> Index()
@@ -61,7 +62,9 @@ namespace SIGEMAV.Areas.Maquinaria.Controllers
             return View(vm);
         }
 
-        //POST: TransferenciaController/Create
+
+
+       //POST: TransferenciaController/Create
        [HttpPost]
        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(TransferenciaUnidadCreateViewModel vm)
@@ -474,9 +477,8 @@ namespace SIGEMAV.Areas.Maquinaria.Controllers
             try
             {
                 // =========================================
-                // OBTENER SEGUIMIENTO
+                // 1. OBTENER SEGUIMIENTO
                 // =========================================
-
                 var seguimiento =
                     await _context.TransferenciaUnidadSeguimientos
                         .AsNoTracking()
@@ -487,97 +489,81 @@ namespace SIGEMAV.Areas.Maquinaria.Controllers
 
                 if (seguimiento == null)
                 {
-                    TempData["Warning"] =
-                        "El documento solicitado no existe.";
-
+                    TempData["Warning"] = "El documento solicitado no existe.";
                     return RedirectToAction(nameof(Index));
                 }
 
                 // =========================================
-                // VALIDAR RUTA
+                // 2. VALIDAR RUTA EN BASE DE DATOS
                 // =========================================
-
                 if (string.IsNullOrWhiteSpace(seguimiento.DocumentoRuta))
                 {
-                    TempData["Warning"] =
-                        "El seguimiento no contiene documento.";
-
-                    return RedirectToAction(
-                        nameof(Details),
-                        new
-                        {
-                            id = seguimiento.TransferenciaUnidadId
-                        });
+                    TempData["Warning"] = "El seguimiento no contiene documento.";
+                    return RedirectToAction(nameof(Details), new { id = seguimiento.TransferenciaUnidadId });
                 }
 
                 // =========================================
-                // VALIDAR EXISTENCIA FÍSICA
+                // 3. OBTENER RUTA BASE DESDE CONFIGURACIÓN (UNC)
                 // =========================================
+                var rutaBaseServidor = _configuration["Storage:DocumentosRuta"];
 
-                if (!System.IO.File.Exists(seguimiento.DocumentoRuta))
+                if (string.IsNullOrWhiteSpace(rutaBaseServidor))
                 {
-                    TempData["Warning"] =
-                        "El archivo físico no fue encontrado.";
-
-                    return RedirectToAction(
-                        nameof(Details),
-                        new
-                        {
-                            id = seguimiento.TransferenciaUnidadId
-                        });
+                    TempData["Error"] = "La ruta de almacenamiento no está configurada en el servidor.";
+                    return RedirectToAction(nameof(Details), new { id = seguimiento.TransferenciaUnidadId });
                 }
 
                 // =========================================
-                // LEER ARCHIVO
+                // 4. CONSTRUIR Y VALIDAR RUTA FÍSICA COMPLETA
                 // =========================================
+                string rutaFisica;
 
-                var bytes =
-                    await System.IO.File.ReadAllBytesAsync(
-                        seguimiento.DocumentoRuta);
+                // Si por alguna razón ya viene con la IP o es totalmente calificada, se usa directamente normalizada
+                if (seguimiento.DocumentoRuta.Contains("10.8.3.61") || Path.IsPathFullyQualified(seguimiento.DocumentoRuta))
+                {
+                    rutaFisica = seguimiento.DocumentoRuta.Replace("/", "\\");
+                }
+                else
+                {
+                    // Combinar la ruta base UNC con la ruta relativa almacenada en la BD
+                    var rutaRelativaLimpia = seguimiento.DocumentoRuta.TrimStart('~', '/', '\\');
+                    rutaFisica = Path.Combine(rutaBaseServidor, rutaRelativaLimpia);
+                }
+
+                if (!System.IO.File.Exists(rutaFisica))
+                {
+                    TempData["Warning"] = "El archivo físico no fue encontrado en el servidor de red.";
+                    return RedirectToAction(nameof(Details), new { id = seguimiento.TransferenciaUnidadId });
+                }
 
                 // =========================================
-                // CONTENT TYPE
+                // 5. LEER ARCHIVO Y DETERMINAR CONTENT TYPE
                 // =========================================
+                var bytes = await System.IO.File.ReadAllBytesAsync(rutaFisica);
 
-                var provider =
-                    new FileExtensionContentTypeProvider();
-
+                var provider = new FileExtensionContentTypeProvider();
                 if (!provider.TryGetContentType(
-                        seguimiento.DocumentoNombreOriginal ??
-                        seguimiento.DocumentoRuta,
+                        seguimiento.DocumentoNombreOriginal ?? rutaFisica,
                         out var contentType))
                 {
-                    contentType =
-                        "application/octet-stream";
+                    contentType = "application/octet-stream";
                 }
 
                 // =========================================
-                // NOMBRE DESCARGA
+                // 6. NOMBRE DE DESCARGA
                 // =========================================
-
-                var nombreDescarga =
-                    string.IsNullOrWhiteSpace(
-                        seguimiento.DocumentoNombreOriginal)
-                    ?
-                    Path.GetFileName(
-                        seguimiento.DocumentoRuta)
-                    :
-                    seguimiento.DocumentoNombreOriginal;
+                var nombreDescarga = string.IsNullOrWhiteSpace(seguimiento.DocumentoNombreOriginal)
+                    ? Path.GetFileName(rutaFisica)
+                    : seguimiento.DocumentoNombreOriginal;
 
                 // =========================================
-                // RETORNAR ARCHIVO
+                // 7. RETORNAR ARCHIVO
                 // =========================================
-
-                return File(
-                    bytes,
-                    contentType,
-                    nombreDescarga);
+                return File(bytes, contentType, nombreDescarga);
             }
             catch (Exception ex)
             {
-                TempData["Error"] =
-                    ex.Message;
-
+                TempData["Error"] = "Error interno al descargar el documento: " + ex.Message;
                 return RedirectToAction(nameof(Index));
             }
         }

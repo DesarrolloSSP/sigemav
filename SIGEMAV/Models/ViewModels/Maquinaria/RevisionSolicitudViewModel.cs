@@ -78,6 +78,8 @@ namespace SIGEMAV.Models.ViewModels.Maquinaria
 
         public string EstadoOdometroDescripcion { get; set; } = string.Empty;
 
+        public bool DtaFirmadoCargado { get; set; }
+
     }
 
 }

@@ -305,7 +305,7 @@ namespace SIGEMAV.Areas.Maquinaria.Controllers
 
                 var resultado = await _maquinariaService.CrearSolicitudMantenimiento(dto, vm.Archivos);
 
-                TempData["Success"] = $"La solicitud con folio {resultado.Folio} fue registrada exitosamente y su oficio PDF fue generado.";
+                TempData["Success"] = $"La solicitud con folio {resultado.Folio} fue registrada exitosamente y su oficio fue generado.";
                 TempData["AbrirOficioPdf"] = resultado.SolicitudMantenimientoId;
                 TempData.Keep("AbrirOficioPdf");
 
@@ -1225,7 +1225,7 @@ namespace SIGEMAV.Areas.Maquinaria.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Revisar(RevisionSolicitudPostViewModel vm,bool aprobada)
+        public async Task<IActionResult> Revisar(RevisionSolicitudPostViewModel vm, bool aprobada)
         {
             // =====================================================
             // 1. VALIDAR IDENTIFICADOR
@@ -1288,16 +1288,13 @@ namespace SIGEMAV.Areas.Maquinaria.Controllers
                 {
                     TempData["Success"] = "La revisión técnica fue autorizada correctamente.";
 
-                    // Asignamos el ID de la solicitud
-                    TempData["AbrirDictamen"] = vm.SolicitudMantenimientoId;
-
-                    // Mantenemos la clave en caso de múltiples redirecciones
-                    TempData.Keep("AbrirDictamen");
-
+                    // NOTA: Se removió 'TempData["AbrirDictamen"]' porque el DTA ya fue emitido y firmado previamente.
                     return RedirectToAction(nameof(Index));
                 }
 
-                TempData["Success"] = "La solicitud fue rechazada y se procesó la liberación presupuestal correspondiente.";
+                TempData["Success"] =
+                    "La solicitud fue rechazada y se procesó la liberación presupuestal correspondiente.";
+
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
@@ -1337,6 +1334,259 @@ namespace SIGEMAV.Areas.Maquinaria.Controllers
                 return await RegresarRevisionConErroresAsync(vm);
             }
         }
+
+
+
+        [HttpGet]
+        public async Task<IActionResult> EmitirDta(int id)
+        {
+            if (id <= 0)
+            {
+                TempData["Error"] = "La solicitud de mantenimiento no es válida.";
+                return RedirectToAction(nameof(Revisar), new { id });
+            }
+
+            try
+            {
+                // 1. Obtener la ruta base desde el appsettings.json
+                var rutaBase = _configuration["Storage:DocumentosRuta"];
+                if (string.IsNullOrWhiteSpace(rutaBase))
+                {
+                    TempData["Error"] = "La ruta de almacenamiento de documentos no está configurada en el servidor.";
+                    return RedirectToAction(nameof(Revisar), new { id });
+                }
+
+                // 2. Buscar la solicitud para obtener su folio y validar que exista
+                var solicitud = await _context.SolicitudMantenimientos
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(x => x.SolicitudMantenimientoId == id && x.Activo);
+
+                if (solicitud == null)
+                {
+                    TempData["Error"] = "La solicitud de mantenimiento no existe.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                // 3. Generar los bytes del documento Word fresco con los datos más actualizados
+                byte[] wordBytes = await _maquinariaService.GenerarDictamenTecnicoWordAsync(id);
+
+                if (wordBytes == null || wordBytes.Length == 0)
+                {
+                    TempData["Error"] = "No fue posible generar el documento DTA para esta solicitud.";
+                    return RedirectToAction(nameof(Revisar), new { id });
+                }
+
+                // 4. Crear la carpeta secuencial segura basada en el folio
+                var carpetaFolioSegura = string.IsNullOrWhiteSpace(solicitud.Folio)
+                    ? $"Solicitud_{solicitud.SolicitudMantenimientoId}"
+                    : solicitud.Folio.Replace('/', '_');
+
+                var carpetaSolicitud = Path.Combine(rutaBase, carpetaFolioSegura);
+
+                if (!Directory.Exists(carpetaSolicitud))
+                {
+                    Directory.CreateDirectory(carpetaSolicitud);
+                }
+
+                // 5. CONTROL DE DUPLICADOS: Buscar si ya existía un DTA emitido anteriormente
+                var documentoAnterior = await _context.SolicitudMantenimientoDocumentos
+                    .FirstOrDefaultAsync(x => x.SolicitudMantenimientoId == id && x.TipoDocumento == "DICTAMEN_TECNICO" && x.Activo);
+
+                if (documentoAnterior != null && !string.IsNullOrEmpty(documentoAnterior.RutaArchivo))
+                {
+                    // Intentar borrar el archivo físico viejo de la red para liberar espacio
+                    var rutaFisicaAnterior = Path.Combine(rutaBase, documentoAnterior.RutaArchivo.Replace("/", "\\").TrimStart('\\', '/'));
+                    if (System.IO.File.Exists(rutaFisicaAnterior))
+                    {
+                        try
+                        {
+                            System.IO.File.Delete(rutaFisicaAnterior);
+                        }
+                        catch
+                        {
+                            // Evitar que falle el flujo si el archivo estuviera bloqueado temporalmente
+                        }
+                    }
+
+                    // Marcar el registro anterior como inactivo
+                    documentoAnterior.Activo = false;
+                }
+
+                // 6. Definir nombre físico único y ruta completa para la nueva versión
+                string nombreArchivoFisico = $"DTA_EMITIDO_{id}_{DateTime.Now:yyyyMMddHHmmss}.docx";
+                string rutaCompleta = Path.Combine(carpetaSolicitud, nombreArchivoFisico);
+
+                // 7. Guardar el nuevo archivo físicamente en la red
+                await System.IO.File.WriteAllBytesAsync(rutaCompleta, wordBytes);
+
+                // 8. Calcular el Hash SHA256 del nuevo archivo
+                string hashArchivo;
+                using (var sha256 = System.Security.Cryptography.SHA256.Create())
+                {
+                    hashArchivo = Convert.ToHexString(sha256.ComputeHash(wordBytes));
+                }
+
+                // 9. Registrar el nuevo documento activo en la base de datos
+                var rutaRelativaParaBd = Path.Combine(carpetaFolioSegura, nombreArchivoFisico).Replace("\\", "/");
+
+                var documentoEntidad = new SolicitudMantenimientoDocumento
+                {
+                    SolicitudMantenimientoId = id,
+                    TipoDocumento = "DICTAMEN_TECNICO",
+                    NombreArchivo = $"DTA_{solicitud.Folio?.Replace('/', '_') ?? id.ToString()}.docx",
+                    RutaArchivo = rutaRelativaParaBd,
+                    FechaCarga = DateTime.Now,
+                    UsuarioCargaId = 1, // Ajustar según el usuario actual logueado si aplica
+                    Activo = true,
+                    HashArchivo = hashArchivo
+                };
+
+                _context.SolicitudMantenimientoDocumentos.Add(documentoEntidad);
+                await _context.SaveChangesAsync();
+
+                // 10. Retornar el archivo Word actualizado directamente para su descarga en el navegador
+                return File(wordBytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", documentoEntidad.NombreArchivo);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al emitir y actualizar el DTA para la solicitud {SolicitudId}.", id);
+                TempData["Error"] = "Ocurrió un error al intentar emitir el documento DTA: " + ex.Message;
+                return RedirectToAction(nameof(Revisar), new { id });
+            }
+        }
+
+
+
+
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CargarDtaFirmado(int solicitudId, IFormFile dtaFile)
+        {
+            try
+            {
+                if (solicitudId <= 0)
+                    return Json(new { success = false, message = "El ID de la solicitud no es válido." });
+
+                if (dtaFile == null || dtaFile.Length == 0)
+                    return Json(new { success = false, message = "No se ha seleccionado ningún archivo PDF válido." });
+
+                // 1. REFORZAMIENTO: Validación de Tamaño Máximo (2 MB)
+                const long tamanoMaximoBytes = 2 * 1024 * 1024; // 2 MB
+                if (dtaFile.Length > tamanoMaximoBytes)
+                {
+                    return Json(new { success = false, message = "El archivo excede el tamaño máximo permitido de 2 MB." });
+                }
+
+                // 2. REFORZAMIENTO: Validación de Extensión estricta
+                var extension = Path.GetExtension(dtaFile.FileName).ToLowerInvariant();
+                if (extension != ".pdf")
+                {
+                    return Json(new { success = false, message = "Solo se permiten archivos con formato PDF." });
+                }
+
+                // 3. REFORZAMIENTO: Validación por Estructura Interna (Magic Numbers para PDF)
+                using (var streamValidacion = dtaFile.OpenReadStream())
+                {
+                    var headerBytes = new byte[5];
+                    int bytesRead = await streamValidacion.ReadAsync(headerBytes, 0, 5);
+
+                    if (bytesRead < 5)
+                    {
+                        return Json(new { success = false, message = "El archivo está incompleto o dañado." });
+                    }
+
+                    var headerString = System.Text.Encoding.ASCII.GetString(headerBytes);
+                    if (!headerString.StartsWith("%PDF-"))
+                    {
+                        return Json(new { success = false, message = "La estructura del archivo no corresponde a un documento PDF válido." });
+                    }
+                }
+
+                var solicitud = await _context.SolicitudMantenimientos
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(x => x.SolicitudMantenimientoId == solicitudId && x.Activo);
+
+                if (solicitud == null)
+                    return Json(new { success = false, message = "La solicitud de mantenimiento no existe." });
+
+                var rutaBaseServidor = _configuration["Storage:DocumentosRuta"];
+
+                if (string.IsNullOrEmpty(rutaBaseServidor))
+                    return Json(new { success = false, message = "La ruta de almacenamiento no está configurada." });
+
+                var nombreCarpeta = string.IsNullOrWhiteSpace(solicitud.Folio)
+                    ? $"Solicitud_{solicitud.SolicitudMantenimientoId}"
+                    : solicitud.Folio.Replace("/", "_");
+
+                var carpetaDestino = Path.Combine(rutaBaseServidor, nombreCarpeta);
+
+                if (!Directory.Exists(carpetaDestino))
+                {
+                    Directory.CreateDirectory(carpetaDestino);
+                }
+
+                // 4. CONTROL DE DUPLICADOS: Buscar si ya existe un DTA firmado previo para esta solicitud
+                var documentoAnterior = await _context.SolicitudMantenimientoDocumentos
+                    .FirstOrDefaultAsync(x => x.SolicitudMantenimientoId == solicitudId && x.TipoDocumento == "DTA_FIRMADO" && x.Activo);
+
+                if (documentoAnterior != null && !string.IsNullOrEmpty(documentoAnterior.RutaArchivo))
+                {
+                    // Intentar borrar el archivo físico anterior de la red para liberar espacio
+                    var rutaFisicaAnterior = Path.Combine(rutaBaseServidor, documentoAnterior.RutaArchivo.Replace("/", "\\").TrimStart('\\', '/'));
+                    if (System.IO.File.Exists(rutaFisicaAnterior))
+                    {
+                        try
+                        {
+                            System.IO.File.Delete(rutaFisicaAnterior);
+                        }
+                        catch
+                        {
+                            // Opcional: Manejar o registrar si el archivo estuviera bloqueado temporalmente, sin detener el flujo
+                        }
+                    }
+
+                    // Marcar el registro anterior como inactivo
+                    documentoAnterior.Activo = false;
+                }
+
+                // 5. Guardar el nuevo archivo físicamente
+                var nombreLimpioOriginal = Path.GetFileName(dtaFile.FileName);
+                var nombreUnicoArchivo = $"{Guid.NewGuid():N}.pdf";
+                var rutaFisicaCompleta = Path.Combine(carpetaDestino, nombreUnicoArchivo);
+
+                using (var stream = new FileStream(rutaFisicaCompleta, FileMode.Create))
+                {
+                    await dtaFile.CopyToAsync(stream);
+                }
+
+                var rutaRelativaParaBd = Path.Combine(nombreCarpeta, nombreUnicoArchivo).Replace("\\", "/");
+
+                // 6. Registrar el nuevo documento activo en la base de datos
+                var documentoNuevo = new SolicitudMantenimientoDocumento
+                {
+                    SolicitudMantenimientoId = solicitudId,
+                    TipoDocumento = "DTA_FIRMADO",
+                    NombreArchivo = nombreLimpioOriginal,
+                    RutaArchivo = rutaRelativaParaBd,
+                    FechaCarga = DateTime.Now,
+                    Activo = true
+                };
+
+                _context.SolicitudMantenimientoDocumentos.Add(documentoNuevo);
+                await _context.SaveChangesAsync();
+
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Error interno de seguridad al procesar el archivo: " + ex.Message });
+            }
+        }
+
+
+
 
 
 
@@ -1384,34 +1634,72 @@ namespace SIGEMAV.Areas.Maquinaria.Controllers
         [HttpGet]
         public async Task<IActionResult> DescargarDocumento(int id)
         {
-            var documento = await _context.SolicitudMantenimientoDocumentos
+            try
+            {
+                // 1. Buscar el documento en la base de datos
+                var documento = await _context.SolicitudMantenimientoDocumentos
                     .AsNoTracking()
-                    .FirstOrDefaultAsync(x =>
-                        x.SolicitudMantenimientoDocumentoId == id
-                        &&
-                        x.Activo);
+                    .FirstOrDefaultAsync(x => x.SolicitudMantenimientoDocumentoId == id && x.Activo);
 
-            if (documento == null)
-            {
-                return NotFound();
+                if (documento == null || string.IsNullOrEmpty(documento.RutaArchivo))
+                {
+                    return NotFound("El documento solicitado no existe o no está disponible en la base de datos.");
+                }
+
+                // 2. Obtener la ruta base desde appsettings.json
+                var rutaBaseServidor = _configuration["Storage:DocumentosRuta"];
+
+                if (string.IsNullOrEmpty(rutaBaseServidor))
+                {
+                    return NotFound("La ruta de almacenamiento de documentos no está configurada en el servidor.");
+                }
+
+                // 3. Construir la ruta física completa de forma robusta
+                string rutaFisica;
+
+                // Si por alguna razón la ruta en BD ya viene con la IP o es totalmente calificada, se usa directamente normalizada
+                if (documento.RutaArchivo.Contains("10.8.3.61") || Path.IsPathFullyQualified(documento.RutaArchivo))
+                {
+                    rutaFisica = documento.RutaArchivo.Replace("/", "\\");
+                }
+                else
+                {
+                    // Si es una ruta relativa con carpetas secuenciales (ej. "SM_067_2026/archivo.pdf"), se combina con la base UNC
+                    var rutaRelativaLimpia = documento.RutaArchivo.TrimStart('~', '/', '\\');
+                    rutaFisica = Path.Combine(rutaBaseServidor, rutaRelativaLimpia);
+                }
+
+                // 4. Validar existencia física en el servidor de red
+                if (!System.IO.File.Exists(rutaFisica))
+                {
+                    return NotFound($"El archivo físico no fue encontrado en el servidor de red: {rutaFisica}");
+                }
+
+                // 5. Leer los bytes del archivo
+                var bytes = await System.IO.File.ReadAllBytesAsync(rutaFisica);
+
+                // 6. Determinar dinámicamente el ContentType (MIME type) según la extensión real del archivo
+                var extension = Path.GetExtension(rutaFisica).ToLowerInvariant();
+                var contentType = extension switch
+                {
+                    ".pdf" => "application/pdf",
+                    ".docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                    ".doc" => "application/msword",
+                    ".xlsx" => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    ".xls" => "application/vnd.ms-excel",
+                    ".jpg" or ".jpeg" => "image/jpeg",
+                    ".png" => "image/png",
+                    ".xml" => "application/xml",
+                    _ => "application/octet-stream"
+                };
+
+                // 7. Retornar el archivo para su descarga
+                return File(bytes, contentType, documento.NombreArchivo);
             }
-
-            if (!System.IO.File.Exists(documento.RutaArchivo))
+            catch (Exception ex)
             {
-                return NotFound();
+                return StatusCode(500, "Ocurrió un error interno al intentar descargar el documento: " + ex.Message);
             }
-
-            var bytes =
-                await System.IO.File.ReadAllBytesAsync(
-                    documento.RutaArchivo);
-
-            var contentType =
-                "application/octet-stream";
-
-            return File(
-                bytes,
-                contentType,
-                documento.NombreArchivo);
         }
 
 
@@ -1749,23 +2037,62 @@ namespace SIGEMAV.Areas.Maquinaria.Controllers
 
 
 
+        //[HttpGet]
+        //public async Task<IActionResult> ImprimirDictamenSolicitud(int solicitudId)
+        //{
+        //    try
+        //    {
+        //        // Llamamos directamente al servicio que construye el PDF con QuestPDF
+        //        byte[] pdfBytes = await _maquinariaService.GenerarDictamenTecnicoPdfAsync(solicitudId);
+
+        //        // Omitimos el tercer parámetro (nombre de archivo) para que el navegador 
+        //        // abra el visor embebido de PDF en una nueva pestaña en lugar de forzar la descarga.
+        //        return File(pdfBytes, "application/pdf");
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, "Error al generar el dictamen técnico en PDF para la solicitud {SolicitudId}", solicitudId);
+
+        //        TempData["Error"] = $"No se pudo obtener el PDF del dictamen técnico: {ex.Message}";
+        //        return RedirectToAction(nameof(Index));
+        //    }
+        //}
+
         [HttpGet]
         public async Task<IActionResult> ImprimirDictamenSolicitud(int solicitudId)
         {
             try
             {
-                // Llamamos directamente al servicio que construye el PDF con QuestPDF
-                byte[] pdfBytes = await _maquinariaService.GenerarDictamenTecnicoPdfAsync(solicitudId);
+                // =====================================================
+                // 1. GENERAR DOCUMENTO WORD
+                // =====================================================
 
-                // Omitimos el tercer parámetro (nombre de archivo) para que el navegador 
-                // abra el visor embebido de PDF en una nueva pestaña en lugar de forzar la descarga.
-                return File(pdfBytes, "application/pdf");
+                byte[] wordBytes = await _maquinariaService.GenerarDictamenTecnicoWordAsync(solicitudId);
+
+                // =====================================================
+                // 2. DESCARGAR ARCHIVO DOCX
+                // =====================================================
+
+                string nombreArchivo = $"Dictamen_Tecnico_{solicitudId}.docx";
+
+                return File(
+                    wordBytes,
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                    nombreArchivo
+                );
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al generar el dictamen técnico en PDF para la solicitud {SolicitudId}", solicitudId);
+                _logger.LogError(
+                    ex,
+                    "Error al generar el dictamen técnico en Word para la solicitud {SolicitudId}",
+                    solicitudId
+                );
 
-                TempData["Error"] = $"No se pudo obtener el PDF del dictamen técnico: {ex.Message}";
+                TempData["Error"] =
+                    "No fue posible generar el documento Word del dictamen técnico. " +
+                    "El problema ha sido registrado para su revisión.";
+
                 return RedirectToAction(nameof(Index));
             }
         }
@@ -1786,17 +2113,19 @@ namespace SIGEMAV.Areas.Maquinaria.Controllers
             if (doc == null)
                 return NotFound("El documento especificado no existe o no está activo.");
 
-            // Construir la ruta física completa en el servidor (ej. wwwroot/uploads/...)
-            string rutaFisica = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", doc.RutaArchivo.TrimStart('~', '/'));
+            // Construir la ruta física completa de forma segura en el servidor
+            string rutaFisica = Path.IsPathFullyQualified(doc.RutaArchivo)
+                ? doc.RutaArchivo
+                : Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", doc.RutaArchivo.TrimStart('~', '/', '\\'));
 
             if (!System.IO.File.Exists(rutaFisica))
                 return NotFound("El archivo físico no fue encontrado en el servidor.");
 
-            // Obtener el tipo MIME del archivo de forma dinámica
-            string contentType = ObtenerContentType(rutaFisica);
+            // Tipo MIME específico para documentos de Word (.docx)
+            string contentType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 
-            // Sirve el archivo para previsualización inline en el navegador
-            return PhysicalFile(rutaFisica, contentType);
+            // Sirve el archivo
+            return PhysicalFile(rutaFisica, contentType, doc.NombreArchivo);
         }
 
 
@@ -1954,25 +2283,23 @@ namespace SIGEMAV.Areas.Maquinaria.Controllers
         {
             try
             {
-                byte[] pdfBytes = await _maquinariaService.GenerarOficioSolicitudPdfAsync(solicitudId);
+                // 1. Obtenemos los bytes del documento Word (.docx) compatible universalmente
+                byte[] wordBytes = await _maquinariaService.GenerarOficioSolicitudWordAsync(solicitudId);
 
                 var solicitud = await _context.SolicitudMantenimientos
                     .AsNoTracking()
                     .FirstOrDefaultAsync(x => x.SolicitudMantenimientoId == solicitudId);
 
-                var nombreArchivo = solicitud != null ? $"Oficio_{solicitud.Folio.Replace('/', '_')}.pdf" : "Oficio_Solicitud.pdf";
+                var nombreArchivo = solicitud != null ? $"Oficio_{solicitud.Folio.Replace('/', '_')}.docx" : "Oficio_Solicitud.docx";
 
+                // Tipo MIME oficial de Word OpenXML
+                string contentType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 
-                // descomenta esta linea si quieres que el archivo se descargue en automatico
-                //return File(pdfBytes, "application/pdf", nombreArchivo);
-
-
-                //esta linea hace que el archivo se muestra en una pestaña nueva del navegador.
-                return File(pdfBytes, "application/pdf");
+                return File(wordBytes, contentType, nombreArchivo);
             }
             catch (Exception ex)
             {
-                TempData["Error"] = $"No se pudo obtener el PDF del oficio: {ex.Message}";
+                TempData["Error"] = $"No se pudo obtener el documento del oficio: {ex.Message}";
                 return RedirectToAction(nameof(Index));
             }
         }

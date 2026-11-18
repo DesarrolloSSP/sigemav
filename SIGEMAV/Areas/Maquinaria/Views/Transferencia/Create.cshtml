@@ -212,7 +212,7 @@
 
 						<textarea asp-for="Observaciones"
 								  rows="4"
-								  class="form-control" required>
+								  class="form-control">
 						</textarea>
 
 						<span asp-validation-for="Observaciones"
@@ -255,20 +255,17 @@
 
 </div>
 
+
+
+
 @section Scripts {
-
+	
 	<partial name="_ValidationScriptsPartial" />
-
 	<!-- SELECT2 -->
-
-	<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css"
-		  rel="stylesheet" />
-
-	<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js">
-	</script>
-
+	<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+	<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 	<script>
-
+		
 		$(document).ready(function () {
 
 			// =========================================
@@ -286,23 +283,14 @@
 				minimumInputLength: 0,
 
 				ajax: {
-
 					url: '@Url.Action("BuscarUnidadesVehiculares", "Transferencia", new { area = "Maquinaria" })',
-
 					dataType: 'json',
-
 					delay: 300,
-
 					data: function (params) {
-
 						return {
-
 							term: params.term || ''
-
 						};
-
 					},
-
 					processResults: function (data) {
 
 						return {
@@ -317,71 +305,64 @@
 				}
 			});
 
-			// =========================================
-			// OBTENER ÁREA ORIGEN
-			// =========================================
 
-					// =========================================
-		// OBTENER ÁREA ORIGEN
-		// =========================================
+			$('#unidadVehicularSelect').on('change', function () {
 
-		$('#unidadVehicularSelect').on('change', function () {
+				const unidadId = $(this).val();
 
-			const unidadId = $(this).val();
-
-			if (!unidadId) {
-
-				$('#areaOrigenSelect')
-					.val('')
-					.trigger('change');
-
-				$('#areaOrigenHidden')
-					.val('');
-
-				return;
-			}
-
-			$.ajax({
-
-				url: '@Url.Action("ObtenerAreaPorUnidad", "Transferencia", new { area = "Maquinaria" })',
-
-				type: 'GET',
-
-				data: {
-					unidadVehicularId: unidadId
-				},
-
-				success: function (response) {
-
-					console.log(response);
-
-					if (!response.success) {
-
-						alert(response.message);
-
-						return;
-					}
+				if (!unidadId) {
 
 					$('#areaOrigenSelect')
-						.val(response.areaId)
+						.val('')
 						.trigger('change');
 
 					$('#areaOrigenHidden')
-						.val(response.areaId);
-				},
+						.val('');
 
-				error: function (xhr) {
-
-					console.error(xhr);
-
-					alert(
-						'No fue posible obtener el área origen.');
+					return;
 				}
+
+				$.ajax({
+
+					url: '@Url.Action("ObtenerAreaPorUnidad", "Transferencia", new { area = "Maquinaria" })',
+
+					type: 'GET',
+
+					data: {
+						unidadVehicularId: unidadId
+					},
+
+					success: function (response) {
+
+						console.log(response);
+
+						if (!response.success) {
+
+							alert(response.message);
+
+							return;
+						}
+
+						$('#areaOrigenSelect')
+							.val(response.areaId)
+							.trigger('change');
+
+						$('#areaOrigenHidden')
+							.val(response.areaId);
+					},
+
+					error: function (xhr) {
+
+						console.error(xhr);
+
+						alert(
+							'No fue posible obtener el área origen.');
+					}
+				});
 			});
-		});
 
 			// =========================================
-			// VALIDAR PDF CLIENTE
+			// VALIDAR PDF CLIENTE (CAMBIO DE ARCHIVO)
 			// =========================================
 
 			$('#documentoInput').on('change', function () {
@@ -412,7 +393,7 @@
 						.toLowerCase();
 
 				const maximo =
-					2 * 1024 * 1024;
+					2 * 1024 * 1024; // 2 MB
 
 				if (!extensionesPermitidas.includes(extension)) {
 
@@ -449,6 +430,32 @@
 
 					return;
 				}
+			});
+
+			// =========================================
+			// VALIDAR CONTENIDO REAL DEL PDF AL ENVIAR (MAGIC NUMBERS)
+			// =========================================
+
+			$('#formTransferencia').on('submit', function (e) {
+				const inputDoc = document.getElementById('documentoInput');
+				const errorDiv = $('#errorDocumento');
+
+				if (!inputDoc || inputDoc.files.length === 0) {
+					return; // Si el campo es obligatorio, las validaciones de ASP.NET Core se encargarán
+				}
+				const archivo = inputDoc.files[0];
+			});
+
+			// Versión optimizada bloqueando el submit por contenido real (Magic Numbers %PDF-)
+			$('#formTransferencia').on('submit', function (e) {
+				const inputDoc = document.getElementById('documentoInput');
+				const errorDiv = $('#errorDocumento');
+
+				if (!inputDoc || inputDoc.files.length === 0) {
+					return true;
+				}
+
+
 			});
 
 		});

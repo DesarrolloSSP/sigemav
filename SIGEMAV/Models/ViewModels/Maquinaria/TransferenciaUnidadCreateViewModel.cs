@@ -5,23 +5,23 @@ namespace SIGEMAV.Models.ViewModels.Maquinaria
 {
     public class TransferenciaUnidadCreateViewModel
     {
-        [Required]
+        [Required(ErrorMessage = "Seleccione la unidad vehicular.")]
         public int UnidadVehicularId { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "El área de origen es obligatoria.")]
         public int AreaOrigenId { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Seleccione el área de destino.")]
         public int AreaDestinoId { get; set; }
 
-        [Required]
-        [StringLength(500)]
+        [Required(ErrorMessage = "El motivo de la transferencia es obligatorio.")]
+        [StringLength(500, ErrorMessage = "El motivo no puede exceder los 500 caracteres.")]
         public string MotivoTransferencia { get; set; } = null!;
 
-        [StringLength(1000)]
+        [StringLength(1000, ErrorMessage = "Las observaciones no pueden exceder los 1000 caracteres.")]
         public string? Observaciones { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "La fecha de transferencia es obligatoria.")]
         public DateTime FechaTransferencia { get; set; }
 
         public string? UnidadVehicularTexto { get; set; }
@@ -32,6 +32,24 @@ namespace SIGEMAV.Models.ViewModels.Maquinaria
         public IEnumerable<SelectListItem> UnidadesVehiculares { get; set; }
             = new List<SelectListItem>();
 
+        [Required(ErrorMessage = "Debe adjuntar el formato de resguardo en PDF.")]
         public IFormFile? Documento { get; set; }
+
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }

@@ -106,5 +106,7 @@
             Seguimientos
         { get; set; }
                 = new();
+
+
     }
 }

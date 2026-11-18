@@ -536,7 +536,78 @@
 							</div>
 
 
-												<!-- RESOLUCIÓN DE REVISIÓN TÉCNICA (DICTAMEN) -->
+
+
+							<!-- GESTIÓN DEL DTA Y DOCUMENTO FIRMADO -->
+							<div class="card border-0 shadow-sm rounded-3 mb-4 overflow-hidden">
+						<div class="card-header bg-light border-bottom d-flex justify-content-between align-items-center py-3 px-4">
+							<div class="d-flex align-items-center gap-2">
+								<i class="bi bi-file-earmark-pdf text-danger fs-5"></i>
+								<div>
+									<h6 class="fw-bold mb-0 text-dark">Dictamen Técnico de Autorización para ingreso a aller (DTA)</h6>
+									<small class="text-muted extra-small">Emisión y recepción de formato con firmas autógrafas</small>
+								</div>
+							</div>
+							<div>
+								@if (Model.DtaFirmadoCargado)
+								{
+									<!-- Fondo verde claro visible usando bg-success con opacidad o bg-light con borde verde -->
+									<span class="badge bg-success text-white px-3 py-2 rounded-pill fw-bold shadow-sm">
+										<i class="bi bi-check-circle-fill me-1"></i> DTA Firmado Cargado
+									</span>
+								}
+								else
+								{
+									<!-- Fondo amarillo/advertencia visible -->
+									<span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-bold shadow-sm">
+										<i class="bi bi-exclamation-triangle-fill me-1"></i> Pendiente de Carga Firmado
+									</span>
+								}
+							</div>
+						</div>
+
+								<div class="card-body p-4">
+									<div class="row g-4 align-items-center">
+										<!-- ACCIÓN 1: EMITIR DTA -->
+										<div class="col-md-6 border-end-md">
+											<div class="text-uppercase text-muted extra-small fw-bold mb-2">Paso 1: Generación</div>
+											<p class="small text-muted mb-3">Emita el formato oficial del DTA para proceder con la recolección de firmas correspondientes.</p>
+                
+											<a asp-action="EmitirDta" asp-route-id="@Model.SolicitudMantenimientoId" 
+											   target="_blank" 
+											   class="btn btn-outline-primary px-3 py-2 fw-semibold rounded-2 d-inline-flex align-items-center gap-2">
+												<i class="bi bi-download"></i>
+												<span>Emitir / Descargar DTA</span>
+											</a>
+										</div>
+
+								<!-- ACCIÓN 2: CARGAR DTA FIRMADO -->
+										<div class="col-md-6 ps-md-4">
+											<div class="text-uppercase text-muted extra-small fw-bold mb-2">Paso 2: Recepción del documento</div>
+											<p class="small text-muted mb-2">Cargue el archivo PDF escaneado que contenga las firmas autógrafas.</p>
+
+											<!-- Contenedor de carga adaptado con estilos limpios -->
+											<div class="input-group">
+												<input type="file"
+													   name="dtaFile"
+													   id="dtaFirmadoFile"
+													   class="form-control form-control-sm"
+													   accept=".pdf" />
+        
+												<button type="button"
+														id="btnSubirDta"
+														class="btn btn-sm btn-success px-3"
+														data-solicitud-id="@Model.SolicitudMantenimientoId">
+													<i class="bi bi-upload me-1"></i> Subir DTA firmado
+												</button>
+											</div>
+											<small class="text-muted extra-small mt-1 d-block">Formato permitido: PDF (Máx. 2 MB).</small>
+										</div>
+									</div>
+								</div>
+							</div>
+
+							<!-- RESOLUCIÓN DE REVISIÓN TÉCNICA (DICTAMEN) -->
 							<div class="card border-0 shadow-sm rounded-3 mb-4 overflow-hidden">
 
 								<!-- ENCABEZADO -->
@@ -606,10 +677,7 @@
 
 							</div>
 
-
-
-
-												<!-- BARRA DE ACCIONES Y RESOLUCIÓN -->
+					<!-- BARRA DE ACCIONES Y RESOLUCIÓN -->
 							<div class="card border-0 shadow-sm rounded-3 mt-4">
 								<div class="card-body p-3 bg-light rounded-3 d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3">
         
@@ -633,17 +701,19 @@
 										{
 											if (Model.EstatusSolicitudMantenimientoId == 6)
 											{
+												<!-- BOTÓN CONDICIONADO AL DTA FIRMADO PARA ESTATUS 6 -->
 												<button id="btnAprobar"
 														type="button"
-														class="btn btn-success px-4 py-2 fw-semibold shadow-sm rounded-2 d-flex align-items-center gap-2">
+														class="btn btn-success px-4 py-2 fw-semibold shadow-sm rounded-2 d-flex align-items-center gap-2 @(!Model.DtaFirmadoCargado ? "disabled" : "")"
+													@(!Model.DtaFirmadoCargado ? "disabled title=Debe cargar el DTA firmado primero" : "")>
 													<i class="bi bi-check-circle-fill"></i>
 													<span>Autorizar revisión</span>
 												</button>
 											}
 											else
 											{
-												<button type="button" 
-														class="btn btn-secondary px-4 py-2 fw-semibold rounded-2 d-flex align-items-center gap-2 opacity-75" 
+												<button type="button"
+														class="btn btn-secondary px-4 py-2 fw-semibold rounded-2 d-flex align-items-center gap-2 opacity-75"
 														disabled>
 													<i class="bi bi-lock-fill"></i>
 													<span>Solicitud procesada</span>
@@ -659,9 +729,11 @@
 												<span>Rechazar</span>
 											</button>
 
+											<!-- BOTÓN CONDICIONADO AL DTA FIRMADO PARA FLUJO NORMAL -->
 											<button id="btnAprobar"
 													type="button"
-													class="btn btn-success px-4 py-2 fw-semibold shadow-sm rounded-2 d-flex align-items-center gap-2">
+													class="btn btn-success px-4 py-2 fw-semibold shadow-sm rounded-2 d-flex align-items-center gap-2 @(!Model.DtaFirmadoCargado ? "disabled" : "")"
+												@(!Model.DtaFirmadoCargado ? "disabled title=Debe cargar el DTA firmado primero" : "")>
 												<i class="bi bi-check-circle-fill"></i>
 												<span>Autorizar revisión</span>
 											</button>
@@ -670,19 +742,11 @@
 
 								</div>
 							</div>
+							</form>
+						</div>
 
 
-
-
-
-							
-
-				</form>
-
-			</div>
-
-
-									<!-- PANEL DERECHO: SOPORTE DE DECISIÓN TÉCNICA -->
+				<!-- PANEL DERECHO: SOPORTE DE DECISIÓN TÉCNICA -->
 						<div class="col-lg-4 col-xl-3">
 
 							<div class="sticky-top" style="top: 1.5rem; z-index: 1020;">
@@ -860,265 +924,154 @@
 											Información generada automáticamente de apoyo no sustituye lo que debe hacerse.
 										</small>
 									</div>
-
 								</div>
-
 							</div>
-
 						</div>
-
-
-
-
 		</div>
-
 	</div>
-
 </div>
 
 
-
-@* 
-
 @section Scripts {
 	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
+	<partial name="_ValidationScriptsPartial" />
 
 	<script>
+		$(function () {
+			const $form = $('#formRevision');
 
-		$(document).ready(function () {
+			// ================================================
+			// 1. SUBIR DTA FIRMADO VIA AJAX
+			// ================================================
+			$('#btnSubirDta').on('click', function () {
+				const fileInput = document.getElementById('dtaFirmadoFile');
+				const solicitudId = $(this).data('solicitud-id');
 
-		// APROBAR
+				if (!fileInput || fileInput.files.length === 0) {
+					Swal.fire('Atención', 'Seleccione un archivo PDF firmado antes de subir.', 'warning');
+					return;
+				}
 
-		$('#btnAprobar').click(function () {
+				const formData = new FormData();
+				formData.append('dtaFile', fileInput.files[0]);
+				formData.append('solicitudId', solicitudId);
 
-		const observaciones =
-		$('#Observaciones').val();
+				// Obtener el token antifalsificación de la página
+				const token = $('input[name="__RequestVerificationToken"]').val();
 
-		$('#hiddenObservaciones')
-		.val(observaciones);
+				Swal.fire({
+					title: 'Subiendo documento',
+					text: 'Guardando DTA firmado con firmas autógrafas...',
+					allowOutsideClick: false,
+					didOpen: () => Swal.showLoading()
+				});
 
-		Swal.fire({
+				$.ajax({
+					url: '@Url.Action("CargarDtaFirmado", "SolicitudMantenimiento")',
+					type: 'POST',
+					data: formData,
+					processData: false,
+					contentType: false,
+					headers: {
+						'RequestVerificationToken': token // <-- Enviamos el token de seguridad
+					},
+					success: function (response) {
+						if (response.success) {
+							Swal.fire({
+								icon: 'success',
+								title: '¡Documento guardado!',
+								text: 'El DTA firmado se cargó correctamente.',
+								confirmButtonColor: '#800705'
+							}).then(() => {
+								location.reload();
+							});
+						} else {
+							Swal.fire('Error', response.message || 'No se pudo cargar el archivo.', 'error');
+						}
+					},
+					error: function (xhr) {
+						// Mostramos el error exacto devuelto por el servidor si lo hay
+						console.error(xhr.responseText);
+						Swal.fire('Error', 'Ocurrió un error en el servidor al intentar subir el archivo. Revisa la consola para más detalles.', 'error');
+					}
+				});
+			});
 
-		title: '¿Aprobar revisión?',
+			// ================================================
+			// 2. APROBAR REVISIÓN TÉCNICA
+			// ================================================
+			$('#btnAprobar').on('click', function (e) {
+				e.preventDefault();
 
-		text: 'La solicitud será autorizada y quedará registrada para seguimiento.',
+				if ($(this).hasClass('disabled') || $(this).prop('disabled')) {
+					return;
+				}
 
-		icon: 'question',
+				Swal.fire({
+					title: '¿Autorizar revisión técnica?',
+					text: 'Una vez autorizada, la solicitud pasará al siguiente estatus del flujo.',
+					icon: 'question',
+					showCancelButton: true,
+					confirmButtonColor: '#800705',
+					cancelButtonColor: '#6c757d',
+					confirmButtonText: 'Sí, autorizar',
+					cancelButtonText: 'Cancelar'
+				}).then(function (result) {
+					if (!result.isConfirmed) return;
 
-		showCancelButton: true,
+					$('#aprobadaInput').val('true');
+					$form.trigger('submit');
+				});
+			});
 
-		confirmButtonColor: '#800705',
+			// ================================================
+			// 3. RECHAZAR SOLICITUD
+			// ================================================
+			$('#btnRechazar').on('click', function (e) {
+				e.preventDefault();
 
-		cancelButtonColor: '#6c757d',
+				const observaciones = ($('#Observaciones').val() || '').trim();
+				const tipoRechazo = $('#tipoRechazoSelect').val();
 
-		confirmButtonText: 'Sí, autorizar',
+				if (!observaciones) {
+					Swal.fire({
+						icon: 'warning',
+						title: 'Observaciones requeridas',
+						text: 'Debe indicar el motivo del rechazo.',
+						confirmButtonColor: '#800705'
+					});
+					$('#Observaciones').trigger('focus');
+					return;
+				}
 
-		cancelButtonText: 'Cancelar'
+				if (!tipoRechazo) {
+					Swal.fire({
+						icon: 'warning',
+						title: 'Tipo de rechazo requerido',
+						text: 'Seleccione el tipo de rechazo.',
+						confirmButtonColor: '#800705'
+					});
+					$('#tipoRechazoSelect').trigger('focus');
+					return;
+				}
 
-		}).then((result) => {
+				Swal.fire({
+					title: '¿Rechazar solicitud?',
+					text: 'La solicitud será rechazada y se procesará la liberación presupuestal que corresponda.',
+					icon: 'warning',
+					showCancelButton: true,
+					confirmButtonColor: '#dc3545',
+					cancelButtonColor: '#6c757d',
+					confirmButtonText: 'Sí, rechazar',
+					cancelButtonText: 'Cancelar'
+				}).then(function (result) {
+					if (!result.isConfirmed) return;
 
-		if (result.isConfirmed) {
-
-		$('#aprobadaInput').val('true');
-
-		$('#formRevision').submit();
-		}
+					$('#aprobadaInput').val('false');
+					$form.trigger('submit');
+				});
+			});
 
 		});
-
-		});
-
-		// RECHAZAR
-
-		$('#btnRechazar').click(function () {
-
-		const observaciones =
-		$('#Observaciones').val();
-
-		const tipoRechazo =
-		$('#tipoRechazoSelect').val();
-
-		if (!observaciones.trim()) {
-
-		Swal.fire({
-
-		icon: 'warning',
-
-		title: 'Observaciones requeridas',
-
-		text: 'Debe indicar el motivo del rechazo.',
-
-		confirmButtonColor: '#800705'
-		});
-
-		return;
-		}
-
-		if (!tipoRechazo) {
-
-		Swal.fire({
-
-		icon: 'warning',
-
-		title: 'Tipo rechazo requerido',
-
-		text: 'Seleccione el tipo de rechazo.',
-
-		confirmButtonColor: '#800705'
-		});
-
-		return;
-		}
-
-		$('#hiddenObservaciones')
-		.val(observaciones);
-
-		$('#hiddenTipoRechazo')
-		.val(tipoRechazo);
-
-		Swal.fire({
-
-		title: '¿Rechazar solicitud?',
-
-		text: 'La solicitud será rechazada y quedará registrada para seguimiento.',
-
-		icon: 'info',
-
-		showCancelButton: true,
-
-		confirmButtonColor: '#dc3545',
-
-		cancelButtonColor: '#6c757d',
-
-		confirmButtonText: 'Sí, rechazar',
-
-		cancelButtonText: 'Cancelar'
-
-		}).then((result) => {
-
-		if (result.isConfirmed) {
-
-		$('#aprobadaInput').val('false');
-
-		$('#formRevision').submit();
-		}
-
-		});
-
-		});
-
-		});
-
 	</script>
-
-
-
 }
- *@
-
-
-
-
- 
-@section Scripts {
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-    <partial name="_ValidationScriptsPartial" />
-
-    <script>
-        $(function () {
-
-            const $form = $('#formRevision');
-
-            // ================================================
-            // APROBAR REVISIÓN
-            // ================================================
-
-            $('#btnAprobar').on('click', function () {
-
-                Swal.fire({
-                    title: '¿Aprobar revisión?',
-                    text: 'La solicitud será autorizada y quedará registrada para seguimiento.',
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonColor: '#800705',
-                    cancelButtonColor: '#6c757d',
-                    confirmButtonText: 'Sí, autorizar',
-                    cancelButtonText: 'Cancelar'
-                }).then(function (result) {
-
-                    if (!result.isConfirmed) {
-                        return;
-                    }
-
-                    $('#aprobadaInput').val('true');
-
-                    // El rechazo no requiere datos cuando se aprueba.
-                    // Los valores existentes no se usan para autorizar.
-                    $form.trigger('submit');
-                });
-            });
-
-            // ================================================
-            // RECHAZAR SOLICITUD
-            // ================================================
-
-            $('#btnRechazar').on('click', function () {
-
-                const observaciones =
-                    ($('#Observaciones').val() || '').trim();
-
-                const tipoRechazo =
-                    $('#tipoRechazoSelect').val();
-
-                if (!observaciones) {
-
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Observaciones requeridas',
-                        text: 'Debe indicar el motivo del rechazo.',
-                        confirmButtonColor: '#800705'
-                    });
-
-                    $('#Observaciones').trigger('focus');
-                    return;
-                }
-
-                if (!tipoRechazo) {
-
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Tipo de rechazo requerido',
-                        text: 'Seleccione el tipo de rechazo.',
-                        confirmButtonColor: '#800705'
-                    });
-
-                    $('#tipoRechazoSelect').trigger('focus');
-                    return;
-                }
-
-                Swal.fire({
-                    title: '¿Rechazar solicitud?',
-                    text: 'La solicitud será rechazada y se procesará la liberación presupuestal que corresponda.',
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#dc3545',
-                    cancelButtonColor: '#6c757d',
-                    confirmButtonText: 'Sí, rechazar',
-                    cancelButtonText: 'Cancelar'
-                }).then(function (result) {
-
-                    if (!result.isConfirmed) {
-                        return;
-                    }
-
-                    $('#aprobadaInput').val('false');
-
-                    $form.trigger('submit');
-                });
-            });
-        });
-    </script>
-}
-

@@ -24,14 +24,17 @@ namespace SIGEMAV.Areas.Maquinaria.Controllers
 
         private readonly ILogger<SolicitudMantenimientoController> _logger;
 
+        private readonly IConfiguration _configuration;
 
 
-        public FacturacionController(IMaquinariaService maquinariaService, BdSigeMavContext context, IWebHostEnvironment environment, ILogger<SolicitudMantenimientoController> logger)
+
+        public FacturacionController(IMaquinariaService maquinariaService, BdSigeMavContext context, IWebHostEnvironment environment, ILogger<SolicitudMantenimientoController> logger, IConfiguration configuration)
         {
             _maquinariaService = maquinariaService;
             _context = context;
             _environment = environment;
             _logger = logger;
+            _configuration = configuration;
         }
 
 
@@ -78,11 +81,7 @@ namespace SIGEMAV.Areas.Maquinaria.Controllers
 
         public async Task<List<SelectListItem>> ObtenerAreas(string? selectedValue = null)
         {
-
-
             //OBETENR EL CHIPOTE 
-
-
             var user = HttpContext.User;
 
             // Extraer roles del usuario autenticado
@@ -279,6 +278,110 @@ namespace SIGEMAV.Areas.Maquinaria.Controllers
                 return View(vista);
             }
         }
+
+
+
+
+
+
+        [HttpGet]
+        public async Task<IActionResult> DescargarDocumento(int id)
+        {
+            int? mantenimientoId = null;
+
+            try
+            {
+                // 1. Buscar el documento en la base de datos incluyendo la Solicitud y sus Mantenimientos
+                var documento = await _context.SolicitudMantenimientoDocumentos
+                    .AsNoTracking()
+                    .Include(x => x.SolicitudMantenimiento)
+                        .ThenInclude(s => s.Mantenimientos)
+                    .FirstOrDefaultAsync(x => x.SolicitudMantenimientoDocumentoId == id && x.Activo);
+
+                // Guardamos el MantenimientoId para usarlo en caso de redirección por error
+                mantenimientoId = documento?.SolicitudMantenimiento?.Mantenimientos.FirstOrDefault()?.MantenimientoId;
+
+                if (documento == null || string.IsNullOrEmpty(documento.RutaArchivo))
+                {
+                    TempData["Error"] = "El archivo solicitado no existe o no está disponible.";
+                    return RedirigirACreate(mantenimientoId);
+                }
+
+                
+                // 2. Obtener la ruta base desde appsettings.json
+                var rutaBaseServidor = _configuration["Storage:DocumentosRuta"];
+
+                if (string.IsNullOrEmpty(rutaBaseServidor))
+                {
+                    TempData["Error"] = "La ruta de almacenamiento de documentos no está configurada en el sistema.";
+                    return RedirigirACreate(mantenimientoId);
+                }
+
+                // 3. Limpiar y obtener la ruta correcta del archivo
+                string rutaCompleta;
+
+                // Si la ruta en BD ya viene completa o contiene la ruta base, la usamos directamente o la normalizamos
+                if (documento.RutaArchivo.Contains("10.8.3.61") || Path.IsPathFullyQualified(documento.RutaArchivo))
+                {
+                    // Normalizar las diagonales por si acaso
+                    rutaCompleta = documento.RutaArchivo.Replace("/", "\\");
+                }
+                else
+                {
+                    // Si es relativa, limpiamos cualquier diagonal inicial sobrante y combinamos
+                    var rutaRelativaLimpia = documento.RutaArchivo.TrimStart('~', '/', '\\');
+                    rutaCompleta = Path.Combine(rutaBaseServidor, rutaRelativaLimpia);
+                }
+
+                // Validación final de existencia del archivo físico en la red
+                if (!System.IO.File.Exists(rutaCompleta))
+                {
+                    TempData["Error"] = $"El archivo físico no fue encontrado en el servidor.";
+                    //TempData["Error"] = $"El archivo físico no fue encontrado en el servidor de red: {rutaCompleta}";
+                    return RedirigirACreate(mantenimientoId);
+                }
+
+
+                // 4. Determinar el ContentType (MIME type)
+                var extension = Path.GetExtension(rutaCompleta).ToLowerInvariant();
+                var contentType = extension switch
+                {
+                    ".pdf" => "application/pdf",
+                    ".xml" => "application/xml",
+                    ".jpg" or ".jpeg" => "image/jpeg",
+                    ".png" => "image/png",
+                    ".doc" => "application/msword",
+                    ".docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                    ".xls" => "application/vnd.ms-excel",
+                    ".xlsx" => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    _ => "application/octet-stream"
+                };
+
+                // 5. Retornar el archivo para visualización / descarga
+                var fileBytes = await System.IO.File.ReadAllBytesAsync(rutaCompleta);
+                return File(fileBytes, contentType, documento.NombreArchivo);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Ocurrió un error al intentar descargar el documento: " + ex.Message;
+                return RedirigirACreate(mantenimientoId);
+            }
+        }
+
+        // Método auxiliar de redirección limpia
+        private IActionResult RedirigirACreate(int? mantenimientoId)
+        {
+            if (mantenimientoId.HasValue && mantenimientoId.Value > 0)
+            {
+                return RedirectToAction("Create", "Facturacion", new { mantenimientoId = mantenimientoId.Value });
+            }
+
+            return RedirectToAction("Index", "Mantenimiento");
+        }
+
+
+
+
 
 
 

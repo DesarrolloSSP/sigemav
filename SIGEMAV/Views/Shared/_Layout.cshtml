@@ -1,22 +1,22 @@
 ﻿@using System.Security.Claims
 
 @{
-	var roles = User.Claims
-	 .Where(x => x.Type == ClaimTypes.Role)
-	 .Select(x => x.Value.Trim())
-	 .ToList();
+    var roles = User.Claims
+     .Where(x => x.Type == ClaimTypes.Role)
+     .Select(x => x.Value.Trim())
+     .ToList();
 
-	bool esSysadmin = roles.Any(x =>
-	 x.Equals("Sysadmin", StringComparison.OrdinalIgnoreCase));
+    bool esSysadmin = roles.Any(x =>
+     x.Equals("Sysadmin", StringComparison.OrdinalIgnoreCase));
 
-	bool esAdminFinancieros = roles.Any(x =>
-	 x.Equals("AdminFinancieros", StringComparison.OrdinalIgnoreCase));
+    bool esAdminFinancieros = roles.Any(x =>
+     x.Equals("AdminFinancieros", StringComparison.OrdinalIgnoreCase));
 
-	bool esAdminMaquinaria = roles.Any(x =>
-	 x.Equals("AdminMaquinaria", StringComparison.OrdinalIgnoreCase));
+    bool esAdminMaquinaria = roles.Any(x =>
+     x.Equals("AdminMaquinaria", StringComparison.OrdinalIgnoreCase));
 
-	 bool esAreaOperativa = roles.Any(x =>
-	 x.Equals("AreaOperativa", StringComparison.OrdinalIgnoreCase));
+    bool esAreaOperativa = roles.Any(x =>
+    x.Equals("AreaOperativa", StringComparison.OrdinalIgnoreCase));
 
 }
 
@@ -31,94 +31,93 @@
 
 <head>
 
-	<meta charset="utf-8" />
+    <meta charset="utf-8" />
 
-	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-	<title>@ViewData["Title"] - SIGEMAV</title>
+    <title>@ViewData["Title"] - SIGEMAV</title>
 
-	<link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
 
-	<link rel="stylesheet" href="~/css/layout.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/layout.css" asp-append-version="true" />
 
-	<link rel="stylesheet" href="~/SIGEMAV.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/SIGEMAV.styles.css" asp-append-version="true" />
 
-	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
 	
 </head>
 
 <body>
 
-	<div class="app">
+    <div class="app">
 
-		<!-- SIDEBAR -->
-		<aside id="sidebar" class="sidebar">
+        <!-- SIDEBAR -->
+        <aside id="sidebar" class="sidebar">
 
-			<div class="sidebar-header">
-				@*
-				<img src="~/img/logo/SIGEMAV_blanco.png" class="logo-img" alt="SIGEMAV" /> *@
-				<img src="~/img/logo/SIGEMAV_app-03.png" class="logo-img" alt="SIGEMAV" />
+            <div class="sidebar-header">
 
-			</div>
+                <img src="~/img/logo/SIGEMAV_blanco.png" class="logo-img" alt="SIGEMAV" />
 
-			<nav class="sidebar-menu">
+            </div>
+
+            <nav class="sidebar-menu">
 
 
-				<div class="menu-section">
-					<a asp-area="" asp-controller="Home"
-					   asp-action="Index"
-					   class="menu-parent">
+                <div class="menu-section">
+                    <a asp-area="" asp-controller="Home"
+                       asp-action="Index"
+                       class="menu-parent">
 
-						<div>
-							<i class="bi bi-house-door-fill"></i>
-							<span>INICIO</span>
-						</div>
+                        <div>
+                            <i class="bi bi-house-door-fill"></i>
+                            <span>INICIO</span>
+                        </div>
 
-					</a>
+                    </a>
 
-				</div>
+                </div>
 
 				
-				@if (esAdminFinancieros || esSysadmin)
-				{
-					<div class="menu-section">
+                @if (esAdminFinancieros || esSysadmin)
+                {
+                    <div class="menu-section">
 
-						<button type="button" class="menu-parent">
+                        <button type="button" class="menu-parent">
 
-							<div>
+                            <div>
 
-								<i class="bi bi-cash-stack"></i>
+                                <i class="bi bi-cash-stack"></i>
 
-								<span>FINANCIEROS</span>
+                                <span>FINANCIEROS</span>
 
-							</div>
+                            </div>
 
-							<i class="bi bi-chevron-down"></i>
+                            <i class="bi bi-chevron-down"></i>
 
-						</button>
+                        </button>
 
-						<div class="submenu">
+                        <div class="submenu">
 
-							<a asp-area="AdminFinancieros"
-							   asp-controller="Dsp"
-							   asp-action="Index">
+                            <a asp-area="AdminFinancieros"
+                               asp-controller="Dsp"
+                               asp-action="Index">
 
-								<i class="bi bi-file-earmark-text"></i>
+                                <i class="bi bi-file-earmark-text"></i>
 
-								<span>DSP</span>
+                                <span>DSP</span>
 
-							</a>
+                            </a>
 
-							<a asp-area="AdminFinancieros"
-							   asp-controller="DispPresupuestal"
-							   asp-action="Index">
+                            <a asp-area="AdminFinancieros"
+                               asp-controller="DispPresupuestal"
+                               asp-action="Index">
 
-								<i class="bi bi-cash-stack"></i>
+                                <i class="bi bi-cash-stack"></i>
 
-								<span>Disponibilidad Presupuestal</span>
+                                <span>Disponibilidad Presupuestal</span>
 
-							</a>
+                            </a>
 
 							
 
@@ -126,117 +125,107 @@
 							   asp-controller="OrdenDePago"
 							   asp-action="Index">
 
-								<i class="bi bi-receipt"></i>
+                                <i class="bi bi-receipt"></i>
 
-								<span>Órdenes de Pago</span>
+                                <span>Órdenes de Pago</span>
 
-							</a>
+                            </a>
 
 							
 
 						</div>
 
-					</div>
+                    </div>
 
-					<div class="menu-section">
+                    <div class="menu-section">
 
-						<button type="button" class="menu-parent">
+                        <button type="button" class="menu-parent">
 
-							<div>
+                            <div>
 
-								<i class="bi bi-folder2-open"></i>
+                                <i class="bi bi-folder2-open"></i>
 
-								<span>CATÁLOGOS</span>
+                                <span>CATÁLOGOS</span>
 
-							</div>
+                            </div>
 
-							<i class="bi bi-chevron-down"></i>
+                            <i class="bi bi-chevron-down"></i>
 
-						</button>
+                        </button>
 
-						<div class="submenu">
+                        <div class="submenu">
 
-							<a asp-area="AdminFinancieros" asp-controller="ObjetoGasto"
-							   asp-action="Index">
+                            <a asp-area="AdminFinancieros" asp-controller="ObjetoGasto"
+                               asp-action="Index">
 
-								<i class="bi bi-folder"></i>
+                                <i class="bi bi-folder"></i>
 
-								<span>Objeto Gasto</span>
+                                <span>Objeto Gasto</span>
 
-							</a>
+                            </a>
 
-							<a asp-area="AdminFinancieros" asp-controller="ClaveAdministrativa"
-							   asp-action="Index">
+                            <a asp-area="AdminFinancieros" asp-controller="ClaveAdministrativa"
+                               asp-action="Index">
 
-								<i class="bi bi-folder"></i>
+                                <i class="bi bi-folder"></i>
 
-								<span>Clave Administrativa</span>
+                                <span>Clave Administrativa</span>
 
-							</a>
+                            </a>
 
-							<a asp-area="AdminFinancieros" asp-controller="Proyecto"
-							   asp-action="Index">
+                            <a asp-area="AdminFinancieros" asp-controller="Proyecto"
+                               asp-action="Index">
 
-								<i class="bi bi-folder"></i>
+                                <i class="bi bi-folder"></i>
 
-								<span>Proyecto</span>
+                                <span>Proyecto</span>
 
-							</a>
+                            </a>
 
-							<a asp-area="AdminFinancieros" asp-controller="ProyectoArea"
-							   asp-action="Index">
+                            <a asp-area="AdminFinancieros" asp-controller="ProyectoArea"
+                               asp-action="Index">
 
-								<i class="bi bi-folder"></i>
+                                <i class="bi bi-folder"></i>
 
-								<span>Proyecto - Área</span>
+                                <span>Proyecto - Área</span>
 
-							</a>
+                            </a>
 
-						</div>
+                        </div>
 
-					</div>
-				}
+                    </div>
+                }
 
 				
-				@if (esAdminMaquinaria || esSysadmin)
-				{
-					<div class="menu-section">
+                @if (esAdminMaquinaria || esSysadmin)
+                {
+                    <div class="menu-section">
 
-						<button type="button" class="menu-parent">
+                        <button type="button" class="menu-parent">
 
-							<div>
+                            <div>
 
-								<i class="bi bi-folder2-open"></i>
+                                <i class="bi bi-folder2-open"></i>
 
-								<span>GESTIÓN DE VEHÍCULOS</span>
+                                <span>GESTIÓN DE VEHÍCULOS</span>
 
-							</div>
+                            </div>
 
-							<i class="bi bi-chevron-down"></i>
+                            <i class="bi bi-chevron-down"></i>
 
-						</button>
+                        </button>
 
-						<div class="submenu">
+                        <div class="submenu">
 
-							<a asp-area="Maquinaria" asp-controller="UnidadVehicular"
-							   asp-action="Index">
-
-								<i class="bi bi-folder"></i>
-
-								<span>Plantilla vehicular</span>
-
-							</a>
-
-							<a asp-area="Maquinaria" asp-controller="SolicitudMantenimiento"
-							   asp-action="Index">
-
-								<i class="bi bi-folder"></i>
-
-								<span>Solicitudes de Mantenimiento</span>
-
-							</a>
-
-						@* 	<a asp-area="Maquinaria" asp-controller="Mantenimiento"
+                            <a asp-area="Maquinaria" asp-controller="UnidadVehicular" asp-action="Index">
+                                <i class="bi bi-car-front"></i>
+                                <span>Plantilla vehicular</span>
+                            </a>
+                            <a asp-area="Maquinaria" asp-controller="SolicitudMantenimiento" asp-action="Index">
+                                <i class="bi bi-file-earmark-post"></i>
+                                <span>Solicitudes de Mantenimiento</span>
+                            </a>
+                            @* 	<a asp-area="Maquinaria" asp-controller="Mantenimiento"
 							   asp-action="Index">
 
 								<i class="bi bi-folder"></i>
@@ -245,151 +234,261 @@
 
 							</a> *@
 
-							<a asp-area="Maquinaria" asp-controller="Transferencia"
-							   asp-action="Index">
-
-								<i class="bi bi-folder"></i>
-
-								<span>Transferencias</span>
-
-							</a>
+                            <a asp-area="Maquinaria" asp-controller="Transferencia" asp-action="Index">
+                                <i class="bi bi-arrow-90deg-right"></i>
+                                <span>Transferencias</span>
+                            </a>
 
 
-							<a asp-area="Maquinaria" asp-controller="Facturacion"
-							   asp-action="Index">
+                            <a asp-area="Maquinaria" asp-controller="Facturacion" asp-action="Index">
+                                <i class="bi bi-graph-up"></i>
+                                <span>Facturación</span>
+                            </a>
+                        </div>
+                    </div>
 
-								<i class="bi bi-folder"></i>
+                    <div class="menu-section">
+                        <!-- 1. MENÚ PRINCIPAL (PADRE: CONFIGURACIÓN) -->
+                        <button type="button" class="menu-parent d-flex align-items-center justify-content-between w-100 bg-transparent border-0 text-white px-3 py-2">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-gear-wide-connected me-2"></i>
+                                <span>CONFIGURACIÓN</span>
+                            </div>
+                            <i class="bi bi-chevron-down"></i>
+                        </button>
 
-								<span>Facturacion</span>
+                        <!-- CONTENEDOR GENERAL DE SUBMENÚS -->
+                        <div class="submenu">
 
-							</a>
+                            <!-- ========================================= -->
+                            <!-- SUBMENÚ 1: SERVICIOS Y COSTOS -->
+                            <!-- ========================================= -->
+                            <div class="submenu-section-item">
+                                <button type="button" class="menu-parent d-flex align-items-center justify-content-between w-100 bg-transparent border-0 text-white px-3 py-2">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-cash-stack me-2"></i>
+                                        <span>Servicios y costos</span>
+                                    </div>
+                                    <i class="bi bi-chevron-down"></i>
+                                </button>
+                                <div class="submenu">
+                                    <a asp-area="Maquinaria" asp-controller="TipoCatalogoServicio" asp-action="Index" class="d-flex align-items-center px-4 py-2 text-decoration-none text-white">
+                                        <i class="bi bi-cash-stack me-2"></i>
+                                        <span>Tipo de catálogo de servicio</span>
+                                    </a>
+                                    <a asp-area="Maquinaria" asp-controller="ConceptoServicio" asp-action="Index" class="d-flex align-items-center px-4 py-2 text-decoration-none text-white">
+                                        <i class="bi bi-cash-stack me-2"></i>
+                                        <span>Conceptos de Servicio</span>
+                                    </a>
+                                    <a asp-area="Maquinaria" asp-controller="ConceptoServicioCosto" asp-action="Index" class="d-flex align-items-center px-4 py-2 text-decoration-none text-white">
+                                        <i class="bi bi-cash-stack me-2"></i>
+                                        <span>Costos de Servicio</span>
+                                    </a>
+                                </div>
+                            </div>
 
-						</div>
+                            <!-- ========================================= -->
+                            <!-- SUBMENÚ 2: TÉCNICA -->
+                            <!-- ========================================= -->
+                            <div class="submenu-section-item">
+                                <button type="button" class="menu-parent d-flex align-items-center justify-content-between w-100 bg-transparent border-0 text-white px-3 py-2">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-tools me-2"></i>
+                                        <span>Técnica</span>
+                                    </div>
+                                    <i class="bi bi-chevron-down"></i>
+                                </button>
+                                <div class="submenu">
+                                    <a asp-area="Maquinaria" asp-controller="ConfiguracionValidacionTecnica" asp-action="Index" class="d-flex align-items-center px-4 py-2 text-decoration-none text-white">
+                                        <i class="bi bi-tools me-2"></i>
+                                        <span>Configuración de Validación Técnica</span>
+                                    </a>
+                                </div>
+                            </div>
 
-					</div>
+                            <!-- ========================================= -->
+                            <!-- SUBMENÚ 3: TALLERES -->
+                            <!-- ========================================= -->
+                            <div class="submenu-section-item">
+                                <button type="button" class="menu-parent d-flex align-items-center justify-content-between w-100 bg-transparent border-0 text-white px-3 py-2">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-building me-2"></i>
+                                        <span>Talleres</span>
+                                    </div>
+                                    <i class="bi bi-chevron-down"></i>
+                                </button>
+                                <div class="submenu">
+                                    <a asp-area="Maquinaria" asp-controller="Taller" asp-action="Index" class="d-flex align-items-center px-4 py-2 text-decoration-none text-white">
+                                        <i class="bi bi-building me-2"></i>
+                                        <span>Talleres</span>
+                                    </a>
+                                    <a asp-area="Maquinaria" asp-controller="Taller" asp-action="ConfiguracionPresupuestal" class="d-flex align-items-center px-4 py-2 text-decoration-none text-white">
+                                        <i class="bi bi-building me-2"></i>
+                                        <span>Configuración Presupuestal</span>
+                                    </a>
+                                    <a asp-area="Maquinaria" asp-controller="TallerConfiguracion" asp-action="Index" class="d-flex align-items-center px-4 py-2 text-decoration-none text-white">
+                                        <i class="bi bi-building me-2"></i>
+                                        <span>Configuración de asignación</span>
+                                    </a>
+                                    <a asp-area="Maquinaria" asp-controller="Taller" asp-action="ControlPresupuestal" class="d-flex align-items-center px-4 py-2 text-decoration-none text-white">
+                                        <i class="bi bi-building me-2"></i>
+                                        <span>Taller Control Presupuestal</span>
+                                    </a>
+                                </div>
+                            </div>
 
-
-
-					<div class="menu-section">
-
-						<button type="button" class="menu-parent">
-
-							<div>
-
-								<i class="bi bi-folder2-open"></i>
-
-								<span>CATÁLOGOS</span>
-
-							</div>
-
-							<i class="bi bi-chevron-down"></i>
-
-						</button>
-
-						<div class="submenu">
-
-							<a asp-area="Maquinaria" asp-controller="TipoCatalogoServicio" asp-action="Index">
-
-								<i class="bi bi-folder"></i>
-
-								<span>Tipo de catálogo de servicio</span>
-
-							</a>
-
-							<a asp-area="Maquinaria" asp-controller="ConceptoServicio" asp-action="Index">
-
-								<i class="bi bi-folder"></i>
-
-								<span>Conceptos de Servicio</span>
-
-							</a>
-
-							<a asp-area="Maquinaria" asp-controller="ConceptoServicioCosto" asp-action="Index">
-
-								<i class="bi bi-folder"></i>
-
-								<span>Costos de Servicio</span>
-
-							</a>
-
-							<a asp-area="Maquinaria" asp-controller="ConfiguracionValidacionTecnica" asp-action="Index">
-
-								<i class="bi bi-folder"></i>
-
-								Configuración de Validación Técnica
-
-							</a>
-
-							<a asp-area="Maquinaria" asp-controller="Taller" asp-action="Index">
-
-								<i class="bi bi-folder"></i>
-
-								<span>Talleres</span>
-
-							</a>
-
-							<a asp-area="Maquinaria" asp-controller="Taller" asp-action="ConfiguracionPresupuestal">
-								<i class="bi bi-folder"></i>
-								<span>Configuración Presupuestal</span>
-							</a>
-
-
-
-							<a asp-area="Maquinaria" asp-controller="TallerConfiguracion" asp-action="Index">
-								<i class="bi bi-folder"></i>
-								<span>Configuración de asignación</span>
-							</a>
-
-
-
-							
-
-							<a asp-area="Maquinaria" asp-controller="Taller" asp-action="ControlPresupuestal">
-								<i class="bi bi-folder"></i>
-								<span>Taller Control Presupuestal</span>
-							</a>
-
-							
-							
-							<a asp-area="Maquinaria" asp-controller="Firmantes" asp-action="Index">
-								<i class="bi bi-folder"></i>
-								<span>Firmantes</span>
-							</a>
-
-
-
-						</div>
-					</div>
+                            <!-- ========================================= -->
+                            <!-- SUBMENÚ 4: FIRMANTES -->
+                            <!-- ========================================= -->
+                            <div class="submenu-section-item">
+                                <button type="button" class="menu-parent d-flex align-items-center justify-content-between w-100 bg-transparent border-0 text-white px-3 py-2">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-pen me-2"></i>
+                                        <span>Firmantes</span>
+                                    </div>
+                                    <i class="bi bi-chevron-down"></i>
+                                </button>
+                                <div class="submenu">
+                                    <a asp-area="Maquinaria" asp-controller="Firmantes" asp-action="Index" class="d-flex align-items-center px-4 py-2 text-decoration-none text-white">
+                                        <i class="bi bi-pen me-2"></i>
+                                        <span>Firmantes</span>
+                                    </a>
+                                </div>
+                            </div>
 
 
-				}
+                            <!-- ========================================= -->
+                            <!-- SUBMENÚ 5 vehiculos -->
+                            <!-- ========================================= -->
+                            <div class="submenu-section-item">
+                                <button type="button" class="menu-parent d-flex align-items-center justify-content-between w-100 bg-transparent border-0 text-white px-3 py-2">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-tags me-2"></i>
+                                        <span>Vehículos</span>
+                                    </div>
+                                    <i class="bi bi-chevron-down"></i>
+                                </button>
+                                <div class="submenu">
+                                    <a asp-area="Maquinaria" asp-controller="CatalogoVehicular" asp-action="Marcas" class="d-flex align-items-center px-4 py-2 text-decoration-none text-white">
+                                        <i class="bi bi-tags me-2"></i>
+                                        <span>Marcas</span>
+                                    </a>
+
+                                    <a asp-area="Maquinaria" asp-controller="CatalogoVehicular" asp-action="Modelos" class="d-flex align-items-center px-4 py-2 text-decoration-none text-white">
+                                        <i class="bi bi-tags me-2"></i>
+                                        <span>Modelos</span>
+                                    </a>
+
+                                    <a asp-area="Maquinaria" asp-controller="CatalogoVehicular" asp-action="Anios" class="d-flex align-items-center px-4 py-2 text-decoration-none text-white">
+                                        <i class="bi bi-calendar-event me-2"></i>
+                                        <span>Años</span>
+                                    </a>
+
+                                    <a asp-area="Maquinaria" asp-controller="CatalogoVehicular" asp-action="Transmisiones" class="d-flex align-items-center px-4 py-2 text-decoration-none text-white">
+                                        <i class="bi bi-gear-wide-connected me-2"></i>
+                                        <span>Transmisiones</span>
+                                    </a>
+
+                                    <a asp-area="Maquinaria" asp-controller="CatalogoVehicular" asp-action="Cilindros" class="d-flex align-items-center px-4 py-2 text-decoration-none text-white">
+                                        <i class="bi bi-cpu me-2"></i>
+                                        <span>Cilindros</span>
+                                    </a>
+                                    <a asp-area="Maquinaria" asp-controller="CatalogoVehicular" asp-action="Colores" class="d-flex align-items-center px-4 py-2 text-decoration-none text-white">
+                                        <i class="bi bi-palette me-2"></i>
+                                        <span>Colores</span>
+                                    </a>
+                                  @*   <a asp-area="Maquinaria" asp-controller="Area" asp-action="Areas" class="d-flex align-items-center px-4 py-2 text-decoration-none text-white">
+                                        <i class="bi bi-diagram-3 me-2"></i>
+                                        <span>Áreas</span>
+                                    </a> *@
+                                </div>
+                            </div>
 
 
-				@if (esAreaOperativa || esSysadmin)
-				{
-					<div class="menu-section">
-						<button type="button" class="menu-parent">
-							<div>
-								<i class="bi bi-folder2-open"></i>
-								<span>GESTIÓN DE VEHÍCULOS</span>
-							</div>
-							<i class="bi bi-chevron-down"></i>
-						</button>
-						<div class="submenu">
-							<a asp-area="Maquinaria" asp-controller="UnidadVehicular" asp-action="Index">
-								<i class="bi bi-folder"></i>
-								<span>Plantilla vehicular</span>
-							</a>
-							<a asp-area="Maquinaria" asp-controller="SolicitudMantenimiento" asp-action="Index">
-								<i class="bi bi-folder"></i>
-								<span>Solicitudes de Mantenimiento</span>
-							</a>
-						@* 	<a asp-area="Maquinaria" asp-controller="Mantenimiento"
+
+
+                            <!-- ========================================= -->
+                            <!-- SUBMENÚ 6: AREAS -->
+                            <!-- ========================================= -->
+                            <div class="submenu-section-item">
+                                <button type="button" class="menu-parent d-flex align-items-center justify-content-between w-100 bg-transparent border-0 text-white px-3 py-2">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-diagram-3 me-2"></i>
+                                        <span>Áreas</span>
+                                    </div>
+                                    <i class="bi bi-chevron-down"></i>
+                                </button>
+                                <div class="submenu">
+                                    <a asp-area="Maquinaria" asp-controller="Area" asp-action="Areas" class="d-flex align-items-center px-4 py-2 text-decoration-none text-white">
+                                        <i class="bi bi-diagram-3 me-2"></i>
+                                        <span>Áreas</span>
+                                    </a>
+                                </div>
+                            </div>
+
+
+
+
+
+                            <!-- ========================================= -->
+                            <!-- SUBMENÚ 7: MUNICIPIOS -->
+                            <!-- ========================================= -->
+                            <div class="submenu-section-item">
+                                <button type="button" class="menu-parent d-flex align-items-center justify-content-between w-100 bg-transparent border-0 text-white px-3 py-2">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-geo-alt me-2"></i>
+                                        <span>Municipios</span>
+                                    </div>
+                                    <i class="bi bi-chevron-down"></i>
+                                </button>
+                                <div class="submenu">
+                                    <a asp-area="Maquinaria" asp-controller="Municipio" asp-action="Municipios" class="d-flex align-items-center px-4 py-2 text-decoration-none text-white">
+                                        <i class="bi bi-geo-alt me-2"></i>
+                                        <span>Municipios</span>
+                                    </a>
+                                </div>
+                            </div>
+
+
+
+
+                          
+
+
+                        </div>
+                    </div>
+
+
+
+
+                }
+
+
+                @if (esAreaOperativa || esSysadmin)
+                {
+                    <div class="menu-section">
+                        <button type="button" class="menu-parent">
+                            <div>
+                                <i class="bi bi-folder2-open"></i>
+                                <span>GESTIÓN DE VEHÍCULOS</span>
+                            </div>
+                            <i class="bi bi-chevron-down"></i>
+                        </button>
+                        <div class="submenu">
+                            <a asp-area="Maquinaria" asp-controller="UnidadVehicular" asp-action="Index">
+                                <i class="bi bi-folder"></i>
+                                <span>Plantilla vehicular</span>
+                            </a>
+                            <a asp-area="Maquinaria" asp-controller="SolicitudMantenimiento" asp-action="Index">
+                                <i class="bi bi-folder"></i>
+                                <span>Solicitudes de Mantenimiento</span>
+                            </a>
+                            @* 	<a asp-area="Maquinaria" asp-controller="Mantenimiento"
 							   asp-action="Index">
 								<i class="bi bi-folder"></i>
 								<span>Mantenimiento</span>
 							</a> *@
-							@* <a asp-area="Maquinaria" asp-controller="Transferencia"
+                            @* <a asp-area="Maquinaria" asp-controller="Transferencia"
 							   asp-action="Index">
 								<i class="bi bi-folder"></i>
 								<span>Transferencias</span>
@@ -400,264 +499,264 @@
 								<span>Facturacion</span>
 							</a> *@
 
-								<a asp-area="Maquinaria" asp-controller="Facturacion"
-							   asp-action="Index">
+                            <a asp-area="Maquinaria" asp-controller="Facturacion"
+                               asp-action="Index">
 
-								<i class="bi bi-folder"></i>
+                                <i class="bi bi-folder"></i>
 
-								<span>Facturacion</span>
+                                <span>Facturacion</span>
 
-							</a>
+                            </a>
 
-						</div>
-					</div>
-
-
+                        </div>
+                    </div>
 
 
-					<div class="menu-section">
 
-						<button type="button" class="menu-parent">
 
-							<div>
+                    <div class="menu-section">
 
-								<i class="bi bi-folder2-open"></i>
+                        <button type="button" class="menu-parent">
 
-								<span>CATÁLOGOS</span>
+                            <div>
 
-							</div>
+                                <i class="bi bi-folder2-open"></i>
 
-							<i class="bi bi-chevron-down"></i>
+                                <span>CATÁLOGOS</span>
 
-						</button>
+                            </div>
 
-						<div class="submenu">
+                            <i class="bi bi-chevron-down"></i>
 
-							
+                        </button>
+
+                        <div class="submenu">
 
 							
+
 							
-							<a asp-area="Maquinaria" asp-controller="Firmantes" asp-action="Index">
-								<i class="bi bi-folder"></i>
-								<span>Firmantes</span>
-							</a>
+							
+                            <a asp-area="Maquinaria" asp-controller="Firmantes" asp-action="Index">
+                                <i class="bi bi-folder"></i>
+                                <span>Firmantes</span>
+                            </a>
 
 
 
-						</div>
-					</div>
+                        </div>
+                    </div>
 
 
-				}
+                }
 
 
 
-			</nav>
+            </nav>
 
-		</aside>
-
-
-		<!-- FONDO OSCURO MÓVIL -->
-		<div id="sidebarOverlay"></div>
+        </aside>
 
 
-		<!-- MAIN -->
-		<div class="app-main">
+        <!-- FONDO OSCURO MÓVIL -->
+        <div id="sidebarOverlay"></div>
 
-			<header class="topbar">
 
-				<button id="btnMenu"
-						class="btn-menu">
+        <!-- MAIN -->
+        <div class="app-main">
 
-					<i class="bi bi-list"></i>
+            <header class="topbar">
 
-				</button>
+                <button id="btnMenu"
+                        class="btn-menu">
 
-				<div class="topbar-title">
+                    <i class="bi bi-list"></i>
 
-					@ViewData["Title"]
+                </button>
 
-				</div>
+                <div class="topbar-title">
+
+                    @ViewData["Title"]
+
+                </div>
 
 								
-				<div class="topbar-user">
+                <div class="topbar-user">
 
-					<span>
-						<i class="bi bi-person-circle"></i>
-						@User.Identity?.Name
-					</span>
+                    <span>
+                        <i class="bi bi-person-circle"></i>
+                        @User.Identity?.Name
+                    </span>
 
-					@if (roles.Any())
-					{
-						<span class="text-muted">
-							(@string.Join(" | ", roles))
-						</span>
-					}
+                    @if (roles.Any())
+                    {
+                        <span class="text-muted">
+                            (@string.Join(" | ", roles))
+                        </span>
+                    }
 
-					<span>|</span>
+                    <span>|</span>
 
-					<form asp-area="Account"
-						  asp-controller="Account"
-						  asp-action="Logout"
-						  method="post">
+                    <form asp-area="Account"
+                          asp-controller="Account"
+                          asp-action="Logout"
+                          method="post">
 
-						@Html.AntiForgeryToken()
+                        @Html.AntiForgeryToken()
 
-						<button type="submit"
-								class="logout-link">
+                        <button type="submit"
+                                class="logout-link">
 
-							Cerrar sesión
+                            Cerrar sesión
 
-						</button>
+                        </button>
 
-					</form>
+                    </form>
 
-				</div>
+                </div>
 
 
-			</header>
+            </header>
 
 
 			
 		
 
-			<!-- CONTENIDO GRAL. -->
-			<main class="content">
+            <!-- CONTENIDO GRAL. -->
+            <main class="content">
 
-				@RenderBody()
+                @RenderBody()
 
-			</main>
+            </main>
 
 						
 			
-			<footer class="footer">
+            <footer class="footer">
 
-				<div class="footer-text">
+                <div class="footer-text">
 
-					Se prohíbe la reproducción total o parcial contenida en este sistema informático sin el consentimiento expreso y por escrito de la Secretaría de Seguridad Pública del Estado de Veracruz. © @DateTime.Now.Year - Derechos Reservados.
+                    Se prohíbe la reproducción total o parcial contenida en este sistema informático sin el consentimiento expreso y por escrito de la Secretaría de Seguridad Pública del Estado de Veracruz. © @DateTime.Now.Year - Derechos Reservados.
 
-				</div>
+                </div>
 
-			</footer>
+            </footer>
 
-		</div>
+        </div>
 
-	</div>
+    </div>
 
 		
 
 	
 
 
-	<script>
+    <script>
 
-			document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('DOMContentLoaded', function () {
 
-				const sidebar = document.getElementById('sidebar');
-				const btnMenu = document.getElementById('btnMenu');
-				const overlay = document.getElementById('sidebarOverlay');
+            const sidebar = document.getElementById('sidebar');
+            const btnMenu = document.getElementById('btnMenu');
+            const overlay = document.getElementById('sidebarOverlay');
 
-				// Menú hamburguesa
-				btnMenu.addEventListener('click', function () {
+            // Menú hamburguesa
+            btnMenu.addEventListener('click', function () {
 
-					if (window.innerWidth <= 1200) {
+                if (window.innerWidth <= 1200) {
 
-						sidebar.classList.toggle('mobile-open');
-						overlay.classList.toggle('show');
+                    sidebar.classList.toggle('mobile-open');
+                    overlay.classList.toggle('show');
 
-					} else {
+                } else {
 
-						sidebar.classList.toggle('collapsed');
+                    sidebar.classList.toggle('collapsed');
 
-					}
+                }
 
-				});
+            });
 
-				// Submenús
-				document.querySelectorAll('.menu-parent').forEach(menu => {
+            // Submenús
+            document.querySelectorAll('.menu-parent').forEach(menu => {
 
-					menu.addEventListener('click', function () {
+                menu.addEventListener('click', function () {
 
-						const submenu = this.nextElementSibling;
+                    const submenu = this.nextElementSibling;
 
-						if (!submenu ||
-							!submenu.classList.contains('submenu'))
-							return;
+                    if (!submenu ||
+                        !submenu.classList.contains('submenu'))
+                        return;
 
-						submenu.classList.toggle('show');
+                    submenu.classList.toggle('show');
 
-						const icon =
-							this.querySelector('.bi-chevron-down');
+                    const icon =
+                        this.querySelector('.bi-chevron-down');
 
-						if (icon)
-							icon.classList.toggle('chevron-rotate');
+                    if (icon)
+                        icon.classList.toggle('chevron-rotate');
 
-					});
+                });
 
-				});
+            });
 
-				// Cerrar menú al seleccionar opción
-				document.querySelectorAll('.sidebar a').forEach(link => {
+            // Cerrar menú al seleccionar opción
+            document.querySelectorAll('.sidebar a').forEach(link => {
 
-					link.addEventListener('click', () => {
+                link.addEventListener('click', () => {
 
-						if (window.innerWidth <= 1200) {
+                    if (window.innerWidth <= 1200) {
 
-							sidebar.classList.remove('mobile-open');
-							overlay.classList.remove('show');
+                        sidebar.classList.remove('mobile-open');
+                        overlay.classList.remove('show');
 
-						}
+                    }
 
-					});
+                });
 
-				});
+            });
 
-				// Cerrar al tocar fondo oscuro
-				overlay.addEventListener('click', function () {
+            // Cerrar al tocar fondo oscuro
+            overlay.addEventListener('click', function () {
 
-					sidebar.classList.remove('mobile-open');
-					overlay.classList.remove('show');
+                sidebar.classList.remove('mobile-open');
+                overlay.classList.remove('show');
 
-				});
+            });
 
-			});
+        });
 
-	</script>
-
-
-
-
-	<script>
-			document.addEventListener('DOMContentLoaded', function () {
-
-				setTimeout(function () {
-
-					document
-						.querySelectorAll('.auto-hide-alert')
-						.forEach(function (alert) {
-
-							let bsAlert =
-								bootstrap.Alert.getOrCreateInstance(alert);
-
-							bsAlert.close();
-
-						});
-
-				}, 4000);
-
-			});
-	</script>
+    </script>
 
 
 
 
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
 
-	<script src="~/lib/jquery/dist/jquery.min.js"></script>
-	<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-	<script src="~/js/site.js" asp-append-version="true"></script>
-	<script src="~/js/dsp.js" asp-append-version="true"></script>
-	<partial name="_AlertsPartial" />
-	@await RenderSectionAsync("Scripts", required: false)
+            setTimeout(function () {
+
+                document
+                    .querySelectorAll('.auto-hide-alert')
+                    .forEach(function (alert) {
+
+                        let bsAlert =
+                            bootstrap.Alert.getOrCreateInstance(alert);
+
+                        bsAlert.close();
+
+                    });
+
+            }, 4000);
+
+        });
+    </script>
+
+
+
+
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/dsp.js" asp-append-version="true"></script>
+    <partial name="_AlertsPartial" />
+    @await RenderSectionAsync("Scripts", required: false)
 
 </body>
 
